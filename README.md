@@ -113,7 +113,7 @@ complete:
 
         $ tup svr
 
-(The 'svr' argument names a file that the first instance of tup uses to store information like socket addresses and the second instance uses to connect. The first instance starts the servers as child processes. However, both instances appear in the terminal as interactive shells.)
+  (The 'svr' argument names a file that the first instance of tup uses to store information like socket addresses and the second instance uses to connect. The first instance starts the servers as child processes. However, both instances appear in the terminal as interactive shells.)
 
 5. Look at the examples. You may need to dig a bit to find the gem installation. For example:
 
@@ -149,11 +149,15 @@ A tuple is either an array:
 
 In other words, a tuple is a fairly general object, though this depends on the serializer--see below. More or less, a tuple is anything that can be built out of:
 
-  strings
-  numbers
-  nil, true, false
-  arrays
-  hashes
+* strings
+
+* numbers
+
+* nil, true, false
+
+* arrays
+
+* hashes
 
 It's kind of like a "JSON object", except that in the json blob case, the hash keys can only be strings. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
 
@@ -260,19 +264,19 @@ What other potential problems and how does tupelo solve them?
 Future
 ======
 
-- [ ] Subspaces. Redundancy, for read-heavy systems (redundant array of in-memory sqlite, for example). Clients managing different subspaces may benefit by using different stores and algorithms.
+- Subspaces. Redundancy, for read-heavy systems (redundant array of in-memory sqlite, for example). Clients managing different subspaces may benefit by using different stores and algorithms.
 
-- [ ] More persistence options.
+- More persistence options.
 
-- [ ] Fail-over. Robustness.
+- Fail-over. Robustness.
 
-- [ ] Investigate nio4r for faster networking.
+- Investigate nio4r for faster networking.
 
-- [ ] Interoperable client and server implementations in C, Python, Go, ....
+- Interoperable client and server implementations in C, Python, Go, ....
 
-- [ ] UDP multicast.
+- UDP multicast.
 
-- [ ] Tupelo as a service; specialized and replicated subspace managers as services.
+- Tupelo as a service; specialized and replicated subspace managers as services.
 
 
 
@@ -306,14 +310,21 @@ Both: tuples can be arrays or hashes.
 To compare
 ----------
 
-beanstalkd
-resque
-zookeeper -- totally ordered updates
-chubby
-doozer
-hazelcast
-lmax -- minimal spof
-datomic -- similar distribution of "facts", but not tuplespace
+* beanstalkd
+
+* resque
+
+* zookeeper -- totally ordered updates
+
+* chubby
+
+* doozer
+
+* hazelcast
+
+* lmax -- minimal spof
+
+* datomic -- similar distribution of "facts", but not tuplespace
 
 
 Architecture
@@ -381,16 +392,21 @@ Dependencies
 
 Gems that were developed to support this project:
 
-https://github.com/vjoel/atdo
-https://github.com/vjoel/easy-serve
-https://github.com/vjoel/funl
-https://github.com/vjoel/object-stream
-https://github.com/vjoel/object-template
+* https://github.com/vjoel/atdo
+
+* https://github.com/vjoel/easy-serve
+
+* https://github.com/vjoel/funl
+
+* https://github.com/vjoel/object-stream
+
+* https://github.com/vjoel/object-template
 
 Other gems:
 
-msgpack
-yajl-ruby (only used to support --json option)
+* msgpack
+
+* yajl-ruby (only used to support --json option)
 
 
 Contact
