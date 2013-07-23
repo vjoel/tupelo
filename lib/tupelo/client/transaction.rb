@@ -5,20 +5,7 @@ class Tupelo::Client
   class TransactionError < StandardError; end
   class TransactionStateError < TransactionError; end
   class TransactionAbort < TransactionError; end
-
-  class TransactionFailure < TransactionError
-    attr_reader :missing
-    def initialize missing
-      super()
-      @missing = missing
-    end
-    def message
-      @message ||= "missing " + missing.map {|t| t.inspect}.join(", ")
-    end
-    def to_s
-      message
-    end
-  end
+  class TransactionFailure < TransactionError; end
 
   module Api
     # Transactions are atomic by default, and are always isolated. In the
@@ -99,6 +86,7 @@ class Tupelo::Client
     attr_reader :take_tuples
     attr_reader :read_tuples
     attr_reader :granted_tuples
+    attr_reader :missing
     
     STATES = [
       OPEN      = :open,    # initial state
@@ -135,6 +123,8 @@ class Tupelo::Client
       @take_tuples = []
       @read_tuples = []
       @granted_tuples = nil
+      @missing = nil
+      @_take_nowait = nil
       
       if deadline
         worker.at deadline do
@@ -164,6 +154,11 @@ class Tupelo::Client
       ops.compact!
       
       b = atomic ? "atomic" : "batch"
+      ops << "missing: #{missing}" if missing
+
+      ## show take/read tuples too?
+      ## show current tick, if open or closed
+      ## show nowait
       
       "<#{self.class} #{stat} #{b} #{ops.join('; ')}>"
     end
@@ -392,7 +387,8 @@ class Tupelo::Client
       raise unless in_worker_thread?
       raise if @global_tick or @exception
       
-      @exception = TransactionFailure.new missing
+      @missing = missing
+      @exception = TransactionFailure
       failed!
       @queue << false
     end
