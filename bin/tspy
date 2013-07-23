@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+
+if ARGV.delete("-h") or ARGV.delete("--help")
+  puts <<-END
+    Usage:
+      #$0 servers_file
+
+      Connect to the tuplespace specified by the servers_file and
+      use the notification api to print out all events.
+      
+      For example, you can start a tup with
+      
+          tup svr
+      
+      and then in another terminal
+      
+          tspy svr
+
+    Options:
+    
+      --debug     set the log level
+      --info
+      --warn      <-- default
+      --error
+      --fatal
+  END
+  exit
+end
+
+require 'tupelo/app'
+
+Tupelo.application do |app|
+  app.local do |client|
+    note = client.notifier
+    client.log "%10s %10s %10s %s" % %w{ status tick client operation }
+    loop do
+      client.log "%10s %10d %10d %p" % note.wait
+    end
+  end
+end

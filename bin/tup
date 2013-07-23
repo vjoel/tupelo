@@ -1,0 +1,163 @@
+#!/usr/bin/env ruby
+
+if ARGV.delete("-h") or ARGV.delete("--help")
+  puts <<-END
+    Usage:
+      #$0
+
+      #$0 servers_file
+      #$0 servers_file <script...
+
+      #$0 servers_file unix [path]
+      #$0 servers_file tcp [host [port]]]
+    
+    The first form starts a tuplespace server as a child process. Then it
+    enters an interactive session in which the current object is the proxy to
+    that tuplespace. This form is useful for an isolated tuplespace for
+    simple experiments.
+    
+    The second form tries to open the servers_file. If it cannot, then as in the
+    first form, it starts a tuplespace server child process and writes its
+    address to servers_file. If it can open the servers_file, then it simply
+    connects to the referenced tuplespace server. In either case, as in the
+    first form, an interactive session starts. This form (in its two variants)
+    is useful for starting two sessions operating on the same tuplespace.
+
+    The third form is like the second form, but executes the input instead of
+    starting an interactive session. Output is like irb output, with input lines
+    alternating with their output. This is useful for generating human-readable
+    transcripts.
+
+    The fourth and fifth forms are like the previous, but can be used to expose
+    the server on more or less public sockets with specified addresses. In the
+    tcp case, the servers_file can be copied to other hosts and used with tup
+    to connect to the servers (adjust the host references as needed). The
+    default for unix is, as in the first three forms, a path in a tmpdir. The
+    default for tcp is localhost with port 0, and hence a dynamically chosen
+    port. These forms are only for starting a new server; connecting to an
+    existing server uses the simpler form "#$0 servers_file".
+
+    Options:
+    
+      --debug     set the log level
+      --info
+      --warn      <-- default
+      --error
+      --fatal
+      
+      -v          verbose mode (include time and pid in log messages)
+      
+      --pubsub    publish/subscribe mode; does not keep local tuple store:
+      
+                    * read only works in blocking mode (waiting for new tuple)
+                    * write and pulse work normally
+                    * take does not work
+
+      --marshal   use specified library to serialize objects
+      --yaml
+      --json
+      --msgpack   <-- default
+
+  END
+  exit
+end
+
+require 'easy-serve'
+
+log_level = case
+  when ARGV.delete("--debug"); Logger::DEBUG
+  when ARGV.delete("--info");  Logger::INFO
+  when ARGV.delete("--warn");  Logger::WARN
+  when ARGV.delete("--error"); Logger::ERROR
+  when ARGV.delete("--fatal"); Logger::FATAL
+  else Logger::WARN
+end
+verbose = ARGV.delete("-v")
+pubsub = ARGV.delete("--pubsub")
+
+blob_type = nil
+%w{--marshal --yaml --json --msgpack}.each do |switch|
+  s = ARGV.delete(switch) and
+    blob_type ||= s.delete("--")
+end
+
+ez_opts = {
+  servers_file: ARGV.shift,
+  interactive: $stdin.isatty
+}
+
+addr = ARGV.shift(3)
+
+EasyServe.start ez_opts do |ez|
+  log = ez.log
+  log.level = log_level
+  log.formatter = nil if verbose
+  log.progname = File.basename($0)
+    
+  ez.start_servers do
+    arc_to_seq_sock, seq_to_arc_sock = UNIXSocket.pair
+    arc_to_cseq_sock, cseq_to_arc_sock = UNIXSocket.pair
+    
+    ez.server :seqd, *addr do |svr|
+      require 'funl/message-sequencer'
+      seq_opts = {}
+      seq_opts[:blob_type] = blob_type if blob_type
+      seq = Funl::MessageSequencer.new svr, seq_to_arc_sock, log: log,
+        **seq_opts
+      seq.start ## thwait? or can easy-serve do that?
+    end
+    
+    ez.server :cseqd, *addr do |svr|
+      require 'funl/client-sequencer'
+      cseq = Funl::ClientSequencer.new svr, cseq_to_arc_sock, log: log
+      cseq.start
+    end
+
+    ez.server :arcd, *addr do |svr|
+      require 'tupelo/archiver'
+      arc = Tupelo::Archiver.new svr, seq: arc_to_seq_sock,
+              cseq: arc_to_cseq_sock, log: log
+      arc.start
+    end
+  end
+  
+  ez.local :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
+    log.progname = "client <starting in #{log.progname}>"
+
+    require 'tupelo/client'
+    class TupClient < Tupelo::Client
+      alias w write_wait
+      alias pl pulse_wait
+      alias t take
+      alias r read_wait
+      alias ra read_all
+      alias tr transaction
+      CMD_ALIASES = %w{ w pl t r ra tr }
+      private *CMD_ALIASES
+    end
+
+    client_opts = {seq: seqd, cseq: cseqd, log: log}
+    if pubsub
+      client_opts[:arc] = nil
+      client_opts[:tuplespace] = TupClient::NullTuplespace
+    else
+      client_opts[:arc] = arcd
+    end
+
+    client = TupClient.new client_opts
+    client.start do
+      log.progname = "client #{client.client_id}"
+    end
+    log.info {
+      "cpu time: %.2fs" % Process.times.inject {|s,x|s+x}
+    }
+    log.info {
+      "starting shell. Commands: #{TupClient::CMD_ALIASES.join(", ")}"
+    }
+
+    require 'irb-shell'
+    IRB.start_session(client)
+
+    client.stop
+  end
+end
