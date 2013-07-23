@@ -46,6 +46,7 @@ class Tupelo::Client
     def initialize template, client
       @template = template
       @queue = client.make_queue
+      @client = client
     end
 
     def gloms tuple
@@ -62,7 +63,10 @@ class Tupelo::Client
     end
 
     def wait
-      queue.pop
+      @client.log.debug {"waiting for #{self}"}
+      r = queue.pop
+      @client.log.debug {"finished waiting for #{self}"}
+      r
     end
 
     def inspect
