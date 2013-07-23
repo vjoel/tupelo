@@ -67,6 +67,15 @@ class Tupelo::Client
         tuple
       end
     end
+
+    def take_nowait template
+      transaction do |t|
+        tuple = t.take_nowait template
+        return nil if tuple.nil?
+        yield tuple if block_given?
+        tuple
+      end
+    end
   end
   
   class Transaction
@@ -203,6 +212,22 @@ class Tupelo::Client
       return take_tuples.last
     end
     
+    def take_nowait template_spec
+      raise "cannot take in batch" unless atomic
+      raise exception if failed?
+      raise TransactionStateError, "not open: #{inspect}" unless open? or
+        failed?
+      template = worker.make_template(template_spec)
+      @_take_nowait ||= {}
+      i = @take_templates.size
+      @_take_nowait[i] = true
+      @take_templates << template
+      log.debug {"asking worker to take_nowait #{template_spec.inspect}"}
+      worker << self
+      wait
+      return take_tuples[i]
+    end
+    
     # transaction applies only if template has a match
     def read template_spec
       raise "cannot read in batch" unless atomic
@@ -309,12 +334,23 @@ class Tupelo::Client
 
       else
         ## optimization: use tuple cache
+        skip = nil
         (take_tuples.size...take_templates.size).each do |i|
           take_tuples[i] = worker.tuplespace.find_match_for(
             take_templates[i], distinct_from: take_tuples)
           if take_tuples[i]
             log.debug {"prepared #{inspect} with #{take_tuples[i]}"}
+          else
+            if @_take_nowait and @_take_nowait[i]
+              (skip ||= []) << i
+            end
           end
+        end
+
+        skip and skip.reverse_each do |i|
+          take_tuples.delete_at i
+          take_templates.delete_at i
+          @_take_nowait.delete i
         end
         
         (read_tuples.size...read_templates.size).each do |i|
