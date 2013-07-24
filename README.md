@@ -9,9 +9,11 @@ Tupelo differs from other spaces in several ways:
 
 * minimal central storage: the only state in the server is a counter and socket connections
 
-* minimal central computation: just counter increment, message dispatch, and connection management
+* minimal central computation: just counter increment, message dispatch, and connection management (and it never unpacks serialized tuples)
 
 * clients do all the tuple work: registering and checking waiters, matching, searching, notifying, storing, inserting, deleting, persisting, etc. Each client is free to to decide how to do these things (application code is insulated from this, however). Special-purpose clients may use specialized algorithms and stores for the subspaces they manage.
+
+* transactions, in addition to the classic operators.
 
 * replication is inherent in the design (in fact it is unavoidable), for better or worse.
 
@@ -21,7 +23,7 @@ Getting started
 
 1. Install ruby 2 (not 1.9) from http://ruby-lang.org. Examples and tests will not work on windows (they use fork and unix sockets), though probably the underying libs will (using tcp sockets).
 
-2. Install the gem and its dependencies:
+2. Install the gem and its dependencies (you may need to `sudo` this):
 
         gem install tupelo
 
@@ -34,9 +36,9 @@ Getting started
         >> t [nil, nil]
         => ["hello", "world"]
 
-  If you run tup with the --info switch it will tell you the aliases to the tuple API (and also tell you much about what is happening in your transactions). Briefly:
+  If you run tup with the --info switch it will tell you the aliases to the tuple API (and also tell you much about what is happening in your transactions). Here's an overview of the API, including the short aliases avilable in tup:
 
-  Write one or more tuples (and wait for the transaction to be recorded):
+  Write one or more tuples (and wait for the transaction to be recorded in the local space):
 
         w <tuple>,...
         write_wait <tuple>,...
@@ -63,7 +65,7 @@ Getting started
         r <template>
         read_wait <template>
 
-  Read tuple matching a template, without waiting for a match to exist:
+  Read tuple matching a template and return it, without waiting for a match to exist (returning nil in that case):
 
         read_nowait <template>
 
@@ -82,19 +84,28 @@ Getting started
 
   reads all 2-tuples.
 
-  Take a tuple
+  Take a tuple matching a template:
 
-        t <tuple>
-        take <tuple>
+        t <template>
+        take <template>
 
-  Take a tuple and optimistically use the local value before the transaction is
-complete:
+  Take a tuple matching a template and optimistically use the local value before the transaction is complete:
 
-        x_final = take <tuple> do |x_optimistic|
+        x_final = take <template> do |x_optimistic|
           ...
         end
 
-  It's possible that the block will be called with a value different from the eventual return value. It's also possible for the block to be called more than once.
+  There is no guarantee that `x_final == x_optimistic`. The block may execute more than once.
+
+  Take a tuple matching a template, but only if a local match exist (otherwise return nil):
+
+        take_nowait <template>
+
+        x_final = take_nowait <template> do |x_optimistic|
+          ...
+        end
+
+  Note that a local match is still not a guarantee of returning that tuple immediately -- another process may take it first, blocking this process.
 
   Perform a general transaction:
 
@@ -107,21 +118,23 @@ complete:
             [rval, tval]      # pass out result
           end
 
-  Note that the block may get executed more than once, if there is competition for the tuples that you are trying to #take. When the block exits, however, the transaction is final and universally accepted by all clients.
+  Note that the block may execute more than once, if there is competition for the tuples that you are trying to #take or #read. When the block exits, however, the transaction is final and universally accepted by all clients.
 
 4. Run tup with a server file so that two sessions can interact. Do this in two terminals in the same dir:
 
         $ tup svr
 
   (The 'svr' argument names a file that the first instance of tup uses to store information like socket addresses and the second instance uses to connect. The first instance starts the servers as child processes. However, both instances appear in the terminal as interactive shells.)
+  
+  To do this on two hosts, copy the svr file and edit its hostname params as needed.
 
 5. Look at the examples. You may need to dig a bit to find the gem installation. For example:
 
-        ls /usr/local/lib/ruby/gems/2.0.0/gems
+        ls -d /usr/local/lib/ruby/gems/*/gems/tupelo*
 
-  Note that all bin and example programs accept blob type (e.g., --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.
+  Note that all bin and example programs accept blob type (e.g., --msgpaack, --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.
 
-6. Deugging: in addition to --info, bin/tspy is also really useful, and see the debugger client in example/lock-mgr.rb.
+6. Deugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful, and see the debugger client in example/lock-mgr.rb.
 
 
 What is a tuplespace?
@@ -159,7 +172,7 @@ In other words, a tuple is a fairly general object, though this depends on the s
 
 * hashes
 
-It's kind of like a "JSON object", except that in the json blob case, the hash keys can only be strings. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
+It's kind of like a "JSON object", except that in the json blob case, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
 
 What is a template?
 -------------------
@@ -178,7 +191,7 @@ but not these tuples:
     [3, 7.2, "foobar", "xyz"]
     [3, 7, "fobar", "xyz"]
 
-The nil wildcard matches anything.
+The nil wildcard matches anything. The Range, Regexp, and Class entries function as wildcards because of the way they define the #=== (match) method. See ruby docs for general information on "threequals" matching.
 
 Here's a template for matching some hash tuples:
 
@@ -186,7 +199,7 @@ Here's a template for matching some hash tuples:
 
 This would match all tuples whose keys are "name" and "location" and whose values for those keys are any string and the string "home", respectively.
 
-A template doesn't have to be a pattern, though. It can be anything with a #=== method. For example:
+A template doesn't have to be a tuple pattern with wildcards, though. It can be anything with a #=== method. For example:
  
     read_all proc {|t| some_predicate(t)}
     read_all Hash
@@ -204,28 +217,30 @@ What are the operations on tuples?
 
 * take - search the space for matching tuples, waiting if none found, removing the tuple if found
 
-* pulse - write and take the tuple; readers see it, but it cannot be taken
+* pulse - write and take the tuple; readers see it, but it cannot be taken (nto a classical tuplespace operation)
 
 These operations have a few variations (wait vs nowait) and options (timeouts).
 
 Transactions and optimistic concurrency
 --------------------
 
-Transactions combine operations into a group that take effect at the same instant in (logical) time, isolated from other transactions. However, it may take some time (both real and logical) to prepare the transaction: to find tuples that match the criteria of the read and take operations. Finding tuples may require searching (locally) for tuples, or waiting for new tuples to be written by others. Also, the transaction may fail even after matching tuples are found (when another process takes tuples of interest). Then the transaction needs to be prepared again. Once prepared, transaction is sent to all clients, where it may either succeed (globally) or fail (for the same reason as before--someone else grabbed our tuples). If it fails, then the preparation can begin again. A transaction guarantees that, when it completes, all the operations were performed on the tuples at the same logical time. It does not guarantee that the world stands still while one process is inside the `transaction {...}` block.
+Transactions combine operations into a group that take effect at the same instant in (logical) time, isolated from other transactions.
+
+However, it may take some time to prepare the transaction. This is true in terms of both real time (clock and process) and logical tiem (global sequence of operations). Preparing a transaction means finding tuples that match the criteria of the read and take operations. Finding tuples may require searching (locally) for tuples, or waiting for new tuples to be written by others. Also, the transaction may fail even after matching tuples are found (when another process takes tuples of interest). Then the transaction needs to be prepared again. Once prepared, transaction is sent to all clients, where it may either succeed (in all clients) or fail (for the same reason as before--someone else grabbed one of our tuples). If it fails, then the preparation can begin again. A transaction guarantees that, when it completes, all the operations were performed on the tuples at the same logical time. It does not guarantee that the world stands still while one process is inside the `transaction {...}` block.
 
 Transactions are not just about batching up operations into a more efficient package (though you can do that with the #batch api). A transaction makes the combined operations execute atomically: the transaction finishes only when all of its operations can be successfully performed. Writes and pulses can always succeed, but takes and reads only succeed if the tuples exist.
 
 Transactions give you a means of optimistic locking: the transaction proceeds in a way that depends on preconditions. See example/increment.rb for a very simple example. Not only can you make a transaction depend on the existence of a tuple, you can make the effect of the transaction a function of existing tuples (see example/transaction-logic.rb and example/broker-optimistic.rb).
 
-If you prefer classical tuplespace locking, you can simply take / write lock tuples. See the examples. If you have a lot of contention and want to avoid the thundering herd, see example/lock-mgr-with-queue.rb.
+If you prefer classical tuplespace locking, you can simply use certain tuples as locks, using take/write to lock/unlock them. See the examples. If you have a lot of contention and want to avoid the thundering herd, see example/lock-mgr-with-queue.rb.
 
 If an optimistic transaction fails (for example, it is trying to take a tuple, but the tuple has just been taken by another transaction), then the transaction block is re-executed, possibly waiting for new matches to the templates. Application code must be aware of the possible re-execution of the block. This is better explained in the examples...
 
-ACID -- Atomic and Isolated are enforced by the transactions; Consistency is enforced by the sequencer (each client's copy of the space is the deterministic result of the same sequence of operations); Durability is optional, but can be provided by the archiver (to be implemented) or other clients.
+Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer (each client's copy of the space is the deterministic result of the same sequence of operations). Durability is optional, but can be provided by the archiver (to be implemented) or other clients.
 
 On the CAP spectrum, tupelo tends towards consistency.
 
-These transactions do not require two-phase commit, because they are less powerful than general transactions. Each client has enough information to decide (in the same way as all other clients) whether the transaction succeeds or fails. This imposes a limitation on transactions over subspaces...
+Tupelo transactions do not require two-phase commit, because they are less powerful than general transactions. Each client has enough information to decide (in the same way as all other clients) whether the transaction succeeds or fails. This has performance advantages, but imposes some limitations on transactions over subspaces that are known to one client but not another.
 
 
 Advantages
@@ -264,20 +279,19 @@ What other potential problems and how does tupelo solve them?
 Future
 ======
 
-- Subspaces. Redundancy, for read-heavy systems (redundant array of in-memory sqlite, for example). Clients managing different subspaces may benefit by using different stores and algorithms.
+- Subspaces. Redundancy, for read-heavy data stores (redundant array of in-memory sqlite, for example). Clients managing different subspaces may benefit by using different stores and algorithms.
 
 - More persistence options.
 
 - Fail-over. Robustness.
 
-- Investigate nio4r for faster networking.
+- Investigate nio4r for faster networking, especially with many clients.
 
 - Interoperable client and server implementations in C, Python, Go, ....
 
-- UDP multicast.
+- UDP multicast to further reduce the bottleneck in the message sequencer.
 
 - Tupelo as a service; specialized and replicated subspace managers as services.
-
 
 
 Comparisons
@@ -290,6 +304,8 @@ Unlike redis, computations are not a centralized bottleneck. Set intersection, f
 
 Pushing data to client eliminates need for polling, makes reads faster.
 
+Tupelo's pulse/read ops are like pubsub in redis.
+
 However, tupelo is not a substitute for the caching functionality of redis and memcache.
 
 
@@ -298,7 +314,7 @@ Rinda
 
 Very similar api.
 
-No central bottleneck.
+Rinda has a severe bottleneck, though: all matching, waiting, etc. are performed in one process.
 
 Rinda is rpc-based, which is slower and also more vulnerable due to the extra client-server state; tupelo is imlemented on a message layer, rather than rpc. This also helps with pipelined writes.
 
@@ -375,7 +391,7 @@ Each inner serialization method ("blobber") has its own advantages and drawbacks
 
 * msgpack and json support the least diversity of objects (just "JSON objects"), but msgpack also supports hash keys that are objects rather than just strings.
 
-For most purposes, msgpack is the right default choice.
+For most purposes, msgpack is a good choice, so it is the default.
 
 
 Development
