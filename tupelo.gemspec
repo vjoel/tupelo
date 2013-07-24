@@ -19,6 +19,9 @@ Gem::Specification.new do |s|
     "example/**/*.rb",
     "test/**/*.rb"
   ]
+  s.bindir = 'bin'
+  s.executables << 'tup'
+  s.executables << 'tspy'
   s.test_files = Dir["test/unit/*.rb"]
   s.homepage = "https://github.com/vjoel/tupelo"
   s.license = "BSD"
