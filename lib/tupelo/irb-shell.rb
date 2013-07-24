@@ -16,6 +16,12 @@ module IRB
 
     workspace = WorkSpace.new(*args)
 
+    @CONF[:PROMPT_MODE] = :SIMPLE
+
+    # Enables _ as last value
+    @CONF[:EVAL_HISTORY] = 1000
+    @CONF[:SAVE_HISTORY] = 100
+
     if @CONF[:SCRIPT] ## normally, set by parse_opts
       $irb = Irb.new(workspace, @CONF[:SCRIPT])
     else
