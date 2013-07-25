@@ -450,6 +450,7 @@ class Tupelo::Client
           @queue << false
         end
       end
+      nil
     end
   end
 end
