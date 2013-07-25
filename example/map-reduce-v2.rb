@@ -1,25 +1,8 @@
 require 'tupelo/app'
+require 'tupelo/util/boolean'
 
 N = 2 # how many cpus do you want to use for mappers?
 VERBOSE = ARGV.delete "-v"
-
-class Tupelo::Client
-  class Or
-    attr_reader :templates
-
-    def initialize worker, templates
-      @templates = templates.map {|template| worker.make_template(template)}
-    end
-
-    def === obj
-      templates.any? {|template| template === obj}
-    end
-  end
-  
-  def or *templates
-    Or.new(worker, templates)
-  end
-end
 
 Tupelo.application do |app|
   if VERBOSE
@@ -51,7 +34,7 @@ Tupelo.application do |app|
     results = Hash.new(0)
     lines_remaining = lineno
     results_remaining = 0
-    result_template = client.or(
+    result_template = client.match_any(
       {word: String, count: Integer},
       {lineno: Integer, result_count: Integer}
     )
