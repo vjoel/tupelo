@@ -67,8 +67,14 @@ end
 namespace :release do
   desc "Diff to latest release"
   task :diff do
-    latest = `git describe --abbrev=0 --tags --match '#{PRJ}-*'`
+    latest = `git describe --abbrev=0 --tags --match '#{PRJ}-*'`.chomp
     sh "git diff #{latest}"
+  end
+
+  desc "Log to latest release"
+  task :log do
+    latest = `git describe --abbrev=0 --tags --match '#{PRJ}-*'`.chomp
+    sh "git log #{latest}.."
   end
 
   task :is_new_version do
