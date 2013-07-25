@@ -21,7 +21,7 @@ Tupelo differs from other spaces in several ways:
 Getting started
 ==========
 
-1. Install ruby 2 (not 1.9) from http://ruby-lang.org. Examples and tests will not work on windows (they use fork and unix sockets), though probably the underying libs will (using tcp sockets).
+1. Install ruby 2 (not 1.9) from http://ruby-lang.org. Examples and tests will not work on windows (they use fork and unix sockets) or jruby, though probably the underying libs will (using tcp sockets).
 
 2. Install the gem and its dependencies (you may need to `sudo` this):
 
@@ -132,7 +132,7 @@ Getting started
 
         ls -d /usr/local/lib/ruby/gems/*/gems/tupelo*
 
-  Note that all bin and example programs accept blob type (e.g., --msgpaack, --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.
+  Note that all bin and example programs accept blob type (e.g., --msgpack, --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.
 
 6. Deugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful, and see the debugger client in example/lock-mgr.rb.
 
@@ -193,6 +193,12 @@ but not these tuples:
 
 The nil wildcard matches anything. The Range, Regexp, and Class entries function as wildcards because of the way they define the #=== (match) method. See ruby docs for general information on "threequals" matching.
 
+Every tuple can also be used as a template. The template:
+
+    [4, 7, "foobar", "xyz"]
+
+matches itself.
+
 Here's a template for matching some hash tuples:
 
     {name: String, location: "home"}
@@ -232,11 +238,11 @@ Transactions are not just about batching up operations into a more efficient pac
 
 Transactions give you a means of optimistic locking: the transaction proceeds in a way that depends on preconditions. See example/increment.rb for a very simple example. Not only can you make a transaction depend on the existence of a tuple, you can make the effect of the transaction a function of existing tuples (see example/transaction-logic.rb and example/broker-optimistic.rb).
 
-If you prefer classical tuplespace locking, you can simply use certain tuples as locks, using take/write to lock/unlock them. See the examples. If you have a lot of contention and want to avoid the thundering herd, see example/lock-mgr-with-queue.rb.
+If you prefer classical tuplespace locking, you can simply use certain tuples as locks, using take/write to lock/unlock them. See the examples, such as example/broker-locking.rb. If you have a lot of contention and want to avoid the thundering herd, see example/lock-mgr-with-queue.rb.
 
 If an optimistic transaction fails (for example, it is trying to take a tuple, but the tuple has just been taken by another transaction), then the transaction block is re-executed, possibly waiting for new matches to the templates. Application code must be aware of the possible re-execution of the block. This is better explained in the examples...
 
-Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer (each client's copy of the space is the deterministic result of the same sequence of operations). Durability is optional, but can be provided by the archiver (to be implemented) or other clients.
+Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. Durability is optional, but can be provided by the archiver (to be implemented) or other clients.
 
 On the CAP spectrum, tupelo tends towards consistency.
 
@@ -322,6 +328,8 @@ Tupelo also supports custom classes in tuples, but only with marshal / yaml; mus
 
 Both: tuples can be arrays or hashes.
 
+Spaces have an advantage over distributed hash tables: different clients may acccess tuples in terms of different dimensions. For example, a producer generates [producer_id, value]; a consumer looks for [nil, SomeParticularValues]. Separation of concerns, decoupling in the data space.
+
 
 To compare
 ----------
@@ -342,6 +350,7 @@ To compare
 
 * datomic -- similar distribution of "facts", but not tuplespace
 
+* job queues: sidekiq, resque, delayedjob
 
 Architecture
 ============
