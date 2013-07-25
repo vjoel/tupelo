@@ -24,6 +24,8 @@ Tupelo.application do |app|
               player2: you)
             t.commit.wait
             break
+          else
+            t.cancel
           end
         rescue Tupelo::Client::TransactionFailure => ex
         end
