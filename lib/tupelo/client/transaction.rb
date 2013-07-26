@@ -8,6 +8,10 @@ class Tupelo::Client
   class TransactionFailure < TransactionError; end
 
   module Api
+    def trans_class
+      Transaction
+    end
+
     # Transactions are atomic by default, and are always isolated. In the
     # non-atomic case, a "transaction" is really a batch op. Without a block,
     # returns the Transaction. In the block form, transaction automatically
@@ -15,7 +19,7 @@ class Tupelo::Client
     def transaction atomic: true, timeout: nil
       deadline = timeout && Time.now + timeout
       begin
-        t = Transaction.new self, atomic: atomic, deadline: deadline
+        t = trans_class.new self, atomic: atomic, deadline: deadline
         return t unless block_given?
         val = yield t
         t.commit.wait
@@ -207,7 +211,7 @@ class Tupelo::Client
       template = worker.make_template(template_spec)
       @take_templates << template
       log.debug {"asking worker to take #{template_spec.inspect}"}
-      worker << self
+      worker_push self
       wait
       return take_tuples.last
     end
@@ -223,7 +227,7 @@ class Tupelo::Client
       @_take_nowait[i] = true
       @take_templates << template
       log.debug {"asking worker to take_nowait #{template_spec.inspect}"}
-      worker << self
+      worker_push self
       wait
       return take_tuples[i]
     end
@@ -237,7 +241,7 @@ class Tupelo::Client
       template = worker.make_template(template_spec)
       @read_templates << template
       log.debug {"asking worker to read #{template_spec.inspect}"}
-      worker << self
+      worker_push self
       wait
       return read_tuples.last
     end
@@ -247,13 +251,17 @@ class Tupelo::Client
       if open?
         closed!
         log.info {"committing #{inspect}"}
-        worker << self
+        worker_push self
       else
         raise exception if failed?
       end
       return self
     end
-    
+
+    def worker_push event
+      worker << event
+    end
+
     def wait
       return self if done?
       raise exception if failed?
@@ -268,7 +276,7 @@ class Tupelo::Client
       raise "bug: #{inspect}"
 
     rescue TransactionAbort, Interrupt, TimeoutError => ex ## others?
-      worker << Unwaiter.new(self)
+      worker_push Unwaiter.new(self)
       raise ex.class,
         "#{ex.message}: client #{client.client_id} waiting for #{inspect}"
     end
@@ -440,7 +448,7 @@ class Tupelo::Client
 
     # Called by another thread to cancel a waiting transaction.
     def cancel err = TransactionAbort
-      worker << proc do
+      worker_push proc do
         raise unless in_worker_thread?
         if @global_tick or @exception
           log.info {"cancel was applied too late: #{inspect}"}
