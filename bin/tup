@@ -155,7 +155,7 @@ EasyServe.start ez_opts do |ez|
       "starting shell. Commands: #{TupClient::CMD_ALIASES.join(", ")}"
     }
 
-    require 'tupelo/util/irb-shell'
+    require 'tupelo/app/irb-shell'
     IRB.start_session(client)
 
     client.stop

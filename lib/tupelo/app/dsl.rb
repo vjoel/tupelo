@@ -1,3 +1,5 @@
+require 'tupelo/app'
+
 module Tupelo::DSL
   module Client
     def transaction *a, &bl
