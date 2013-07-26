@@ -147,7 +147,7 @@ See https://en.wikipedia.org/wiki/Tuple_space for general information and histor
 What is a tuple?
 ----------------
 
-A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space.
+A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuples does not have an identity other than the data it is made from.
 
 A tuple is either an array:
 
@@ -173,6 +173,8 @@ In other words, a tuple is a fairly general object, though this depends on the s
 * hashes
 
 It's kind of like a "JSON object", except that in the json blob case, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
+
+A tuplespace can contain multiple copies of the same tuple.
 
 What is a template?
 -------------------
