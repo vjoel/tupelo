@@ -29,14 +29,14 @@ namespace :test do
   desc "Run system tests"
   task :system do |t|
     FileList["test/system/*.rb"].each do |f|
-      ruby f
+      ruby "-Itest/lib", f
     end
   end
 
   desc "Run stress tests"
   task :stress do |t|
     FileList["test/stress/*.rb"].each do |f|
-      ruby f
+      ruby "-Itest/lib", f
     end
   end
 end
