@@ -3,7 +3,6 @@ require 'tupelo/client/common'
 class Tupelo::Client
   # include into class that defines #worker and #log
   module Api
-    ## need read with more complex predicates: |, &, etc
     def read_wait template
       waiter = Waiter.new(worker.make_template(template), self)
       worker << waiter
@@ -15,7 +14,6 @@ class Tupelo::Client
     end
     alias read read_wait
 
-    ## need nonwaiting reader that accepts 2 or more templates
     def read_nowait template
       matcher = Matcher.new(worker.make_template(template), self)
       worker << matcher
