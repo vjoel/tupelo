@@ -1,22 +1,11 @@
 require 'tupelo/app'
+require 'tupelo/app/monitor'
 
 N = 2 # how many cpus do you want to use for mappers?
 VERBOSE = ARGV.delete "-v"
 
 Tupelo.application do |app|
-  if VERBOSE
-    app.child do |client| # a debugger client, to see what's happening
-      note = client.notifier
-      puts "%4s %4s %10s %s" % %w{ tick cid status operation }
-      loop do
-        status, tick, cid, op = note.wait
-        unless status == :attempt
-          s = status == :failure ? "FAILED" : ""
-          puts "%4d %4d %10s %p" % [tick, cid, s, op]
-        end
-      end
-    end
-  end
+  app.start_monitor if VERBOSE
 
   app.child do |client|
     document = "I will not map reduce in class\n" * 10
