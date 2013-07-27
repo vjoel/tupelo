@@ -258,7 +258,7 @@ class Tupelo::Client
       return self
     end
 
-    def worker_push event
+    def worker_push event=Proc.new
       worker << event
     end
 
@@ -448,7 +448,7 @@ class Tupelo::Client
 
     # Called by another thread to cancel a waiting transaction.
     def cancel err = TransactionAbort
-      worker_push proc do
+      worker_push do
         raise unless in_worker_thread?
         if @global_tick or @exception
           log.info {"cancel was applied too late: #{inspect}"}
