@@ -9,7 +9,6 @@ class Tupelo::Client
     attr_reader :client
     attr_reader :seq
     attr_reader :arc
-    attr_reader :log
     attr_reader :client_id
     attr_reader :local_tick
     attr_reader :global_tick
@@ -78,6 +77,14 @@ class Tupelo::Client
       @trans_waiters = []
       @notify_waiters = []
       @stopping = false
+    end
+
+    def log *args
+      if args.empty?
+        @log
+      else
+        @log.unknown *args
+      end
     end
 
     def start
