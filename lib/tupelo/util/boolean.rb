@@ -16,3 +16,10 @@ class Tupelo::Client
   end
   alias match_any or
 end
+
+class Tupelo::Client::Transaction
+  def or *templates
+    client.or *templates
+  end
+  alias match_any or
+end
