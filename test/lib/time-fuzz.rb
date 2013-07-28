@@ -14,7 +14,7 @@ module Tupelo
     end
 
     class Transaction < Tupelo::Client::Transaction
-      def worker_push event
+      def worker_push event=Proc.new
         sleep sleep_duration
         super
       end
