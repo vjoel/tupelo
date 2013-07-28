@@ -352,7 +352,7 @@ To compare
 
 * datomic -- similar distribution of "facts", but not tuplespace
 
-* job queues: sidekiq, resque, delayedjob
+* job queues: sidekiq, resque, delayedjob, http://queues.io
 
 Architecture
 ============
