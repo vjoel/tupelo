@@ -138,6 +138,7 @@ class Tupelo::Client
       @granted_tuples = nil
       @missing = nil
       @_take_nowait = nil
+      @_read_nowait = nil
       
       if deadline
         worker.at deadline do
@@ -245,7 +246,23 @@ class Tupelo::Client
       wait
       return read_tuples.last
     end
-    
+
+    def read_nowait template_spec
+      raise "cannot read in batch" unless atomic
+      raise exception if failed?
+      raise TransactionStateError, "not open: #{inspect}" unless open? or
+        failed?
+      template = worker.make_template(template_spec)
+      @_read_nowait ||= {}
+      i = @read_templates.size
+      @_read_nowait[i] = true
+      @read_templates << template
+      log.debug {"asking worker to read #{template_spec.inspect}"}
+      worker_push self
+      wait
+      return read_tuples[i]
+    end
+
     # idempotent
     def commit
       if open?
@@ -361,12 +378,23 @@ class Tupelo::Client
           @_take_nowait.delete i
         end
         
+        skip = nil
         (read_tuples.size...read_templates.size).each do |i|
           read_tuples[i] = worker.tuplespace.find_match_for(
             read_templates[i])
           if read_tuples[i]
             log.debug {"prepared #{inspect} with #{read_tuples[i]}"}
+          else
+            if @_read_nowait and @_read_nowait[i]
+              (skip ||= []) << i
+            end
           end
+        end
+
+        skip and skip.reverse_each do |i|
+          read_tuples.delete_at i
+          read_templates.delete_at i
+          @_read_nowait.delete i
         end
       end
       
