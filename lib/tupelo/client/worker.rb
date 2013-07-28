@@ -238,19 +238,21 @@ class Tupelo::Client
         log.info "arc says global_tick = #{arc_tick}"
 
         done = false
+        count = 0
         arc.each do |tuple|
           if tuple.nil?
             done = true
           else
             raise "bad object stream from archiver" if done
             tuplespace.insert tuple
+            count += 1
           end
         end
         unless done
           raise "did not get all of tuplespace from archiver" ## roll back?
         end
 
-        log.info "received tuplespace from arc"
+        log.info "received tuplespace from arc: #{count} tuples"
 
         @global_tick = arc_tick
         log.info "global_tick = #{global_tick}"
