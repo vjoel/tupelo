@@ -85,7 +85,6 @@ class Tupelo::Client
   class Transaction
     attr_reader :client
     attr_reader :worker
-    attr_reader :log
     attr_reader :atomic
     attr_reader :deadline
     attr_reader :status
@@ -149,6 +148,14 @@ class Tupelo::Client
       open!
     end
     
+    def log *args
+      if args.empty?
+        @log
+      else
+        @log.unknown *args
+      end
+    end
+
     def inspect
       stat_extra =
         case
