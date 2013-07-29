@@ -214,6 +214,10 @@ A template doesn't have to be a tuple pattern with wildcards, though. It can be 
     read_all Array
     read_all Object
 
+An optional library, `tupelo/util/boolean`, provides a #match_any method to construct the boolean or of other templates:
+
+    read_all match_any( [1,2,3], {foo: "bar"} )
+
 Unlike in some tuplespace implementations, templates are a client-side concept (except for subspace-defining templates), which is a source of efficiency and scalability. Matching operations (which can be computationally heavy) are performed on the client, rather than on the server, which would bottleneck the whole system.
 
 What are the operations on tuples?
@@ -365,7 +369,7 @@ Two central processes:
 
 Specialized clients:
 
-* archiver -- dumps tuplespace state to clients joining the system later than t=0
+* archiver -- dumps tuplespace state to clients joining the system later than t=0; at least one archiver is required, unless all clients start at t=0.
 
 * tup -- command line shell for accessing (and creating) tuplespaces
 
@@ -379,7 +383,7 @@ General application clients:
 
 * worker thread manages local tuplespace state and requests to modify or access it
 
-* client threads construct transactions and wait for results (communicating with the worker thread over queues)
+* client threads construct transactions and wait for results (communicating with the worker thread over queues); they may also use asynchronous transactions
 
 Protocol
 --------
