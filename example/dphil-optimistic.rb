@@ -20,7 +20,7 @@ Tupelo::DSL.application do
       write ["eat", i, 0] # amount eaten
 
       N_ITER.times do
-        a = transaction do
+        transaction do
           # lock the resource (in transaction, so optimistically):
           c0 = take ["chopstick", i]
           c1 = take_nowait ["chopstick", (i+1)%N_PHIL]
@@ -32,7 +32,6 @@ Tupelo::DSL.application do
 
           # release the resource:
           write c0, c1
-          [c0[1], c1[1]]
         end
       end
       
