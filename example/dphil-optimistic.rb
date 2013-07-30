@@ -1,8 +1,10 @@
-# Dining philosopher example. Like dphil.rb, but uses transactions and
-# can work correctly without the "room tickets", which are really
-# global locks. We optimistically let all philosophers dine at the same time.
-# This version is several times faster than the locking version (try increasing
-# N_PHIL).
+# Dining philosopher example. Like dphil.rb, but uses transactions and can work
+# correctly without the "room tickets", which are really global locks. We
+# optimistically let all philosophers dine at the same time. This version is
+# several times faster than the locking version (try increasing N_PHIL). Note,
+# however, that in the transaction-based version only operations within the
+# transaction are protected from concurrent users. That may not be suitable if
+# the intent of the lock is to protect some resource external to the tuplespace.
 
 require 'tupelo/app/dsl'
 require 'tupelo/app/monitor'
@@ -23,8 +25,7 @@ Tupelo::DSL.application do
         transaction do
           # lock the resource (in transaction, so optimistically):
           c0 = take ["chopstick", i]
-          c1 = take_nowait ["chopstick", (i+1)%N_PHIL]
-          fail! unless c1 # try again (unlikely, but possible)
+          c1 = take ["chopstick", (i+1)%N_PHIL]
 
           # use the resource:
           _,_,count = take ["eat", i, nil]

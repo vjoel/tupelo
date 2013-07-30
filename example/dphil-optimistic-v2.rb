@@ -20,9 +20,8 @@ Tupelo::DSL.application do
       N_ITER.times do
         transaction do
           # lock the resource (in transaction, so optimistically):
-          c0 = read ["chopstick", i]
-          c1 = read_nowait ["chopstick", (i+1)%N_PHIL]
-          fail! unless c1 # try again (unlikely, but possible)
+          read ["chopstick", i]
+          read ["chopstick", (i+1)%N_PHIL]
 
           # use the resource:
           _,_,count = take ["eat", i, nil]
