@@ -24,10 +24,7 @@ Tupelo::DSL.application do
           player2: me)
         break game["player1"] if game
       
-        unless take_nowait name: me
-          fail!
-        end
-
+        take_nowait(name: me) or fail!
         you = take(name: nil)["name"]
         write(
           player1: me,
