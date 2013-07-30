@@ -18,18 +18,18 @@ class Tupelo::Client
     # waits for successful completion and returns the value of the block.
     def transaction atomic: true, timeout: nil
       deadline = timeout && Time.now + timeout
-      begin
-        t = trans_class.new self, atomic: atomic, deadline: deadline
-        return t unless block_given?
-        val = yield t
-        t.commit.wait
-        return val
-      rescue TransactionFailure => ex
-        log.info {"retrying #{t.inspect}: #{ex}"}
-        retry
-      rescue TransactionAbort
-        log.info {"aborting #{t.inspect}"}
-      end
+      t = trans_class.new self, atomic: atomic, deadline: deadline
+      return t unless block_given?
+      val = yield t
+      t.commit.wait
+      return val
+    rescue TransactionFailure => ex
+      log.info {"retrying #{t.inspect}: #{ex}"}
+      retry
+    rescue TransactionAbort
+      log.info {"aborting #{t.inspect}"}
+    ensure
+      t.cancel if t and t.open? and block_given?
     end
     
     def batch &bl
@@ -494,7 +494,7 @@ class Tupelo::Client
     def cancel err = TransactionAbort
       worker_push do
         raise unless in_worker_thread?
-        if @global_tick or @exception
+        if not open? or @global_tick or @exception
           log.info {"cancel was applied too late: #{inspect}"}
         else
           @exception = err.new
