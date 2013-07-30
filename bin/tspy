@@ -31,10 +31,15 @@ require 'tupelo/app'
 
 Tupelo.application do |app|
   app.local do |client|
+    trap :INT do
+      exit!
+    end
+
     note = client.notifier
-    client.log "%10s %10s %10s %s" % %w{ status tick client operation }
+    client.log "%10s %10s %10s %s" % %w{ tick client status operation }
     loop do
-      client.log "%10s %10d %10d %p" % note.wait
+      status, tick, cid, op = note.wait
+      client.log "%10d %10d %10s %p" % [tick, cid, status, op]
     end
   end
 end
