@@ -4,14 +4,10 @@
 # queue, rather than by propagating them to all clients.
 
 require 'tupelo/app'
-require 'tupelo/app/monitor'
 
 N = 3
-VERBOSE = ARGV.delete "-v"
 
 Tupelo.application do |app|
-  app.start_monitor if VERBOSE
-  
   app.child do |client| # the lock manager
     client.log.progname << " (lock mgr)"
     waiters = Queue.new

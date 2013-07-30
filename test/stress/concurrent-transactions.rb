@@ -1,16 +1,12 @@
 require 'tupelo/app'
-require 'tupelo/app/monitor'
 require 'time-fuzz'
 
 N = 100
-VERBOSE = ARGV.delete "-v"
 
 client_class = Tupelo::TimeFuzz::Client
 Tupelo::TimeFuzz.sleep_max = 0.01
 
 Tupelo.application do |app|
-  app.start_monitor if VERBOSE
-
   app.child(client_class) do |client|
     N.times do
       client.transaction do |t|

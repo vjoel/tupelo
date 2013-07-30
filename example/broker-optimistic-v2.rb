@@ -3,15 +3,11 @@
 # - make it fit in a transaction do..end block
 
 require 'tupelo/app'
-require 'tupelo/app/monitor'
 require 'tupelo/app/dsl'
 
 N_PLAYERS = 10
-VERBOSE = ARGV.delete "-v"
 
 Tupelo::DSL.application do
-  start_monitor if VERBOSE
-
   N_PLAYERS.times do
     # sleep rand / 10 # reduce contention -- could also randomize inserts
     child do

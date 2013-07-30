@@ -7,15 +7,11 @@
 # the intent of the lock is to protect some resource external to the tuplespace.
 
 require 'tupelo/app/dsl'
-require 'tupelo/app/monitor'
 
 N_PHIL = 5
 N_ITER = 10
-VERBOSE = ARGV.delete "-v"
 
 Tupelo::DSL.application do
-  start_monitor if VERBOSE
-
   N_PHIL.times do |i|
     child do
       log.progname << ": phil #{i}"

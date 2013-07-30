@@ -79,6 +79,8 @@ module Tupelo
       end
       blob_type ||= "msgpack"
     end
+    
+    use_monitor = ARGV.delete("--monitor")
 
     svrs = servers_file || argv.shift || "servers-#$$.yaml"
 
@@ -115,7 +117,14 @@ module Tupelo
         end
       end
 
-      yield AppBuilder.new(ez, owns_servers: owns_servers)
+      app = AppBuilder.new(ez, owns_servers: owns_servers)
+      
+      if use_monitor
+        require 'tupelo/app/monitor'
+        app.start_monitor
+      end
+      
+      yield app
     end
   end
 end

@@ -134,7 +134,15 @@ Getting started
 
   Note that all bin and example programs accept blob type (e.g., --msgpack, --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.
 
-6. Deugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful, and see the debugger client in example/lock-mgr.rb.
+6. Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful. There is also the similar --monitor switch that is available to all bin and example programs, for example:
+
+      tick    cid status operation
+         1      2        batch write ["x", 1]
+         2      2        batch write ["y", 2]
+         3      3        atomic take ["x", 1], ["y", 2]
+
+
+  The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs.
 
 
 What is a tuplespace?

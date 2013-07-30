@@ -1,12 +1,8 @@
 require 'tupelo/app'
-require 'tupelo/app/monitor'
 
 N = 3
-VERBOSE = ARGV.delete "-v"
 
 Tupelo.application do |app|
-  app.start_monitor if VERBOSE
-  
   app.child do |client| # the lock manager
     loop do
       client.write ["resource", "none"]

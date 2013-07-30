@@ -6,14 +6,10 @@
 # and comment out the sleep line.
 
 require 'tupelo/app'
-require 'tupelo/app/monitor'
 
 N_PLAYERS = 10
-VERBOSE = ARGV.delete "-v"
 
 Tupelo.application do |app|
-  app.start_monitor if VERBOSE
-
   N_PLAYERS.times do
     # sleep rand / 10 # reduce contention -- could also randomize inserts
     app.child do |client|

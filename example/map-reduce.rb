@@ -1,12 +1,8 @@
 require 'tupelo/app'
-require 'tupelo/app/monitor'
 
 N = 2 # how many cpus do you want to use for mappers?
-VERBOSE = ARGV.delete "-v"
 
 Tupelo.application do |app|
-  app.start_monitor if VERBOSE
-
   app.child do |client|
     document = "I will not map reduce in class\n" * 10
     lineno = 0

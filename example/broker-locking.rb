@@ -2,16 +2,12 @@
 # tuple.
 
 require 'tupelo/app'
-require 'tupelo/app/monitor'
 
 N_PLAYERS = 10
-VERBOSE = ARGV.delete "-v"
 
 token = ["token"] # only the holder of the token can arrange games
 
 Tupelo.application do |app|
-  app.start_monitor if VERBOSE
-
   app.local do |client|
     client.write token
   end
