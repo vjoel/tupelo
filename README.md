@@ -264,6 +264,8 @@ Speed (latency, throughput):
 
 * minimal system-wide bottlenecks
 
+* non-blocking socket reads
+
 * read -- local and hence very fast
 
 * write -- fast, pipelined (waiting for acknowledgement is optional);  
@@ -390,7 +392,7 @@ Protocol
 
 Nothing in the protocol specifies local searching or storage, or matching, or notification, or templating. That's all up to each client. The protocol only contains tuples and operations on them (take, write, pulse, read), combined into transactions.
 
-The protocol has two layers. The outer (message) layer is 6 fields, managed by the funl gem, using msgpack for serialization.
+The protocol has two layers. The outer (message) layer is 6 fields, managed by the funl gem, using msgpack for serialization. All socket reads are non-blocking, so a slow sender will not block other activity in the system.
 
 The inner (blob) layer manages one of those 6 field using msgpack (by default), marshal, json, or yaml. This layer contains the transaction operations. The blob is not unpacked by the server, only by clients.
 
