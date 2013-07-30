@@ -6,7 +6,7 @@ require 'tupelo/app/dsl'
 require 'tupelo/app/monitor'
 
 N_PHIL = 5
-N_ITER = 1000
+N_ITER = 10
 VERBOSE = ARGV.delete "-v"
 
 Tupelo::DSL.application do

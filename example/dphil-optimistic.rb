@@ -8,7 +8,7 @@ require 'tupelo/app/dsl'
 require 'tupelo/app/monitor'
 
 N_PHIL = 5
-N_ITER = 1000
+N_ITER = 10
 VERBOSE = ARGV.delete "-v"
 
 Tupelo::DSL.application do
@@ -24,20 +24,15 @@ Tupelo::DSL.application do
           # lock the resource (in transaction, so optimistically):
           c0 = take ["chopstick", i]
           c1 = take_nowait ["chopstick", (i+1)%N_PHIL]
+          fail! unless c1 # try again (unlikely, but possible)
 
-          if c1
-            # use the resource:
-            _,_,count = take ["eat", i, nil]
-            write ["eat", i, count+1]
+          # use the resource:
+          _,_,count = take ["eat", i, nil]
+          write ["eat", i, count+1]
 
-            # release the resource:
-            write c0, c1
-            [c0[1], c1[1]]
-
-          else # unlikely, but possible
-            write c0
-            raise Tupelo::Client::TransactionFailure # try again
-          end
+          # release the resource:
+          write c0, c1
+          [c0[1], c1[1]]
         end
       end
       

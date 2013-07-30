@@ -25,7 +25,7 @@ Tupelo::DSL.application do
         break game["player1"] if game
       
         unless take_nowait name: me
-          raise Tupelo::Client::TransactionFailure
+          fail!
         end
 
         you = take(name: nil)["name"]

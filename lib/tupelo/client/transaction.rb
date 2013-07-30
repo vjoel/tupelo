@@ -270,6 +270,15 @@ class Tupelo::Client
       return read_tuples[i]
     end
 
+    # Client may call this before commit. In transaction do...end block,
+    # this causes transaction to be re-executed.
+    def fail!
+      raise if in_worker_thread?
+      raise unless open?
+      failed!
+      raise TransactionFailure
+    end
+
     # idempotent
     def commit
       if open?

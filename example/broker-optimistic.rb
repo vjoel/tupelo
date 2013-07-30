@@ -29,7 +29,7 @@ Tupelo.application do |app|
             player2: you)
           t.commit.wait
         else
-          raise Tupelo::Client::TransactionFailure
+          t.fail!
         end
       rescue Tupelo::Client::TransactionFailure => ex
         game = client.read_nowait(
