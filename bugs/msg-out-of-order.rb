@@ -1,8 +1,8 @@
-require 'tupelo/app/dsl'
+require 'tupelo/app'
 
 N = 50
 
-Tupelo::DSL.application do
+Tupelo.application do
   N.times do |i|
     sleep i/1000.0
     child do

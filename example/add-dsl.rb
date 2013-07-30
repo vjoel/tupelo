@@ -6,9 +6,9 @@
 # block. In other respects, such as local vars, these closures behave normally.
 # This is ruby's famous instance_eval gotcha.
 
-require 'tupelo/app/dsl'
+require 'tupelo/app'
 
-Tupelo::DSL.application do
+Tupelo.application do
   child do
     write ['x', 1]
     write ['y', 2]

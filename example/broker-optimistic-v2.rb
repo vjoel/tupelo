@@ -1,13 +1,12 @@
 # Modified in two ways:
-# - use dsl
+# - use simplified block syntax
 # - make it fit in a transaction do..end block
 
 require 'tupelo/app'
-require 'tupelo/app/dsl'
 
 N_PLAYERS = 10
 
-Tupelo::DSL.application do
+Tupelo.application do
   N_PLAYERS.times do
     # sleep rand / 10 # reduce contention -- could also randomize inserts
     child do

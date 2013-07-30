@@ -22,21 +22,37 @@ module Tupelo
     end
 
     # Yields a client that runs in this process.
-    def local client_class = Client
+    def local client_class = Client, &block
       ez.local :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
         run_client client_class,
                    seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
-          yield client
+          if block
+            if block.arity == 0
+              client.instance_eval &block
+            else
+              yield client
+            end
+          else
+            client
+          end
         end
       end
     end
 
     # Yields a client that runs in a subprocess.
-    def child client_class = Client
+    def child client_class = Client, &block
       ez.client :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
         run_client client_class,
                    seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
-          yield client
+          if block
+            if block.arity == 0
+              client.instance_eval &block
+            else
+              yield client
+            end
+          else
+            client
+          end
         end
       end
     end
@@ -61,7 +77,7 @@ module Tupelo
 
   def self.application argv: ARGV,
         servers_file: nil, blob_type: nil,
-        seqd_addr: [], cseqd_addr: [], arcd_addr: []
+        seqd_addr: [], cseqd_addr: [], arcd_addr: [], &block
 
     log_level = case
       when argv.delete("--debug"); Logger::DEBUG
@@ -123,8 +139,16 @@ module Tupelo
         require 'tupelo/app/monitor'
         app.start_monitor
       end
-      
-      yield app
+
+      if block
+        if block.arity == 0
+          app.instance_eval &block
+        else
+          yield app
+        end
+      else
+        app
+      end
     end
   end
 end

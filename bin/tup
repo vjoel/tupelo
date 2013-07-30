@@ -126,16 +126,6 @@ EasyServe.start ez_opts do |ez|
 
     require 'tupelo/client'
     class TupClient < Tupelo::Client
-      def transaction *a, &bl
-        if bl and bl.arity == 0
-          super *a do |t|
-            t.instance_eval &bl
-          end
-        else
-          super
-        end
-      end
-
       alias w write_wait
       alias pl pulse_wait
       alias t take

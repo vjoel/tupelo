@@ -2,12 +2,12 @@
 # each take-write pair with a read. Same effect, inside a transaction,
 # and it is a little faster.
 
-require 'tupelo/app/dsl'
+require 'tupelo/app'
 
 N_PHIL = 5
 N_ITER = 10
 
-Tupelo::DSL.application do
+Tupelo.application do
   N_PHIL.times do |i|
     child do
       log.progname << ": phil #{i}"

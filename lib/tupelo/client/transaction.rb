@@ -16,11 +16,18 @@ class Tupelo::Client
     # non-atomic case, a "transaction" is really a batch op. Without a block,
     # returns the Transaction. In the block form, transaction automatically
     # waits for successful completion and returns the value of the block.
-    def transaction atomic: true, timeout: nil
+    def transaction atomic: true, timeout: nil, &block
       deadline = timeout && Time.now + timeout
       t = trans_class.new self, atomic: atomic, deadline: deadline
       return t unless block_given?
-      val = yield t
+
+      val =
+        if block.arity == 0
+          t.instance_eval &block
+        else
+          yield t
+        end
+
       t.commit.wait
       return val
     rescue TransactionFailure => ex

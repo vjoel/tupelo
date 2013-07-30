@@ -6,12 +6,12 @@
 # transaction are protected from concurrent users. That may not be suitable if
 # the intent of the lock is to protect some resource external to the tuplespace.
 
-require 'tupelo/app/dsl'
+require 'tupelo/app'
 
 N_PHIL = 5
 N_ITER = 10
 
-Tupelo::DSL.application do
+Tupelo.application do
   N_PHIL.times do |i|
     child do
       log.progname << ": phil #{i}"

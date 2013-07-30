@@ -265,6 +265,12 @@ On the CAP spectrum, tupelo tends towards consistency.
 Tupelo transactions do not require two-phase commit, because they are less powerful than general transactions. Each client has enough information to decide (in the same way as all other clients) whether the transaction succeeds or fails. This has performance advantages, but imposes some limitations on transactions over subspaces that are known to one client but not another.
 
 
+Syntax
+======
+
+You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare example/add-dsl.rb and example/add.rb.
+
+
 Advantages
 ==========
 
