@@ -5,6 +5,10 @@
 #
 #  ruby tcp.rb --info
 #
+# or
+#
+#  ruby tcp.rb --monitor
+#
 # You can test with a local client:
 #
 #   ../bin/tup tcp.yaml
@@ -27,7 +31,10 @@ Tupelo.application servers_file: svr,
             arcd_addr:  [:tcp, '0.0.0.0', port + 2] do |app|
   if app.owns_servers
     puts "server started; ^C to stop"
-    puts "(run with --info to see events)" if app.log.level > Logger::INFO
+    puts "run in another terminal: ../bin/tup tcp.yaml"
+    if app.log.level > Logger::INFO
+      puts "(run with --info or --monitor to see events)"
+    end
     sleep
   else
     abort "server seems to be running already; check file #{svr.inspect}"
