@@ -10,12 +10,12 @@ class Tupelo::AppBuilder
       end
 
       note = client.notifier
-      puts "%6s %6s %6s %s" % %w{ tick cid status operation }
+      log << ( "%6s %6s %6s %s\n" % %w{ tick cid status operation } )
       loop do
         status, tick, cid, op = note.wait
         unless status == :attempt
           s = status == :failure ? "FAIL" : ""
-          puts "%6d %6d %6s %p" % [tick, cid, s, op]
+          log << ( "%6d %6d %6s %p\n" % [tick, cid, s, op] )
         end
       end
     end
