@@ -4,7 +4,7 @@ require 'tupelo/app'
 # until INT signal
 class Tupelo::AppBuilder
   def start_monitor
-    child do |client|
+    child passive: true do |client|
       trap :INT do
         exit!
       end

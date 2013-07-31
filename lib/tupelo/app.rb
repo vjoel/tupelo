@@ -40,8 +40,8 @@ module Tupelo
     end
 
     # Yields a client that runs in a subprocess.
-    def child client_class = Client, &block
-      ez.client :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
+    def child client_class = Client, passive: false, &block
+      ez.client :seqd, :cseqd, :arcd, passive: passive do |seqd, cseqd, arcd|
         run_client client_class,
                    seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
           if block

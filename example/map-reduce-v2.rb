@@ -38,12 +38,11 @@ Tupelo.application do |app|
       end
     end
 
-    client.log "DONE. results = #{results}"
-    client.log "Press ^C to exit"
+    client.log "results = #{results}"
   end
   
   N.times do |i|
-    app.child do |client|
+    app.child passive: true do |client|
       client.log.progname = "mapper #{i}"
       
       loop do
