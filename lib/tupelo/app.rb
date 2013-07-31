@@ -40,6 +40,11 @@ module Tupelo
     end
 
     # Yields a client that runs in a subprocess.
+    #
+    # A passive client will be forced to stop after all active clients exit. Use
+    # the passive flag for processes that wait for tuples and respond in some
+    # way. Then you do not have to manually interrupt the whole application when
+    # the active processes are done. See examples.
     def child client_class = Client, passive: false, &block
       ez.client :seqd, :cseqd, :arcd, passive: passive do |seqd, cseqd, arcd|
         run_client client_class,
