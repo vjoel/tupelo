@@ -3,6 +3,11 @@ require 'funl/history-worker'
 class Tupelo::Archiver
   class Worker < Tupelo::Client::Worker
     include Funl::HistoryWorker
+    
+    def initialize *args
+      super
+      @scheduled_actions = Hash.new {|h,k| h[k] = []}
+    end
 
     def handle_client_request req
       case req
@@ -17,7 +22,7 @@ class Tupelo::Archiver
       stream = client.arc_server_stream_for req.io
 
       begin
-        op, args = stream.read
+        op, tags, tick = stream.read
       rescue EOFError
         log.debug {"#{stream.peer_name} disconnected from archiver"}
         return
@@ -26,9 +31,19 @@ class Tupelo::Archiver
       end
 
       log.info {
-        "#{stream.peer_name} requested #{op.inspect}" +
-          (args ? " on #{args.inspect}" : "")}
+        "#{stream.peer_name} requested #{op.inspect} at tick=#{tick}" +
+          (tags ? " on #{tags}" : "")}
 
+      if tick <= global_tick
+        fork_for_op op, tags, tick, stream, req
+      else
+        at_tick tick do
+          fork_for_op op, tags, tick, stream, req
+        end
+      end
+    end
+
+    def fork_for_op op, tags, tick, stream, req
       fork do
         begin
           case op
@@ -37,7 +52,7 @@ class Tupelo::Archiver
           when "get range" ### handle this in Funl::HistoryWorker
             raise "Unimplemented" ###
           when GET_TUPLESPACE
-            send_tuplespace stream, args
+            send_tuplespace stream, tags
           else
             raise "Unknown operation: #{op.inspect}"
           end
@@ -49,6 +64,18 @@ class Tupelo::Archiver
       end
     ensure
       req.io.close
+    end
+    
+    def at_tick tick, &action
+      @scheduled_actions[tick] << action
+    end
+
+    def handle_message msg
+      super
+      actions = @scheduled_actions.delete(global_tick)
+      actions and actions.each do |action|
+        action.call
+      end
     end
 
     def send_tuplespace stream, templates

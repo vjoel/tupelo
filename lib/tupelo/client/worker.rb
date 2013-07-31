@@ -230,7 +230,7 @@ class Tupelo::Client
       end
 
       log.info "requesting tuplespace from arc"
-      arc << [GET_TUPLESPACE, nil]
+      arc << [GET_TUPLESPACE, nil, tick]
         ## replace nil with template tuples, if any
 
       begin
@@ -271,9 +271,9 @@ class Tupelo::Client
             # due to archiver timing, for example
           return
         elsif msg.global_tick > global_tick + 1
-          log.error "message out of order: #{msg.inspect}, " +
+          log.fatal "message out of order: #{msg.inspect}, " +
             "received at global_tick=#{global_tick}"
-          ## exit? wait? in udp case, get history
+          raise "fatal error"
         end
       end
 
