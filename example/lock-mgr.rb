@@ -1,4 +1,4 @@
-# Run with --monitor
+# Run with --trace
 
 require 'tupelo/app'
 

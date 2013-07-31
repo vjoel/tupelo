@@ -7,7 +7,7 @@
 #
 # or
 #
-#  ruby tcp.rb --monitor
+#  ruby tcp.rb --trace
 #
 # You can test with a local client:
 #
@@ -33,7 +33,7 @@ Tupelo.application servers_file: svr,
     puts "server started; ^C to stop"
     puts "run in another terminal: ../bin/tup tcp.yaml"
     if app.log.level > Logger::INFO
-      puts "(run with --info or --monitor to see events)"
+      puts "(run with --info or --trace to see events)"
     end
     sleep
   else

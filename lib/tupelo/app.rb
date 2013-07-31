@@ -96,7 +96,7 @@ module Tupelo
       blob_type ||= "msgpack"
     end
     
-    use_monitor = ARGV.delete("--monitor")
+    enable_trace = ARGV.delete("--trace")
 
     svrs = servers_file || argv.shift || "servers-#$$.yaml"
 
@@ -135,9 +135,9 @@ module Tupelo
 
       app = AppBuilder.new(ez, owns_servers: owns_servers)
       
-      if use_monitor
-        require 'tupelo/app/monitor'
-        app.start_monitor
+      if enable_trace
+        require 'tupelo/app/trace'
+        app.start_trace
       end
 
       if block

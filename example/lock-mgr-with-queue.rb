@@ -3,7 +3,7 @@
 # but not in the latter. This means that competing offers are resolved by the
 # queue, rather than by propagating them to all clients.
 #
-# Run with --monitor
+# Run with --trace
 
 require 'tupelo/app'
 

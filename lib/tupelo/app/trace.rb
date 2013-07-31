@@ -3,7 +3,7 @@ require 'tupelo/app'
 # displays every transaction in sequence, specially marking failed ones,
 # until INT signal
 class Tupelo::AppBuilder
-  def start_monitor
+  def start_trace
     child passive: true do |client|
       trap :INT do
         exit!
