@@ -39,8 +39,8 @@ EasyServe.start(servers_file: "small-servers.yaml") do |ez|
 
     ez.server :arcd do |svr|
       require 'tupelo/archiver'
-      arc = Archiver.new svr, seq: arc_to_seq_sock, cseq: arc_to_cseq_sock,
-              log: log
+      arc = Tupelo::Archiver.new svr,
+        seq: arc_to_seq_sock, cseq: arc_to_cseq_sock, log: log
       arc.start
     end
   end
@@ -49,7 +49,7 @@ EasyServe.start(servers_file: "small-servers.yaml") do |ez|
     log = opts[:log]
     log.progname = "client <starting in #{log.progname}>"
     require 'tupelo/client'
-    client = Client.new opts
+    client = Tupelo::Client.new opts
     client.start do
       log.progname = "client #{client.client_id}"
     end
