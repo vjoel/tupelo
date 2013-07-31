@@ -1,9 +1,12 @@
+# Run with --monitor
+
 require 'tupelo/app'
 
 N = 3
 
 Tupelo.application do |app|
-  app.child do |client| # the lock manager
+  app.child passive: true do |client| # the lock manager
+    client.log.progname << " (lock mgr)"
     loop do
       client.write ["resource", "none"]
       lock_id, client_id, duration = client.read ["resource", nil, nil]
@@ -23,9 +26,9 @@ Tupelo.application do |app|
         t.write ["resource", client.client_id, 0.5]
       end
       # Thundering herd -- all N clients can respond at the same time.
-      # A better example would have a queue -- see lock-mgr-with-queue.rb.
+      # Can be avoided with a queue -- see lock-mgr-with-queue.rb.
       
-      10.times do |j|
+      2.times do |j|
         # Now we are ouside of transaction, but still no other client may use
         # "resource" until lock expires (or is otherwise removed), as long
         # as all clients follow the read protocol below.
@@ -39,7 +42,7 @@ Tupelo.application do |app|
     end
   end
   
-  app.child do |client|
+  app.child passive: true do |client|
     # This client never even tries to lock the resource, so it cannot write.
     client.transaction do |t|
       t.read ["resource", client.client_id, nil]

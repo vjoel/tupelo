@@ -2,13 +2,15 @@
 # problem. You can observe this by seeing "FAILED" in the output of the former
 # but not in the latter. This means that competing offers are resolved by the
 # queue, rather than by propagating them to all clients.
+#
+# Run with --monitor
 
 require 'tupelo/app'
 
 N = 3
 
 Tupelo.application do |app|
-  app.child do |client| # the lock manager
+  app.child passive: true do |client| # the lock manager
     client.log.progname << " (lock mgr)"
     waiters = Queue.new
 
@@ -38,7 +40,7 @@ Tupelo.application do |app|
     app.child do |client|
       client.write ["request", "resource", client.client_id, 0.5]
       
-      10.times do |j|
+      2.times do |j|
         # Now we are ouside of transaction, but still no other client may use
         # "resource" until lock expires (or is otherwise removed), as long
         # as all clients follow the read protocol below.
@@ -52,7 +54,7 @@ Tupelo.application do |app|
     end
   end
   
-  app.child do |client|
+  app.child passive: true do |client|
     # This client never even tries to lock the resource, so it cannot write.
     client.transaction do |t|
       t.read ["resource", client.client_id, nil]
