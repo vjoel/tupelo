@@ -250,15 +250,9 @@ However, it may take some time to prepare the transaction. This is true in terms
 
 Transactions are not just about batching up operations into a more efficient package (though you can do that with the #batch api). A transaction makes the combined operations execute atomically: the transaction finishes only when all of its operations can be successfully performed. Writes and pulses can always succeed, but takes and reads only succeed if the tuples exist.
 
-Transactions give you a means of optimistic locking: the transaction proceeds in a way that depends on preconditions. See [example/increment.rb](../blob/master/example/increment.rb)
-[example/increment.rb](blob/master/example/increment.rb)
-[example/increment.rb](../tree/master/example/increment.rb)
-[example/increment.rb](tree/master/example/increment.rb)
-[example/increment.rb](example/increment.rb)
+Transactions give you a means of optimistic locking: the transaction proceeds in a way that depends on preconditions. See [example/increment.rb](example/increment.rb) for a very simple example. Not only can you make a transaction depend on the existence of a tuple, you can make the effect of the transaction a function of existing tuples (see [example/transaction-logic.rb](example/transaction-logic.rb) and [example/broker-optimistic.rb](example/broker-optimistic.rb)).
 
- for a very simple example. Not only can you make a transaction depend on the existence of a tuple, you can make the effect of the transaction a function of existing tuples (see example/transaction-logic.rb and example/broker-optimistic.rb).
-
-If you prefer classical tuplespace locking, you can simply use certain tuples as locks, using take/write to lock/unlock them. See the examples, such as example/broker-locking.rb. If you have a lot of contention and want to avoid the thundering herd, see example/lock-mgr-with-queue.rb.
+If you prefer classical tuplespace locking, you can simply use certain tuples as locks, using take/write to lock/unlock them. See the examples, such as [example/broker-locking.rb](example/broker-locking.rb). If you have a lot of contention and want to avoid the thundering herd, see [example/lock-mgr-with-queue.rb](example/lock-mgr-with-queue.rb).
 
 If an optimistic transaction fails (for example, it is trying to take a tuple, but the tuple has just been taken by another transaction), then the transaction block is re-executed, possibly waiting for new matches to the templates. Application code must be aware of the possible re-execution of the block. This is better explained in the examples...
 
@@ -274,7 +268,7 @@ Tupelo transactions do not require two-phase commit, because they are less power
 Syntax
 ======
 
-You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare example/add-dsl.rb and example/add.rb.
+You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare [example/add-dsl.rb](example/add-dsl.rb) and [example/add.rb](example/add.rb).
 
 
 Advantages
@@ -354,7 +348,7 @@ Rinda has a severe bottleneck, though: all matching, waiting, etc. are performed
 
 Rinda is rpc-based, which is slower and also more vulnerable due to the extra client-server state; tupelo is imlemented on a message layer, rather than rpc. This also helps with pipelined writes.
 
-Tupelo also supports custom classes in tuples, but only with marshal / yaml; must define #==; see example/custom-class.rb
+Tupelo also supports custom classes in tuples, but only with marshal / yaml; must define #==; see [example/custom-class.rb](example/custom-class.rb)
 
 Both: tuples can be arrays or hashes.
 
