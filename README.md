@@ -97,7 +97,7 @@ Getting started
 
   There is no guarantee that `x_final == x_optimistic`. The block may execute more than once.
 
-  Take a tuple matching a template, but only if a local match exist (otherwise return nil):
+  Take a tuple matching a template, but only if a local match exists (otherwise return nil):
 
         take_nowait <template>
 
@@ -105,12 +105,11 @@ Getting started
           ...
         end
 
-  Note that a local match is still not a guarantee of returning that tuple immediately -- another process may take it first, blocking this process.
-
+  Note that a local match is still not a guarantee of `x_final == x_optimistic`. Another process may take `x_optimistic` first, and the take will be re-executed. 
   Perform a general transaction:
 
         result =
-          tr do |t|           # tr is alias for transaction
+          transaction do |t|
             rval = t.read ... # optimistic value
             t.write ...
             t.pulse ...
@@ -136,11 +135,12 @@ Getting started
 
 6. Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful. There is also the similar --trace switch that is available to all bin and example programs, for example:
 
-      tick    cid status operation
-         1      2        batch write ["x", 1]
-         2      2        batch write ["y", 2]
-         3      3        atomic take ["x", 1], ["y", 2]
-
+```
+    tick    cid status operation
+       1      2        batch write ["x", 1]
+       2      2        batch write ["y", 2]
+       3      3        atomic take ["x", 1], ["y", 2]
+```
 
   The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs.
 
