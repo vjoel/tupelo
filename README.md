@@ -135,12 +135,12 @@ Getting started
 
 6. Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful. There is also the similar --trace switch that is available to all bin and example programs, for example:
 
-```
+  ```
     tick    cid status operation
        1      2        batch write ["x", 1]
        2      2        batch write ["y", 2]
        3      3        atomic take ["x", 1], ["y", 2]
-```
+  ```
 
   The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs.
 
