@@ -155,7 +155,7 @@ See https://en.wikipedia.org/wiki/Tuple_space for general information and histor
 What is a tuple?
 ----------------
 
-A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuples does not have an identity other than the data it is made from.
+A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuple does not have an identity other than the data it contains.
 
 A tuple is either an array:
 
@@ -250,7 +250,7 @@ However, it may take some time to prepare the transaction. This is true in terms
 
 Transactions are not just about batching up operations into a more efficient package (though you can do that with the #batch api). A transaction makes the combined operations execute atomically: the transaction finishes only when all of its operations can be successfully performed. Writes and pulses can always succeed, but takes and reads only succeed if the tuples exist.
 
-Transactions give you a means of optimistic locking: the transaction proceeds in a way that depends on preconditions. See example/increment.rb for a very simple example. Not only can you make a transaction depend on the existence of a tuple, you can make the effect of the transaction a function of existing tuples (see example/transaction-logic.rb and example/broker-optimistic.rb).
+Transactions give you a means of optimistic locking: the transaction proceeds in a way that depends on preconditions. See [example/increment.rb](../blob/master/example/increment.rb) for a very simple example. Not only can you make a transaction depend on the existence of a tuple, you can make the effect of the transaction a function of existing tuples (see example/transaction-logic.rb and example/broker-optimistic.rb).
 
 If you prefer classical tuplespace locking, you can simply use certain tuples as locks, using take/write to lock/unlock them. See the examples, such as example/broker-locking.rb. If you have a lot of contention and want to avoid the thundering herd, see example/lock-mgr-with-queue.rb.
 
