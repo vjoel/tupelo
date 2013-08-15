@@ -11,20 +11,24 @@ Tupelo.application do
     # sleep rand / 10 # reduce contention -- could also randomize inserts
     child do
       me = client_id
+      you = nil
       write name: me
       
-      you = transaction do
+      transaction do
         game = read_nowait(
           player1: nil,
           player2: me)
-        break game["player1"] if game
+
+        if game
+          you = game["player1"]
+          break
+        end
       
         take_nowait(name: me) or fail!
         you = take(name: nil)["name"]
         write(
           player1: me,
           player2: you)
-        you
       end
 
       log "now playing with #{you}"
