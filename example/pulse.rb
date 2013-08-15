@@ -1,3 +1,5 @@
+# See pubsub.rb for a more interesting use of pulse.
+
 require 'tupelo/app'
 
 Tupelo.application do |app|
