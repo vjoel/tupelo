@@ -155,7 +155,7 @@ See https://en.wikipedia.org/wiki/Tuple_space for general information and histor
 What is a tuple?
 ----------------
 
-A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuple does not have an identity other than the data it contains.
+A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuple does not have an identity other than the data it contains. A tuplespace can contain multiple copies of the same tuple. (In the ruby client, two tuples are considered the same when they are #==.)
 
 A tuple is either an array:
 
@@ -181,8 +181,6 @@ In other words, a tuple is a fairly general object, though this depends on the s
 * hashes
 
 It's kind of like a "JSON object", except that in the json blob case, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
-
-A tuplespace can contain multiple copies of the same tuple.
 
 What is a template?
 -------------------
@@ -222,7 +220,7 @@ A template doesn't have to be a tuple pattern with wildcards, though. It can be 
     read_all Array
     read_all Object
 
-An optional library, `tupelo/util/boolean`, provides a #match_any method to construct the boolean or of other templates:
+An optional library, `tupelo/util/boolean`, provides a #match_any method to construct the boolean `or` of other templates:
 
     read_all match_any( [1,2,3], {foo: "bar"} )
 
@@ -237,7 +235,7 @@ What are the operations on tuples?
 
 * take - search the space for matching tuples, waiting if none found, removing the tuple if found
 
-* pulse - write and take the tuple; readers see it, but it cannot be taken (nto a classical tuplespace operation)
+* pulse - write and take the tuple; readers see it, but it cannot be taken by other client, and it cannot be read later (this is not a classical tuplespace operation, but is useful for publish-subscribe communication patterns)
 
 These operations have a few variations (wait vs nowait) and options (timeouts).
 
@@ -260,7 +258,7 @@ Transactions have a significant disadvantage compared to lock tuples: a transact
 
 Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. Durability is optional, but can be provided by the archiver (to be implemented) or other clients.
 
-On the CAP spectrum, tupelo tends towards consistency.
+On the CAP spectrum, tupelo tends towards consistency: for all clients, write and take operations are applied in the same order, so the state of the entire system up through a given tick of discrete time is universally agreed upon. Of course, because of the difficulties of distributed systems, one client may not yet have seen the same range of ticks as another.
 
 Tupelo transactions do not require two-phase commit, because they are less powerful than general transactions. Each client has enough information to decide (in the same way as all other clients) whether the transaction succeeds or fails. This has performance advantages, but imposes some limitations on transactions over subspaces that are known to one client but not another.
 
@@ -372,7 +370,7 @@ To compare
 
 * lmax -- minimal spof
 
-* datomic -- similar distribution of "facts", but not tuplespace
+* datomic -- similar distribution of "facts", but not tuplespace; similar use of pluggable storage managers
 
 * job queues: sidekiq, resque, delayedjob, http://queues.io
 
