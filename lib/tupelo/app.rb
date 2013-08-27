@@ -62,6 +62,27 @@ module Tupelo
       end
     end
 
+    def remote client_class = Client, passive: false, host: nil, **opts, &block
+      require 'easy-serve/remote'
+      raise if passive ## not supported yet
+
+      if block
+        ez.remote :seqd, :cseqd, :arcd, host: host,
+            **opts do |seqd, cseqd, arcd|
+          run_client client_class,
+              seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
+            if block.arity == 0
+              client.instance_eval &block
+            else
+              yield client
+            end
+          end
+        end
+      else
+        raise
+      end
+    end
+
     def run_client client_class, opts
       log = opts[:log]
       log.progname = "client <starting in #{log.progname}>"
