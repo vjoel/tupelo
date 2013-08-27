@@ -288,6 +288,8 @@ Speed (latency, throughput):
 
 Can use optimal data structure for each subspace of tuplespace.
 
+Decouples storage from query. (E.g. archiver for storage, optimized for just insert, delete, dump. And in-memory data structure, such as red-black tree, optimized for sorted query.)
+
 Each client can have its own matching agorithms and api -- matching is not part of the comm protocol, which is defined purely in terms of tuples.
 
 Data replication is easy--hard to avoid in fact.
@@ -373,6 +375,8 @@ To compare
 * datomic -- similar distribution of "facts", but not tuplespace; similar use of pluggable storage managers
 
 * job queues: sidekiq, resque, delayedjob, http://queues.io
+
+* pubsubs: kafka
 
 Architecture
 ============
