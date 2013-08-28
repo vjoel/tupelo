@@ -16,8 +16,9 @@ Tupelo.tcp_application do
   remote host: host, eval: %{
     write host: `hostname`.chomp, mode: "eval", client: client_id
   }
-  
-#  remote host, dir: "", run: "", args: []
+  # rather than embed large chunks of code in the string, it's better to
+  # load or require a file and pass self (which is a Client instance) to
+  # a method in that file.
   
   local do
     2.times do

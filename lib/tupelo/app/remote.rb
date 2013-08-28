@@ -4,7 +4,13 @@ module Tupelo
   class AppBuilder
     # Perform client operations on another host.
     #
-    # There are three modes, corresponding to EasyServe#remote modes.
+    # There are two modes: drb and eval. In the drb mode, a block executes
+    # locally, performing tuplespace operations by proxy to the remote
+    # tupelo client instance. Results of the ops are available in the local
+    # process. This is very useful for testing and examples.
+    #
+    # In the eval mode, a string is evaluated on the remote host in the context
+    # of a client instance.
     #
     # There are some minor limitations compared to #child:
     #
@@ -13,8 +19,6 @@ module Tupelo
     # client.
     #
     # Unlike #child, there is no mode that returns a Client instance.
-    #
-    # #passive is not supported yet.
     #
     def remote client_class = Client,
         client_lib: 'tupelo/client', host: nil, **opts
@@ -42,9 +46,6 @@ module Tupelo
             client.stop if client
           end
         }
-
-      elsif opts[:file]
-        ###
 
       elsif block_given?
         block = Proc.new
