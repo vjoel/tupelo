@@ -75,6 +75,16 @@ module Tupelo
     end
   end
 
+  # same as application, but with tcp sockets the default
+  def self.tcp_application argv: ARGV,
+        servers_file: nil, blob_type: nil,
+        seqd_addr:  [:tcp, nil, 0],
+        cseqd_addr: [:tcp, nil, 0],
+        arcd_addr:  [:tcp, nil, 0], &block
+    application argv: ARGV, servers_file: servers_file, blob_type: blob_type,
+      seqd_addr: seqd_addr, cseqd_addr: cseqd_addr, arcd_addr: arcd_addr, &block
+  end
+
   #blob_type: 'msgpack' # the default
   #blob_type: 'marshal' # if you need to pass general ruby objects
   #blob_type: 'yaml' # less general ruby objects, but cross-language

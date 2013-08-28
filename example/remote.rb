@@ -5,11 +5,7 @@ require 'tupelo/app/remote'
 
 host = ARGV.shift or abort "usage: #$0 <ssh-hostname>"
 
-Tupelo.application(
-  seqd_addr:  [:tcp, nil, 0], ## these should be defaults?
-  cseqd_addr: [:tcp, nil, 0],
-  arcd_addr:  [:tcp, nil, 0]) do
-
+Tupelo.tcp_application do
   remote host: host do
     write host: `hostname`.chomp, mode: "drb", client: client_id
       # this actually returns local hostname, because the block executes
