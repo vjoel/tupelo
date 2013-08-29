@@ -378,6 +378,8 @@ To compare
 
 * pubsubs: kafka
 
+* spark, storm
+
 Architecture
 ============
 
