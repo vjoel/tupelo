@@ -105,7 +105,8 @@ Getting started
           ...
         end
 
-  Note that a local match is still not a guarantee of `x_final == x_optimistic`. Another process may take `x_optimistic` first, and the take will be re-executed. 
+  Note that a local match is still not a guarantee of `x_final == x_optimistic`. Another process may take `x_optimistic` first, and the take will be re-executed. (Think of #take_nowait as a way of saying "take a match, but don't bother trying if there is no match known at this time.")
+
   Perform a general transaction:
 
         result =
@@ -133,7 +134,7 @@ Getting started
 
   Note that all bin and example programs accept blob type (e.g., --msgpack, --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.
 
-6. Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful. There is also the similar --trace switch that is available to all bin and example programs, for example:
+6. Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful. There is also the similar --trace switch that is available to all bin and example programs. This switch diagnostic output for each transaction. For example:
 
   ```
     tick    cid status operation
@@ -142,7 +143,7 @@ Getting started
        3      3        atomic take ["x", 1], ["y", 2]
   ```
 
-  The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs.
+  The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs. It's a kind of lightweight process deployment and control framework; however it is not necessary to use tupelo.
 
 
 What is a tuplespace?
@@ -180,7 +181,7 @@ In other words, a tuple is a fairly general object, though this depends on the s
 
 * hashes
 
-It's kind of like a "JSON object", except that in the json blob case, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
+It's kind of like a "JSON object", except that, when using the json serializer, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
 
 What is a template?
 -------------------
@@ -244,7 +245,7 @@ Transactions and optimistic concurrency
 
 Transactions combine operations into a group that take effect at the same instant in (logical) time, isolated from other transactions.
 
-However, it may take some time to prepare the transaction. This is true in terms of both real time (clock and process) and logical tiem (global sequence of operations). Preparing a transaction means finding tuples that match the criteria of the read and take operations. Finding tuples may require searching (locally) for tuples, or waiting for new tuples to be written by others. Also, the transaction may fail even after matching tuples are found (when another process takes tuples of interest). Then the transaction needs to be prepared again. Once prepared, transaction is sent to all clients, where it may either succeed (in all clients) or fail (for the same reason as before--someone else grabbed one of our tuples). If it fails, then the preparation can begin again. A transaction guarantees that, when it completes, all the operations were performed on the tuples at the same logical time. It does not guarantee that the world stands still while one process is inside the `transaction {...}` block.
+However, it may take some time to prepare the transaction. This is true in terms of both real time (clock and process) and logical time (global sequence of operations). Preparing a transaction means finding tuples that match the criteria of the read and take operations. Finding tuples may require searching (locally) for tuples, or waiting for new tuples to be written by others. Also, the transaction may fail even after matching tuples are found (when another process takes tuples of interest). Then the transaction needs to be prepared again. Once prepared, transaction is sent to all clients, where it may either succeed (in all clients) or fail (for the same reason as before--someone else grabbed one of our tuples). If it fails, then the preparation begins again. A transaction guarantees that, when it completes, all the operations were performed on the tuples at the same logical time. It does not guarantee that the world stands still while one process is inside the `transaction {...}` block.
 
 Transactions are not just about batching up operations into a more efficient package (though you can do that with the #batch api). A transaction makes the combined operations execute atomically: the transaction finishes only when all of its operations can be successfully performed. Writes and pulses can always succeed, but takes and reads only succeed if the tuples exist.
 
