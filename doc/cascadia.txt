@@ -1,0 +1,64 @@
+Title
+
+Tupelo -- A distributed tuplespace for diverse languages and data structures
+
+
+-----------------------
+Abstract
+
+Tupelo is like Ruby's rinda, but diverges with the decision that the only centralized state is a counter and the only centralized algorithm is counter increment, message dispatch, and connection management.
+
+This decision has some desirable consequences:
+
+* Not based on RPC and not exclusive of languages other than ruby (like drb and rinda).
+
+* Not tied to one data structure or storage engine (they can vary by process and by subspace).
+
+* Inherently replicated.
+
+* Push notification and fast (local) reads.
+
+* Pipelined writes.
+
+This talk will cover:
+
+- What is a tuplespace? Why (not) use one?
+
+- What does tupelo add to the standard tuplespace semantics of linda, javaspace, rinda? (Transactions!)
+
+- Tradeoffs, in terms of network/cpu load, latency, throughput, availability, consistency.
+
+- Using polyglot storage and subspaces to overcome the performance limitations of centralized tuplespaces.
+
+- Comparison with other distributed programming frameworks, both tuple-ish and otherwise (datomic, zookeeper, redis).
+
+- Plans for other implementations (languages and storage engines), optimization, and scaling.
+
+Tupelo is BSD licensed. The ruby implementation is available at https://github.com/vjoel/tupelo.
+
+
+-----------------------
+Reviewer notes
+
+Ruby needs to connect to other languages for it to be used in distributed computing and in modern polyglot environments. Tuplespace isn't the only way to do this, but it is a very high-level way (compared to message queues, pubsub, etc.) with a long history (linda, 1980s) and with clear and expressive concurrency semantics.
+
+Ruby has the potential to be a coordination language for networks of processes (and at large scale too), but it needs something like tupelo to do that.
+
+Many developers are using methods of coordinating their back-end computations (delayed job, resque, redis), which are relatively ad-hoc, or do not have the expressiveness of even the classic tuplespace operators (though they may provide a better choice of data structures than traditional tuplespaces), or tend more more towards centralization.
+
+Working rubyists should be thinking about distributed computing in a more explicit way, and playing with a tuplespace is an entertaining way to do that (through exercises like the dining philosophers, for example).
+
+-----------------------
+my notes
+
+- how is the implementation different? (distributing work to the clients means freedom to implement matching, storage, thread concurrency, etc., tuned for the particular subspace and computations managed by the client)
+
+- why not use it:
+
+  - CAP -> C, not A
+  
+  - can have high network traffic
+  
+  - can increase local cpu load, unless you carefully use subspaces
+
+- how to mitigate these negatives?
