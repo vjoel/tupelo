@@ -22,6 +22,5 @@ Tupelo.tcp_application do
       sum += take([Numeric])[0]
     end
     log "sum = #{sum}, correct sum = #{input.flatten.join.size}"
-    sleep 2
   end
 end
