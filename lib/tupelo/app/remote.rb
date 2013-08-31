@@ -30,7 +30,7 @@ module Tupelo
       if opts[:eval]
         ez.remote *snames, host: host, **opts, eval: %{
           require #{client_lib.inspect}
-          
+
           seqd, cseqd, arcd = *conns
           client_class = Object.const_get(#{client_class.name.inspect})
 

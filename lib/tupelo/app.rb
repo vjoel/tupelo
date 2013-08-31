@@ -46,7 +46,7 @@ module Tupelo
     # way. Then you do not have to manually interrupt the whole application when
     # the active processes are done. See examples.
     def child client_class = Client, passive: false, &block
-      ez.client :seqd, :cseqd, :arcd, passive: passive do |seqd, cseqd, arcd|
+      ez.child :seqd, :cseqd, :arcd, passive: passive do |seqd, cseqd, arcd|
         run_client client_class,
                    seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
           if block

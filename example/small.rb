@@ -58,7 +58,7 @@ EasyServe.start(servers_file: "small-servers.yaml") do |ez|
     client.stop if client # gracefully exit the tuplespace management thread
   end
 
-  ez.client :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
+  ez.child :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
     run_client seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
       client.write [2, 3, "frogs"]
       _, s = client.take ["animals", nil]
@@ -66,7 +66,7 @@ EasyServe.start(servers_file: "small-servers.yaml") do |ez|
     end
   end
 
-  ez.client :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
+  ez.child :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
     run_client seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
       x, y, s = client.take [Numeric, Numeric, String]
       s2 = ([s] * (x + y)).join(" ")
