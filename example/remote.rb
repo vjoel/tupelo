@@ -13,15 +13,20 @@ Tupelo.tcp_application do
       # only for examples and tests, not production.
   end
   
-  remote host: host, eval: %{
+  remote host: host, log: true, eval: %{
     write host: `hostname`.chomp, mode: "eval", client: client_id
   }
   # rather than embed large chunks of code in the string, it's better to
   # load or require a file and pass self (which is a Client instance) to
   # a method in that file.
   
+  remote host: host, log: true, passive: true, eval: %{
+    write host: `hostname`.chomp, mode: "eval", client: client_id
+    sleep # since passive, app can stop this process
+  }
+  
   local do
-    2.times do
+    3.times do
       log take host: nil, mode: nil, client: nil
     end
   end

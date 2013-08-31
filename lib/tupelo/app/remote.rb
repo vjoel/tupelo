@@ -23,7 +23,6 @@ module Tupelo
     def remote client_class = Client,
         client_lib: 'tupelo/client', host: nil, **opts
       require 'easy-serve/remote'
-      raise if opts[:passive] ## not supported yet
       ## detach option so that remote process doesn't keep ssh connection
       snames = :seqd, :cseqd, :arcd
 
