@@ -413,9 +413,9 @@ Protocol
 
 Nothing in the protocol specifies local searching or storage, or matching, or notification, or templating. That's all up to each client. The protocol only contains tuples and operations on them (take, write, pulse, read), combined into transactions.
 
-The protocol has two layers. The outer (message) layer is 6 fields, managed by the funl gem, using msgpack for serialization. All socket reads are non-blocking, so a slow sender will not block other activity in the system.
+The protocol has two layers. The outer (message) layer is 6 fields, managed by the funl gem, using msgpack for serialization. All socket reads are non-blocking (using msgpack's stream mode), so a slow sender will not block other activity in the system.
 
-The inner (blob) layer manages one of those 6 field using msgpack (by default), marshal, json, or yaml. This layer contains the transaction operations. The blob is not unpacked by the server, only by clients.
+One of those 6 fields is a data blob, containing the actual transaction and tuple information. The inner (blob) layer manages that field using msgpack (by default), marshal, json, or yaml. This layer contains the transaction operations. The blob is not unpacked by the server, only by clients.
 
 Each inner serialization method ("blobber") has its own advantages and drawbacks:
 
@@ -424,8 +424,6 @@ Each inner serialization method ("blobber") has its own advantages and drawbacks
 * yaml is portable and humanly readable, and still fairly diverse, but very inefficient
 
 * msgpack and json (yajl) are both relatively efficient (in terms of packet size, as well as parse/emit time)
-
-* msgpack and json both support non-blocking (buffered) reads, which can avoid bottlenecks due to slow senders or bad networks.
 
 * msgpack and json support the least diversity of objects (just "JSON objects"), but msgpack also supports hash keys that are objects rather than just strings.
 
