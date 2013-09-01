@@ -136,52 +136,54 @@ class TestOps < Minitest::Test
   end
   
   def test_transaction_existing
-    w = [1]; t = [2]
+    r = [0]; w = [1]; t = [2]
     cl = make_clients(2)
 
-    wr = cl[0].write t
+    wr = cl[0].write r, t
     cl[0].update; assert_equal 1, wr.global_tick
     
     trans = Fiber.new do
       cl[1].transaction do |tr|
         tr.write w
-        tr.take t
+        [tr.read(r), tr.take(t)]
       end
     end
     trans.resume
 
     cl[1].update; trans.resume
-    cl[1].update; assert_equal t, trans.resume
+    cl[1].update; trans.resume
+    cl[1].update; assert_equal [r, t], trans.resume
     cl[0].update
 
     cl.each do |c|
       reader = Fiber.new { c.read_all [nil] }; reader.resume
-      c.update; assert_equal [w], reader.resume
+      c.update; assert_equal [r, w], reader.resume
     end
   end
   
   def test_transaction_waiting
-    w = [1]; t = [2]
+    r = [0]; w = [1]; t = [2]
     cl = make_clients(2)
 
     trans = Fiber.new do
       cl[1].transaction do |tr|
         tr.write w
-        tr.take t
+        [tr.read(r), tr.take(t)]
       end
     end
     trans.resume
 
-    wr = cl[0].write t
+    wr = cl[0].write r, t
     cl[0].update; assert_equal 1, wr.global_tick
     
     cl[1].update; trans.resume
-    cl[1].update; assert_equal t, trans.resume
+    cl[1].update; trans.resume
+    cl[1].update; assert_equal [r, t], trans.resume
     cl[0].update
 
     cl.each do |c|
       reader = Fiber.new { c.read_all [nil] }; reader.resume
-      c.update; assert_equal [w], reader.resume
+      c.update; assert_equal [r, w], reader.resume
     end
   end
   
@@ -229,7 +231,6 @@ class TestOps < Minitest::Test
     cl[1].update; assert_equal nil, reader.resume
   end
 
-  ## test Transaction#read
   ## test failure
   ## test optimistic
 end
