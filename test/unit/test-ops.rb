@@ -215,8 +215,21 @@ class TestOps < Minitest::Test
     end
   end
   
+  def test_pulse
+    t = ["c0"]
+    cl = make_clients(2)
+
+    reader = Fiber.new { cl[1].read [nil] }; reader.resume
+
+    cl[0].pulse t
+    cl[0].update
+    cl[1].update; assert_equal t, reader.resume
+    
+    reader = Fiber.new { cl[1].read_nowait [nil] }; reader.resume
+    cl[1].update; assert_equal nil, reader.resume
+  end
+
   ## test Transaction#read
   ## test failure
-  ## test pulse
   ## test optimistic
 end
