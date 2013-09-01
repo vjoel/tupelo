@@ -134,7 +134,13 @@ Getting started
 
   Note that all bin and example programs accept blob type (e.g., --msgpack, --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.
 
-6. Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful. There is also the similar --trace switch that is available to all bin and example programs. This switch diagnostic output for each transaction. For example:
+6. Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful; it shows all tuplespace events in sequence that they occur. For example, run
+
+        $ tspy svr
+
+  in another terminal after running `tup svr`. The output shows the clock tick, sending client, operation, and operation status (success or failure).
+
+  There is also the similar --trace switch that is available to all bin and example programs. This turns on diagnostic output for each transaction. For example:
 
   ```
     tick    cid status operation
