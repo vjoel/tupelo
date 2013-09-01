@@ -119,6 +119,14 @@ Getting started
           end
 
   Note that the block may execute more than once, if there is competition for the tuples that you are trying to #take or #read. When the block exits, however, the transaction is final and universally accepted by all clients.
+  
+  You can timeout a transaction:
+  
+        transaction timeout: 1 do
+          read ["does not exist"]
+        end
+
+  This uses tupelo's internal lightweight scheduler, rather than ruby's heavyweight (one thread per timeout) Timeout, though the latter works with tupelo as well.
 
 4. Run tup with a server file so that two sessions can interact. Do this in two terminals in the same dir:
 
