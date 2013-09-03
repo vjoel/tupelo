@@ -28,8 +28,8 @@ class MockQueue
       while @entries.empty?
         Fiber.yield :block
       end
-    rescue FiberError
-      raise QueueEmptyError, "queue empty"
+    rescue FiberError => ex
+      raise QueueEmptyError, "queue empty (#{ex.message})"
     end
     
     val = @entries.shift
