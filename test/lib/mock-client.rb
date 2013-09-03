@@ -16,20 +16,8 @@ class MockClient
   attr_accessor :arc
   attr_accessor :start_tick
 
-  def updater
-    @updater ||=
-      Fiber.new do
-        loop do
-          log.debug "update begin"
-          worker.update
-          log.debug "update end"
-          Fiber.yield
-        end
-      end
-  end
-  
   def update
-    updater.resume
+    worker.update
   end
   
   def make_queue
