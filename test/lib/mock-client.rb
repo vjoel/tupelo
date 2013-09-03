@@ -18,6 +18,9 @@ class MockClient
   attr_accessor :arc
   attr_accessor :start_tick
 
+  class IsBlocked < RuntimeError; end
+  class IsDone < RuntimeError; end
+
   def update
     worker.update
   end
@@ -32,9 +35,9 @@ class MockClient
   
   def step
     loop do
-      fiber = @will_do[0] or raise "nothing to do"
+      fiber = @will_do[0] or raise IsDone, "nothing to do"
 
-      while fiber.alive?
+      if fiber.alive?
         update
         val = fiber.resume
         update
@@ -45,16 +48,25 @@ class MockClient
     end
   end
   
-  def run
+  def run limit: 100
     loop do
-      fiber = @will_do[0] or raise "nothing to do"
+      fiber = @will_do[0] or raise IsDone, "nothing to do"
 
+      count = 0
       while fiber.alive?
         update
         val = fiber.resume
         update
         if fiber.alive? or @will_do.size > 1
-          yield val if block_given?
+          if val == :block
+            count += 1
+            if count > limit
+              raise IsBlocked, "exceeded blocking limit"
+            end
+          else
+            count = 0
+            yield val if block_given?
+          end
         else
           return val
         end
@@ -64,14 +76,29 @@ class MockClient
     end
   end
   
-  def immediately &block
+  def run_until_blocked limit: 100, &block
+    begin
+      run limit: limit, &block
+    rescue IsBlocked
+      return
+    end
+    raise IsDone, "run_until_blocked never blocked"
+  end
+  
+  def now limit: 100, &block
     fiber = Fiber.new { instance_eval &block }
     val = nil
+    count = 0
+    update
     while fiber.alive?
-      update
       val = fiber.resume
       if val == :block
-        raise "cannot immediately do that -- blocked"
+        count += 1
+        if count > limit
+          raise IsBlocked, "cannot now do that -- exceeded blocking limit"
+        end
+      else
+        count = 0
       end
       update
     end
