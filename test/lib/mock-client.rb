@@ -31,6 +31,7 @@ class MockClient
   
   def will &block
     (@will_do ||= []) << Fiber.new { instance_eval &block }
+    self
   end
   
   def step

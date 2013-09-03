@@ -56,28 +56,16 @@ class TestOps < Minitest::Test
     client.update; assert_equal [1], reader.resume
   end
   
-  def test_two_clients
-    t = ["c0"]
-    cl = make_clients(2)
-
-    cl[0].write t
-
-    cl.each do |c|
-      reader = Fiber.new { c.read [nil] }; reader.resume
-      c.update; assert_equal t, reader.resume
-    end
-  end
-
   def test_read_existing
     t = ["foo"]
     cl = make_clients(2)
     
-    wr = cl[0].write t
-    cl[0].update; assert_equal 1, wr.global_tick
-    
+    w = cl[0].now {write t}
+    assert_equal 1, w.global_tick
+
     cl.each do |c|
-      reader = Fiber.new { c.read [nil] }; reader.resume
-      c.update; assert_equal t, reader.resume
+      c.will {read [nil]}
+      assert_equal t, c.run
     end
   end
 
@@ -85,15 +73,16 @@ class TestOps < Minitest::Test
     t = ["bar"]
     cl = make_clients(2)
 
-    reader = Fiber.new { cl[1].read [nil] }; reader.resume
+    cl[1].will {read [nil]}.run_until_blocked
 
-    wr = cl[0].write t
-    cl[0].update; assert_equal 1, wr.global_tick
-    cl[1].update; assert_equal t, reader.resume
+    w = cl[0].now {write t}
+    assert_equal 1, w.global_tick
+
+    assert_equal t, cl[1].run
 
     cl.each do |c|
-      reader = Fiber.new { c.read [nil] }; reader.resume
-      c.update; assert_equal t, reader.resume
+      c.will {read [nil]}
+      assert_equal t, c.run
     end
   end
 
@@ -101,99 +90,87 @@ class TestOps < Minitest::Test
     t = ["foo"]
     cl = make_clients(2)
 
-    wr = cl[0].write t
-    cl[0].update; assert_equal 1, wr.global_tick
+    w = cl[0].now {write t}
+    assert_equal 1, w.global_tick
 
-    taker = Fiber.new { cl[1].take [nil] }; taker.resume
-    cl[1].update; taker.resume
-    cl[1].update; assert_equal t, taker.resume
-    cl[0].update
+    cl[1].will {take [nil]}
+    assert_equal t, cl[1].run
 
     cl.each do |c|
-      reader = Fiber.new { c.read_all [nil] }; reader.resume
-      c.update; assert_empty reader.resume
+      c.will {read_all [nil]}
+      assert_empty c.run
     end
   end
 
   def test_take_waiting
     t = ["bar"]
-    cl = make_clients(2)
+    taker, writer = make_clients(2)
+    
+    taker.will {take [nil]}.run_until_blocked
 
-    taker = Fiber.new { cl[1].take [nil] }; taker.resume
-    cl[1].update; taker.resume
-    cl[1].update; assert_equal :block, taker.resume
+    w = writer.now {write t}
+    assert_equal 1, w.global_tick
 
-    wr = cl[0].write t
-    cl[0].update; assert_equal 1, wr.global_tick
-    cl[1].update; taker.resume
-    cl[1].update; assert_equal t, taker.resume
-    cl[0].update
+    assert_equal t, taker.run
 
-    cl.each do |c|
-      reader = Fiber.new { c.read_all [nil] }; reader.resume
-      c.update; assert_empty reader.resume
+    [taker, writer].each do |c|
+      c.will {read_all [nil]}
+      assert_empty c.run
     end
   end
   
   def test_transaction_existing
     r = [0]; w = [1]; t = [2]
-    cl = make_clients(2)
+    writer, transactor = make_clients(2)
 
-    wr = cl[0].write r, t
-    cl[0].update; assert_equal 1, wr.global_tick
+    w_op = writer.now {write r, t}
+    assert_equal 1, w_op.global_tick
     
-    trans = Fiber.new do
-      cl[1].transaction do |tr|
-        tr.write w
-        [tr.read(r), tr.take(t)]
+    transactor.will do
+      transaction do
+        write w
+        [read(r), take(t)]
       end
     end
-    trans.resume
 
-    cl[1].update; trans.resume
-    cl[1].update; trans.resume
-    cl[1].update; assert_equal [r, t], trans.resume
-    cl[0].update
+    assert_equal [r, t], transactor.run
 
-    cl.each do |c|
-      reader = Fiber.new { c.read_all [nil] }; reader.resume
-      c.update; assert_equal [r, w], reader.resume
+    [writer, transactor].each do |c|
+      c.will {read_all [nil]}
+      assert_equal [r, w], c.run
     end
   end
   
   def test_transaction_waiting
     r = [0]; w = [1]; t = [2]
-    cl = make_clients(2)
+    writer, transactor = make_clients(2)
 
-    trans = Fiber.new do
-      cl[1].transaction do |tr|
-        tr.write w
-        [tr.read(r), tr.take(t)]
+    transactor.will do
+      transaction do
+        write w
+        [read(r), take(t)]
       end
     end
-    trans.resume
+    transactor.run_until_blocked
 
-    wr = cl[0].write r, t
-    cl[0].update; assert_equal 1, wr.global_tick
+    w_op = writer.now {write r, t}
+    assert_equal 1, w_op.global_tick
     
-    cl[1].update; trans.resume
-    cl[1].update; trans.resume
-    cl[1].update; assert_equal [r, t], trans.resume
-    cl[0].update
+    assert_equal [r, t], transactor.run
 
-    cl.each do |c|
-      reader = Fiber.new { c.read_all [nil] }; reader.resume
-      c.update; assert_equal [r, w], reader.resume
+    [writer, transactor].each do |c|
+      c.will {read_all [nil]}
+      assert_equal [r, w], c.run
     end
   end
   
   def test_transaction_cancel
     w = [1]; t = [2]
-    cl = make_clients(2)
+    writer, transactor = make_clients(2)
 
     tr = nil
-    trans = Fiber.new do
-      tr = cl[1].transaction
+    transactor.will do
+      tr = transaction
       tr.write w
       begin
         tr.take t
@@ -202,29 +179,27 @@ class TestOps < Minitest::Test
         Fiber.yield :abort
       end
     end
-    cl[1].update; assert_equal :block, trans.resume
-    
+    assert_equal :block,  transactor.step
     tr.cancel
-    cl[1].update; assert_equal :abort, trans.resume
+    assert_equal :abort, transactor.step
 
-    wr = cl[0].write t
-    cl[0].update; assert_equal 1, wr.global_tick
-    cl[1].update
+    w_op = writer.now {write t}
+    assert_equal 1, w_op.global_tick
 
-    cl.each do |c|
-      reader = Fiber.new { c.read_all [nil] }; reader.resume
-      c.update; assert_equal [t], reader.resume
+    [writer, transactor].each do |c|
+      c.will {read_all [nil]}
+      assert_equal [t], c.run
     end
   end
   
   def test_transaction_fail_retry
     winner, loser = make_clients(2)
-    winner.write ["token", 1]; winner.update; loser.update
+    winner.now {write ["token", 1]}
     
     run_count = 0
     result = nil
-    lose_ops = Fiber.new do
-      result = loser.transaction do
+    loser.will do
+      result = transaction do
         run_count += 1
         a = []
         write ["test",  1]
@@ -235,66 +210,35 @@ class TestOps < Minitest::Test
         a
       end
     end
-    
-    lose_ops.resume; loser.update # taking token 2
-    lose_ops.resume; loser.update # blocked on take token 2
+    loser.run_until_blocked
     assert_equal 1, run_count
     
-    win_ops = Fiber.new do
-      winner.take ["token", 1]
+    winner.will do
+      take ["token", 1]
     end
-    
-    winner.update; win_ops.resume
-    winner.update; win_ops.resume
-    winner.update; win_ops.resume
+    winner.run
+    loser.run_until_blocked
 
-    loser.update; lose_ops.resume
     assert_equal 2, run_count
+    assert_empty winner.now {read_all [nil, nil]}
 
-    winner.update
-    win_ops = Fiber.new do
-      winner.read_all [nil, nil]
-    end
-    win_ops.resume; winner.update
-    assert_equal [], win_ops.resume
-
-    win_ops = Fiber.new do
-      winner.write ["token", 2]
-    end
-    winner.update; win_ops.resume; winner.update
+    winner.now {write ["token", 2]}
+    assert_raises(MockClient::IsBlocked) {loser.run}
     
-    loser.update
-    assert_equal :block, lose_ops.resume
+    winner.now {write ["token", 1]}
+    assert_equal [["token", 1], ["token", 2]], loser.run
     
-    win_ops = Fiber.new do
-      winner.write ["token", 1]
-    end
-    winner.update; win_ops.resume; winner.update
-    
-    loser.update; lose_ops.resume
-    loser.update; lose_ops.resume
-    loser.update
-    assert_equal [["token", 1], ["token", 2]], lose_ops.resume
-    
-    winner.update
-    win_ops = Fiber.new do
-      winner.read_all [nil, nil]
-    end
-    win_ops.resume; winner.update
-    assert_equal [["test", 1], ["test", 2], ["test", 3]], win_ops.resume
+    result = winner.now {read_all [nil, nil]}
+    assert_equal [["test", 1], ["test", 2], ["test", 3]], result
   end
   
   def test_pulse
     t = ["c0"]
-    cl = make_clients(2)
+    reader, pulser = make_clients(2)
 
-    reader = Fiber.new { cl[1].read [nil] }; reader.resume
-
-    cl[0].pulse t
-    cl[0].update
-    cl[1].update; assert_equal t, reader.resume
-    
-    reader = Fiber.new { cl[1].read_nowait [nil] }; reader.resume
-    cl[1].update; assert_equal nil, reader.resume
+    reader.will {read [nil]}.run_until_blocked
+    pulser.now {pulse t}
+    assert_equal t, reader.run
+    assert_empty reader.now {read_all [nil]}
   end
 end
