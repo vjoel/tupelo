@@ -35,6 +35,7 @@ class Tupelo::Client
       retry
     rescue TransactionAbort
       log.info {"aborting #{t.inspect}"}
+      :abort
     ensure
       t.cancel if t and t.open? and block_given?
     end
@@ -275,6 +276,10 @@ class Tupelo::Client
       worker_push self
       wait
       return read_tuples[i]
+    end
+
+    def abort
+      client.abort
     end
 
     # Client may call this before commit. In transaction do...end block,

@@ -127,6 +127,14 @@ Getting started
         end
 
   This uses tupelo's internal lightweight scheduler, rather than ruby's heavyweight (one thread per timeout) Timeout, though the latter works with tupelo as well.
+  
+  You can also abort a transaction while inside it by calling #abort on it:
+
+        write [1]
+        transaction {take [1]; abort}
+        read_all # => [[1]]
+
+  Another thread can abort a transaction in progress (to the extent possible) by calling cancel on it. See [example/cancel.rb](example/cancel.rb).
 
 4. Run tup with a server file so that two sessions can interact. Do this in two terminals in the same dir:
 
