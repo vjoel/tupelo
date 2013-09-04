@@ -11,7 +11,7 @@ Tupelo differs from other spaces in several ways:
 
 * minimal central computation: just counter increment, message dispatch, and connection management (and it never unpacks serialized tuples)
 
-* clients do all the tuple work: registering and checking waiters, matching, searching, notifying, storing, inserting, deleting, persisting, etc. Each client is free to to decide how to do these things (application code is insulated from this, however). Special-purpose clients may use specialized algorithms and stores for the subspaces they manage.
+* clients do all the tuple work: registering and checking waiters, matching, searching, notifying, storing, inserting, deleting, persisting, etc. Each client is free to to decide how to do these things (application code is insulated from this, however). Special-purpose clients (known as *tuplets*) may use specialized algorithms and stores for the subspaces they manage.
 
 * transactions, in addition to the classic operators.
 
@@ -58,11 +58,12 @@ Getting started
 
   Pulse without waiting:
 
-        pulse_nowait ...
+        pulse_nowait <tuple>,...
 
   Read tuple matching a template, waiting for a match to exist:
 
         r <template>
+        read <template>
         read_wait <template>
 
   Read tuple matching a template and return it, without waiting for a match to exist (returning nil in that case):
@@ -78,7 +79,7 @@ Getting started
 
         ra Hash
 
-  reads all hash tuples (and ignore array tuples), and
+  reads all hash tuples (and ignores array tuples), and
 
         ra proc {|t| t.size==2}
 
@@ -128,13 +129,13 @@ Getting started
 
   This uses tupelo's internal lightweight scheduler, rather than ruby's heavyweight (one thread per timeout) Timeout, though the latter works with tupelo as well.
   
-  You can also abort a transaction while inside it by calling #abort on it:
+  You can also abort a transaction while inside it by calling `#abort` on it:
 
         write [1]
         transaction {take [1]; abort}
         read_all # => [[1]]
 
-  Another thread can abort a transaction in progress (to the extent possible) by calling cancel on it. See [example/cancel.rb](example/cancel.rb).
+  Another thread can abort a transaction in progress (to the extent possible) by calling `#cancel` on it. See [example/cancel.rb](example/cancel.rb).
 
 4. Run tup with a server file so that two sessions can interact. Do this in two terminals in the same dir:
 
@@ -165,7 +166,7 @@ Getting started
        3      3        atomic take ["x", 1], ["y", 2]
   ```
 
-  The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs. It's a kind of lightweight process deployment and control framework; however it is not necessary to use tupelo.
+  The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs. It's a kind of lightweight process deployment and control framework; however `Tupelo.application` is not necessary to use tupelo.
 
 
 What is a tuplespace?
@@ -173,7 +174,7 @@ What is a tuplespace?
 
 A tuplespace is a service for coordination, configuration, and control of concurrent and distributed systems. The model it provides to processes is a shared space that they can use to communicate in a deterministic and sequential manner. (Deterministic in that all clients see the same, consistent view of the data.) The space contains tuples. The operations on the space are few, but powerful. It's not a database, but it might be a front-end for one or more databases.
 
-See https://en.wikipedia.org/wiki/Tuple_space for general information and history. This project is strongly influenced by Masatoshi Seki's Rinda implementation, part of the Ruby standard library.
+See https://en.wikipedia.org/wiki/Tuple_space for general information and history. This project is strongly influenced by Masatoshi Seki's Rinda implementation, part of the Ruby standard library. See http://pragprog.com/book/sidruby/the-druby-book for a good introduction to rinda and druby.
 
 What is a tuple?
 ----------------
@@ -279,7 +280,7 @@ If an optimistic transaction fails (for example, it is trying to take a tuple, b
 
 Transactions have a significant disadvantage compared to lock tuples: a transaction can protect only resources that are represented in the tuplespace, whereas a lock can protect anything: a file, a device, a service, etc. This is because a transaction begins and ends within a single instant of logical (tuplespace) time, whereas a lock tuple can be taken out for an arbitrary duration of real time. Furthermore, the instant of logical time in which a transaction takes effect may occur at different wall-clock times on different processes, even on the same host.
 
-Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. Durability is optional, but can be provided by the archiver (to be implemented) or other clients.
+Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. Durability is optional, but can be provided by the persistent archiver or other clients.
 
 On the CAP spectrum, tupelo tends towards consistency: for all clients, write and take operations are applied in the same order, so the state of the entire system up through a given tick of discrete time is universally agreed upon. Of course, because of the difficulties of distributed systems, one client may not yet have seen the same range of ticks as another.
 
