@@ -24,6 +24,7 @@ module Tupelo
     # Yields a client that runs in this process.
     def local client_class = Client, &block
       ez.local :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
+        ## optimization: reuse any previously created local client
         run_client client_class,
                    seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
           if block

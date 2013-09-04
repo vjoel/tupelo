@@ -206,6 +206,12 @@ In other words, a tuple is a fairly general object, though this depends on the s
 
 It's kind of like a "JSON object", except that, when using the json serializer, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
 
+One other thing to keep in mind: in the array case, the order of the elements is significant. In the hash case, the order is not significant. So these are both true:
+
+    [1,2] != [2,1]
+    {a:1, b:2} == {b:2, a:1}
+
+
 What is a template?
 -------------------
 
@@ -278,7 +284,9 @@ If you prefer classical tuplespace locking, you can simply use certain tuples as
 
 If an optimistic transaction fails (for example, it is trying to take a tuple, but the tuple has just been taken by another transaction), then the transaction block is re-executed, possibly waiting for new matches to the templates. Application code must be aware of the possible re-execution of the block. This is better explained in the examples...
 
-Transactions have a significant disadvantage compared to lock tuples: a transaction can protect only resources that are represented in the tuplespace, whereas a lock can protect anything: a file, a device, a service, etc. This is because a transaction begins and ends within a single instant of logical (tuplespace) time, whereas a lock tuple can be taken out for an arbitrary duration of real time. Furthermore, the instant of logical time in which a transaction takes effect may occur at different wall-clock times on different processes, even on the same host.
+Transactions have a significant disadvantage compared to using take/write to lock/unlock tuples: a transaction can protect only resources that are represented in the tuplespace, whereas a lock can protect anything: a file, a device, a service, etc. This is because a transaction begins and ends within a single instant of logical (tuplespace) time, whereas a lock tuple can be taken out for an arbitrary duration of real (and logical) time. Furthermore, the instant of logical time in which a transaction takes effect may occur at different wall-clock times on different processes, even on the same host.
+
+Transactions do have an advantage over using take/write to lock/unlock tuples: there is no possibility of deadlock. See [example/deadlock.rb](example/deadlock.rb).
 
 Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. Durability is optional, but can be provided by the persistent archiver or other clients.
 
@@ -403,6 +411,8 @@ To compare
 * pubsubs: kafka
 
 * spark, storm
+
+* tibco and gigaspace
 
 Architecture
 ============
