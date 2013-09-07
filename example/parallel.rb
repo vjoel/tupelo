@@ -64,7 +64,8 @@ Tupelo.tcp_application do
          take(output: nil)["output"]]
       end
 
-      # fragile! crash here => can't finish
+      # Fragile! A crash after the transaction above means the whole app
+      # can't finish. You could fix this with lease tuples...
 
       output = reducer[m1, m2]
       log reduced: output if show_steps

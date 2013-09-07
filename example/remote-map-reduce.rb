@@ -1,3 +1,5 @@
+# see also parallel.rb
+
 require 'tupelo/app/remote'
 
 hosts = ARGV.shift or abort "usage: #$0 <ssh-hostname>,<ssh-hostname>,..."
