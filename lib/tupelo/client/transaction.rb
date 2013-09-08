@@ -156,6 +156,10 @@ class Tupelo::Client
       open!
     end
     
+    def client_id
+      client.client_id
+    end
+    
     def log *args
       if args.empty?
         @log
@@ -323,7 +327,7 @@ class Tupelo::Client
     rescue TransactionAbort, Interrupt, TimeoutError => ex ## others?
       worker_push Unwaiter.new(self)
       raise ex.class,
-        "#{ex.message}: client #{client.client_id} waiting for #{inspect}"
+        "#{ex.message}: client #{client_id} waiting for #{inspect}"
     end
 
     def value
