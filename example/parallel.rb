@@ -22,11 +22,14 @@ abort <<END unless hosts and
   are computed. If input is stdin at the terminal, then you can see these
   outputs even before you type the EOF character.
   
-  Caution: very little argument checking! No robustness guarantees!
+  Caution: very little argument checking!
+  Caution: no robustness guarantees (but see comments)!
   
   Example:
   
     ruby #$0 localhost,localhost map s s.length reduce l1 l2 l1+l2
+  
+  Use `s.split.length` to get word count instead of char count.
 
 END
 
@@ -65,7 +68,7 @@ Tupelo.tcp_application do
       end
 
       # Fragile! A crash after the transaction above means the whole app
-      # can't finish. You could fix this with lease tuples...
+      # can't finish. You could fix this with lease tuples--see lease.rb.
 
       output = reducer[m1, m2]
       log reduced: output if show_steps
