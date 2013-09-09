@@ -39,7 +39,6 @@ Tupelo.application do
               # otherwise, some other client has been assigned to this task.
           else
             log.warn "I lost my lease because I didn't finish task in time!"
-            break
           end
         end
       end
@@ -63,9 +62,7 @@ Tupelo.application do
 
       scheduler.at Time.at(time + 0.2) do # allow for network latency etc.
         t = alive_until[[lease_client_id, task_id]]
-        if t and t > Time.now.to_f
-          # ok for another period
-        else
+        if t < Time.now.to_f # expired
           task_data = nil
           transaction do
             _,_,_,task_data =
