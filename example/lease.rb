@@ -52,7 +52,9 @@ Tupelo.application do
   # one worker lives. This demonstrates how to recover from worker failure
   # and prevent "lost tuples".
   child passive: true do
-    scheduler = AtDo.new
+    require 'tupelo/client/atdo'
+
+    scheduler = make_scheduler
     alive_until = Hash.new(0)
 
     loop do
@@ -60,7 +62,7 @@ Tupelo.application do
       t = alive_until[[lease_client_id, task_id]]
       alive_until[[lease_client_id, task_id]] = [t, time].max
 
-      scheduler.at Time.at(time + 0.2) do # allow for network latency etc.
+      scheduler.at time + 0.2 do # allow for network latency etc.
         t = alive_until[[lease_client_id, task_id]]
         if t < Time.now.to_f # expired
           task_data = nil
