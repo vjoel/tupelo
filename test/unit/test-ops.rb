@@ -164,6 +164,18 @@ class TestOps < Minitest::Test
     end
   end
   
+  def test_transaction_empty
+    transactor = make_client(0)
+
+    transactor.will do
+      transaction do
+      end
+    end
+
+    assert_equal nil, transactor.run
+    assert_equal 0, transactor.worker.global_tick
+  end
+  
   def test_transaction_cancel
     w = [1]; t = [2]
     writer, transactor = make_clients(2)

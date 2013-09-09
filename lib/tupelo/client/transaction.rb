@@ -298,9 +298,16 @@ class Tupelo::Client
     # idempotent
     def commit
       if open?
-        closed!
-        log.info {"committing #{inspect}"}
-        worker_push self
+        if @writes.empty? and @pulses.empty? and
+           @take_tuples.empty? and @read_tuples.empty?
+          @global_tick = global_tick
+          done!
+          log.info {"not committing empty transaction"}
+        else
+          closed!
+          log.info {"committing #{inspect}"}
+          worker_push self
+        end
       else
         raise exception if failed?
       end
