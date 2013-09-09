@@ -32,21 +32,26 @@ Tupelo.application do
 
         result = task_data * 1000
 
-        begin
-          transaction timeout: 0.2 do ## or 0.0 or nowait?
-            take ["lease", client_id, task_id, nil]
+        transaction do
+          if take_nowait ["lease", client_id, task_id, nil]
             write ["result", task_id, result]
-              # only write the result if this client still has lease --
+              # write the result only if this client still has lease --
               # otherwise, some other client has been assigned to this task.
+          else
+            log.warn "I lost my lease because I didn't finish task in time!"
+            break
           end
-        rescue TimeoutError
-          log.warn "I lost my lease because I didn't finish task in time!"
         end
       end
     end
   end
   
-  # lease manager
+  # Lease manager. Ensures that, for each input tuple ["task", i, ...],
+  # there is exactly one output tuple ["result", i, ...]. It does not
+  # attempt to stop / start processes. So it can fail if all the workers die,
+  # or if the lease manager itself dies. But it will succeed if it and at least
+  # one worker lives. This demonstrates how to recover from worker failure
+  # and prevent "lost tuples".
   child passive: true do
     scheduler = AtDo.new
     alive_until = Hash.new(0)
@@ -78,6 +83,7 @@ Tupelo.application do
     end
   end
   
+  # Task requestor.
   child do
     N_TASKS.times do |task_id|
       task_data = task_id # for simplicity
