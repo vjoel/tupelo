@@ -17,6 +17,10 @@ Tupelo differs from other spaces in several ways:
 
 * replication is inherent in the design (in fact it is unavoidable), for better or worse.
 
+Documentation
+============
+
+* [FAQ](doc/faq.md)
 
 Getting started
 ==========
@@ -398,7 +402,7 @@ To compare
 
 * chubby
 
-* doozer
+* doozer, etcd
 
 * hazelcast
 
