@@ -410,7 +410,7 @@ To compare
 
 * datomic -- similar distribution of "facts", but not tuplespace; similar use of pluggable storage managers
 
-* job queues: sidekiq, resque, delayedjob, http://queues.io
+* job queues: sidekiq, resque, delayedjob, http://queues.io, https://github.com/factual/skuld
 
 * pubsubs: kafka
 
