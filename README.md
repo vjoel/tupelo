@@ -398,7 +398,7 @@ To compare
 
 * resque
 
-* zookeeper -- totally ordered updates
+* zookeeper -- totally ordered updates; tupelo trades availability for lower latency (?)
 
 * chubby
 
