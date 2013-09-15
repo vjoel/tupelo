@@ -404,6 +404,8 @@ To compare
 
 * doozer, etcd
 
+* arakoon
+
 * hazelcast
 
 * lmax -- minimal spof
