@@ -46,7 +46,9 @@ class Tupelo::Archiver
 
     def clear_excess_zeros
       nd = (@nzero - zero_tolerance / 2)
+      @nzero -= nd
       @counts.delete_if {|tuple, count| count == 0 && (nd-=1) >= 0}
+      @nzero += nd
     end
 
     def find_distinct_matches_for tuples
