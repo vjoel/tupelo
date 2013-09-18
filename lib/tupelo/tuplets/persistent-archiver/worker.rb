@@ -1,28 +1,12 @@
 require 'funl/history-worker'
 
-class Tupelo::Archiver
+class Tupelo::PersistentArchiver
   class Worker < Tupelo::Client::Worker
     include Funl::HistoryWorker
     
-    def initialize *args, **opts
-      super *args
-      @scheduled_actions = Hash.new {|h,k| h[k] = []}
-      @opts = opts
-    end
-
-    def tuplespace
-      @tuplespace ||= begin
-        if client.tuplespace.respond_to? :new
-          client.tuplespace.new **@opts
-        else
-          client.tuplespace
-        end
-      end
-    end
-
-    def stop
+    def initialize *args
       super
-      tuplespace.flush global_tick
+      @scheduled_actions = Hash.new {|h,k| h[k] = []}
     end
 
     def handle_client_request req

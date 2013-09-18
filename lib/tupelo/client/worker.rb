@@ -63,12 +63,7 @@ class Tupelo::Client
       @delta = 0
 
       @cmd_queue = client.make_queue
-      @tuplespace =
-        begin
-          client.tuplespace.new
-        rescue NoMethodError
-          client.tuplespace
-        end
+      @tuplespace = nil
       @message_class = client.message_class
       @blobber = nil
 
@@ -84,6 +79,16 @@ class Tupelo::Client
         @log
       else
         @log.unknown *args
+      end
+    end
+    
+    def tuplespace
+      @tuplespace ||= begin
+        if client.tuplespace.respond_to? :new
+          client.tuplespace.new
+        else
+          client.tuplespace
+        end
       end
     end
 
@@ -119,7 +124,6 @@ class Tupelo::Client
       worker_thread.join if worker_thread ## join(limit)?
       msg_reader_thread.kill if msg_reader_thread
       @atdo.stop if @atdo
-      ## optionally write final state (including global_tick) to disk
     end
 
     # stop without any remote handshaking
@@ -203,27 +207,14 @@ class Tupelo::Client
 
     def update_to_tick tick
       # at this point we know that the seq messages now accumulating in
-      # cmd_queue are tick+1, tick+2, .... In particular, if tick==0, we don't
-      # need to get state from archiver.
+      # cmd_queue are tick+1, tick+2, ....
       log.debug {"update_to_tick #{tick}"}
 
-      if tick == 0
-        @global_tick = 0
-        return
-      end
-
-      if false
-        ## load from file, update @global_tick, and see if equal to tick
-        if @global_tick == tick
-          return
-        elsif @global_tick > tick
-          raise "bad tick: #{@global_tick} > #{tick}"
-        end
-      end
-
       unless arc
-        log.warn "no archiver provided; assuming pubsub mode; " +
-          "some client ops (take and local read) will not work"
+        if tick > 0
+          log.warn "no archiver provided; assuming pubsub mode; " +
+            "some client ops (take and local read) will not work"
+        end
         @global_tick = tick
         log.info "global_tick = #{global_tick}"
         return
@@ -296,7 +287,8 @@ class Tupelo::Client
 
       if succeeded
         log.debug {"inserting #{op.writes}; deleting #{actual_tuples}"}
-        tuplespace.transaction inserts: op.writes, deletes: actual_tuples
+        tuplespace.transaction inserts: op.writes, deletes: actual_tuples,
+          tick: @global_tick
       end
 
       notify_waiters.each do |waiter|

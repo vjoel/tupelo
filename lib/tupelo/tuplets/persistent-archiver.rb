@@ -1,33 +1,24 @@
 require 'tupelo/client'
 require 'funl/history-client'
 
-## move to tuplet and make optional (there is a use case: static set of clients)
+class Tupelo::PersistentArchiver < Tupelo::Client; end
 
-## should manipulate tuples as strings (at least in msgpack/json cases) instead
-## of objects -- use msgpack extension for #hash and #== on packed objects
-
-class Tupelo::Archiver < Tupelo::Client; end
-
-require 'tupelo/archiver/worker'
-require 'tupelo/archiver/tuplespace' ## unless persistent?
+require 'tupelo/tuplets/persistent-archiver/worker'
+require 'tupelo/tuplets/persistent-archiver/tuplespace'
 
 module Tupelo
-  class Archiver
+  class PersistentArchiver
     include Funl::HistoryClient
 
     attr_reader :server
-    attr_reader :persist_dir
     attr_reader :server_thread
 
     # How many tuples with count=0 do we permit before cleaning up?
     ZERO_TOLERANCE = 1000
 
-    def initialize server,
-        tuplespace: Tupelo::Archiver::Tuplespace,
-        persist_dir: nil, **opts
+    def initialize server, **opts
+      super arc: nil, tuplespace: Tupelo::PersistentArchiver::Tuplespace, **opts
       @server = server
-      @persist_dir = persist_dir
-      super arc: nil, tuplespace: tuplespace, **opts
     end
 
     # three kinds of requests:
@@ -52,14 +43,11 @@ module Tupelo
     end
 
     def make_worker
-      if persist_dir ## ???
-        Tupelo::Archiver::Worker.new self, persist_dir: persist_dir
-      else
-        Tupelo::Archiver::Worker.new self
-      end
+      Tupelo::PersistentArchiver::Worker.new self
     end
 
     def start
+      ## load from file?
       super # start worker thread
       @server_thread = Thread.new do
         run
@@ -77,6 +65,8 @@ module Tupelo
         Thread.new(server.accept) do |conn|
           handle_conn conn
         end
+
+        ## periodically send worker request to dump space to file?
       end
     rescue => ex
       log.error ex

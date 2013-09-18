@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+### need real argv parsing
+
 if ARGV.delete("-h") or ARGV.delete("--help")
   puts <<-END
     Usage:
@@ -57,6 +59,8 @@ if ARGV.delete("-h") or ARGV.delete("--help")
       --yaml
       --json
       --msgpack   <-- default
+      
+      --persist=FILE
 
   END
   exit
@@ -74,6 +78,10 @@ log_level = case
 end
 verbose = ARGV.delete("-v")
 pubsub = ARGV.delete("--pubsub")
+if i=ARGV.index("--persist-dir")
+  ARGV.delete_at(i)
+  persist_dir = ARGV.delete_at(i)
+end
 
 blob_type = nil
 %w{--marshal --yaml --json --msgpack}.each do |switch|
@@ -115,8 +123,17 @@ EasyServe.start ez_opts do |ez|
 
     ez.server :arcd, *addr do |svr|
       require 'tupelo/archiver'
-      arc = Tupelo::Archiver.new svr, seq: arc_to_seq_sock,
-              cseq: arc_to_cseq_sock, log: log
+      if persist_dir
+        require 'tupelo/archiver/persistent-tuplespace'
+        arc = Tupelo::Archiver.new svr, seq: arc_to_seq_sock,
+                tuplespace: Tupelo::Archiver::PersistentTuplespace,
+                persist_dir: persist_dir,
+                cseq: arc_to_cseq_sock, log: log
+      else
+        arc = Tupelo::Archiver.new svr, seq: arc_to_seq_sock,
+                tuplespace: Tupelo::Archiver::Tuplespace,
+                cseq: arc_to_cseq_sock, log: log
+      end
       arc.start
     end
   end

@@ -9,7 +9,7 @@ class Tupelo::Client
       end
     end
 
-    def transaction inserts: [], deletes: []
+    def transaction inserts: [], deletes: [], tick: nil
       deletes.each do |tuple|
         delete_once tuple or raise "bug"
       end

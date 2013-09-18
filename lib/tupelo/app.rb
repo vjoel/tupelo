@@ -1,7 +1,7 @@
 require 'easy-serve'
 require 'tupelo/client'
 
-## this could be unified with the implementation of bin/tup, which is similar
+### this could be unified with the implementation of bin/tup, which is similar
 
 module Tupelo
   # Not an essential part of the library, but used to build up groups of
