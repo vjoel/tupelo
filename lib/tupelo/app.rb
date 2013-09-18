@@ -82,7 +82,7 @@ module Tupelo
         seqd_addr:  [:tcp, nil, 0],
         cseqd_addr: [:tcp, nil, 0],
         arcd_addr:  [:tcp, nil, 0], &block
-    application argv: ARGV, servers_file: servers_file, blob_type: blob_type,
+    application argv: argv, servers_file: servers_file, blob_type: blob_type,
       seqd_addr: seqd_addr, cseqd_addr: cseqd_addr, arcd_addr: arcd_addr, &block
   end
 
@@ -112,7 +112,7 @@ module Tupelo
       blob_type ||= "msgpack"
     end
     
-    enable_trace = ARGV.delete("--trace")
+    enable_trace = argv.delete("--trace")
 
     svrs = servers_file || argv.shift || "servers-#$$.yaml"
 
