@@ -13,7 +13,7 @@ Tupelo differs from other spaces in several ways:
 
 * clients do all the tuple work: registering and checking waiters, matching, searching, notifying, storing, inserting, deleting, persisting, etc. Each client is free to to decide how to do these things (application code is insulated from this, however). Special-purpose clients (known as *tuplets*) may use specialized algorithms and stores for the subspaces they manage.
 
-* transactions, in addition to the classic operators.
+* transactions, in addition to the classic operators (and transactions execute client-side, reducing bottleneck and increasing expressiveness).
 
 * replication is inherent in the design (in fact it is unavoidable), for better or worse.
 
@@ -353,7 +353,7 @@ Future
 
 - Investigate nio4r for faster networking, especially with many clients.
 
-- Interoperable client and server implementations in C, Python, Go, ....
+- Interoperable client and server implementations in C, Python, Go, .... Elixir?
 
 - UDP multicast to further reduce the bottleneck in the message sequencer.
 
