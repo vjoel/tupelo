@@ -129,7 +129,7 @@ module Tupelo
 
     log_level = opts[:log_level]
     verbose = opts[:verbose]
-    blob_type = blob_type || opts[:blob_type] || "msgpack" ## swap order?
+    blob_type = blob_type || "msgpack"
     enable_trace = opts[:trace]
     persist_dir = opts[:persist_dir]
 
