@@ -1,8 +1,6 @@
 require 'easy-serve'
 require 'tupelo/client'
 
-### this could be unified with the implementation of bin/tup, which is similar
-
 module Tupelo
   # Not an essential part of the library, but used to build up groups of
   # processes for use in examples, tests, benchmarks, etc.
@@ -22,19 +20,16 @@ module Tupelo
     end
 
     # Yields a client that runs in this process.
-    def local client_class = Client, &block
+    def local client_class = Client, **opts, &block
       ez.local :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
-        ## optimization: reuse any previously created local client
-        run_client client_class,
-                   seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
+        opts = {seq: seqd, cseq: cseqd, arc: arcd, log: log}.merge(opts)
+        run_client client_class, **opts do |client|
           if block
             if block.arity == 0
               client.instance_eval &block
             else
               yield client
             end
-          else
-            client
           end
         end
       end
@@ -46,18 +41,16 @@ module Tupelo
     # the passive flag for processes that wait for tuples and respond in some
     # way. Then you do not have to manually interrupt the whole application when
     # the active processes are done. See examples.
-    def child client_class = Client, passive: false, &block
+    def child client_class = Client, passive: false, **opts, &block
       ez.child :seqd, :cseqd, :arcd, passive: passive do |seqd, cseqd, arcd|
-        run_client client_class,
-                   seq: seqd, cseq: cseqd, arc: arcd, log: log do |client|
+        opts = {seq: seqd, cseq: cseqd, arc: arcd, log: log}.merge(opts)
+        run_client client_class, **opts do |client|
           if block
             if block.arity == 0
               client.instance_eval &block
             else
               yield client
             end
-          else
-            client
           end
         end
       end
@@ -75,13 +68,47 @@ module Tupelo
       client.stop if client # gracefully exit the tuplespace management thread
     end
   end
+  
+  # Returns [argv, opts], leaving orig_argv unmodified. The opts hash contains
+  # switches (and their arguments, if any) recognized by tupelo. The argv array
+  # contains all unrecognized arguments.
+  def self.parse_args orig_argv
+    argv = orig_argv.dup
+    opts = {}
+
+    opts[:log_level] =
+      case
+      when argv.delete("--debug"); Logger::DEBUG
+      when argv.delete("--info");  Logger::INFO
+      when argv.delete("--warn");  Logger::WARN
+      when argv.delete("--error"); Logger::ERROR
+      when argv.delete("--fatal"); Logger::FATAL
+      else Logger::WARN
+      end
+
+    opts[:verbose] = argv.delete("-v")
+
+    if i = argv.index("--persist-dir")
+      argv.delete_at(i)
+      opts[:persist_dir] = argv.delete_at(i)
+    end
+
+    %w{--marshal --yaml --json --msgpack}.each do |switch|
+      s = argv.delete(switch) and
+        otps[:blob_type] = s.delete("--")
+    end
+
+    opts[:trace] = argv.delete("--trace")
+    
+    [argv, opts]
+  end
 
   # same as application, but with tcp sockets the default
-  def self.tcp_application argv: ARGV,
+  def self.tcp_application argv: nil,
         servers_file: nil, blob_type: nil,
         seqd_addr:  [:tcp, nil, 0],
         cseqd_addr: [:tcp, nil, 0],
-        arcd_addr:  [:tcp, nil, 0], &block
+        arcd_addr:  [:tcp, nil, 0], **opts, &block
     application argv: argv, servers_file: servers_file, blob_type: blob_type,
       seqd_addr: seqd_addr, cseqd_addr: cseqd_addr, arcd_addr: arcd_addr, &block
   end
@@ -91,35 +118,31 @@ module Tupelo
   #blob_type: 'yaml' # less general ruby objects, but cross-language
   #blob_type: 'json' # more portable than yaml, but more restrictive
 
-  def self.application argv: ARGV,
+  def self.application argv: nil,
         servers_file: nil, blob_type: nil,
-        seqd_addr: [], cseqd_addr: [], arcd_addr: [], &block
-
-    log_level = case
-      when argv.delete("--debug"); Logger::DEBUG
-      when argv.delete("--info");  Logger::INFO
-      when argv.delete("--warn");  Logger::WARN
-      when argv.delete("--error"); Logger::ERROR
-      when argv.delete("--fatal"); Logger::FATAL
-      else Logger::WARN
+        seqd_addr: [], cseqd_addr: [], arcd_addr: [], **opts, &block
+  
+    unless argv
+      argv, h = parse_args(ARGV)
+      opts.merge! h
     end
 
-    unless blob_type
-      %w{--marshal --yaml --json --msgpack}.each do |switch|
-        s = argv.delete(switch) and
-          blob_type ||= s.delete("--")
-      end
-      blob_type ||= "msgpack"
-    end
-    
-    enable_trace = argv.delete("--trace")
+    log_level = opts[:log_level]
+    verbose = opts[:verbose]
+    blob_type = blob_type || opts[:blob_type] || "msgpack" ## swap order?
+    enable_trace = opts[:trace]
+    persist_dir = opts[:persist_dir]
 
-    svrs = servers_file || argv.shift || "servers-#$$.yaml"
+    ez_opts = {
+      servers_file: servers_file || argv.shift,
+      interactive: $stdin.isatty
+    }
 
-    EasyServe.start(servers_file: svrs) do |ez|
+    EasyServe.start ez_opts do |ez|
       log = ez.log
       log.level = log_level
-      log.progname = "parent"
+      log.formatter = nil if verbose
+      log.progname = File.basename($0)
       owns_servers = false
 
       ez.start_servers do
@@ -143,8 +166,17 @@ module Tupelo
 
         ez.server :arcd, *arcd_addr do |svr|
           require 'tupelo/archiver'
-          arc = Archiver.new svr, seq: arc_to_seq_sock,
-            cseq: arc_to_cseq_sock, log: log
+          if persist_dir
+            require 'tupelo/archiver/persistent-tuplespace'
+            arc = Archiver.new svr, seq: arc_to_seq_sock,
+                    tuplespace: Archiver::PersistentTuplespace,
+                    persist_dir: persist_dir,
+                    cseq: arc_to_cseq_sock, log: log
+          else
+            arc = Archiver.new svr, seq: arc_to_seq_sock,
+                    tuplespace: Archiver::Tuplespace,
+                    cseq: arc_to_cseq_sock, log: log
+          end
           arc.start
         end
       end

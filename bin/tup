@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-### need real argv parsing
-
 if ARGV.delete("-h") or ARGV.delete("--help")
   puts <<-END
     Usage:
@@ -49,6 +47,8 @@ if ARGV.delete("-h") or ARGV.delete("--help")
       
       -v          verbose mode (include time and pid in log messages)
       
+      --trace     enable trace output
+      
       --pubsub    publish/subscribe mode; does not keep local tuple store:
       
                     * read only works in blocking mode (waiting for new tuple)
@@ -60,121 +60,52 @@ if ARGV.delete("-h") or ARGV.delete("--help")
       --json
       --msgpack   <-- default
       
-      --persist=FILE
+      --persist-dir DIR
+                  load and save tuplespace to DIR
 
   END
   exit
 end
 
-require 'easy-serve'
+require 'tupelo/app'
 
-log_level = case
-  when ARGV.delete("--debug"); Logger::DEBUG
-  when ARGV.delete("--info");  Logger::INFO
-  when ARGV.delete("--warn");  Logger::WARN
-  when ARGV.delete("--error"); Logger::ERROR
-  when ARGV.delete("--fatal"); Logger::FATAL
-  else Logger::WARN
-end
-verbose = ARGV.delete("-v")
-pubsub = ARGV.delete("--pubsub")
-if i=ARGV.index("--persist-dir")
-  ARGV.delete_at(i)
-  persist_dir = ARGV.delete_at(i)
-end
+argv, tupelo_opts = Tupelo.parse_args(ARGV)
 
-blob_type = nil
-%w{--marshal --yaml --json --msgpack}.each do |switch|
-  s = ARGV.delete(switch) and
-    blob_type ||= s.delete("--")
-end
+pubsub = argv.delete("--pubsub") # not a standard tupelo opt
 
-ez_opts = {
-  servers_file: ARGV.shift,
-  interactive: $stdin.isatty
-}
+servers_file = argv.shift
+addr = argv.shift(3)
 
-addr = ARGV.shift(3)
+Tupelo.application(
+  argv: argv,
+  **tupelo_opts,
+  servers_file: servers_file,
+  seqd_addr: addr,
+  cseqd_addr: addr, # using same addr causes autoincrement of port/filename
+  arcd_addr: addr) do
 
-EasyServe.start ez_opts do |ez|
-  log = ez.log
-  log.level = log_level
-  log.formatter = nil if verbose
-  log.progname = File.basename($0)
-    
-  ez.start_servers do
-    arc_to_seq_sock, seq_to_arc_sock = UNIXSocket.pair
-    arc_to_cseq_sock, cseq_to_arc_sock = UNIXSocket.pair
-    
-    ez.server :seqd, *addr do |svr|
-      require 'funl/message-sequencer'
-      seq_opts = {}
-      seq_opts[:blob_type] = blob_type if blob_type
-      seq = Funl::MessageSequencer.new svr, seq_to_arc_sock, log: log,
-        **seq_opts
-      seq.start ## thwait? or can easy-serve do that?
-    end
-    
-    ez.server :cseqd, *addr do |svr|
-      require 'funl/client-sequencer'
-      cseq = Funl::ClientSequencer.new svr, cseq_to_arc_sock, log: log
-      cseq.start
-    end
-
-    ez.server :arcd, *addr do |svr|
-      require 'tupelo/archiver'
-      if persist_dir
-        require 'tupelo/archiver/persistent-tuplespace'
-        arc = Tupelo::Archiver.new svr, seq: arc_to_seq_sock,
-                tuplespace: Tupelo::Archiver::PersistentTuplespace,
-                persist_dir: persist_dir,
-                cseq: arc_to_cseq_sock, log: log
-      else
-        arc = Tupelo::Archiver.new svr, seq: arc_to_seq_sock,
-                tuplespace: Tupelo::Archiver::Tuplespace,
-                cseq: arc_to_cseq_sock, log: log
-      end
-      arc.start
-    end
+  class TupClient < Tupelo::Client
+    alias w write_wait
+    alias pl pulse_wait
+    alias t take
+    alias r read_wait
+    alias ra read_all
+    alias tr transaction
+    CMD_ALIASES = %w{ w pl t r ra tr }
+    private *CMD_ALIASES
   end
-  
-  ez.local :seqd, :cseqd, :arcd do |seqd, cseqd, arcd|
-    log.progname = "client <starting in #{log.progname}>"
 
-    require 'tupelo/client'
-    class TupClient < Tupelo::Client
-      alias w write_wait
-      alias pl pulse_wait
-      alias t take
-      alias r read_wait
-      alias ra read_all
-      alias tr transaction
-      CMD_ALIASES = %w{ w pl t r ra tr }
-      private *CMD_ALIASES
-    end
+  client_opts = {}
+  if pubsub
+    client_opts[:arc] = nil
+    client_opts[:tuplespace] = TupClient::NullTuplespace
+  end
 
-    client_opts = {seq: seqd, cseq: cseqd, log: log}
-    if pubsub
-      client_opts[:arc] = nil
-      client_opts[:tuplespace] = TupClient::NullTuplespace
-    else
-      client_opts[:arc] = arcd
-    end
-
-    client = TupClient.new client_opts
-    client.start do
-      log.progname = "client #{client.client_id}"
-    end
-    log.info {
-      "cpu time: %.2fs" % Process.times.inject {|s,x|s+x}
-    }
-    log.info {
-      "starting shell. Commands: #{TupClient::CMD_ALIASES.join(", ")}"
-    }
+  local TupClient, **client_opts do
+    log.info {"cpu time: %.2fs" % Process.times.inject {|s,x|s+x}}
+    log.info {"starting shell. Commands: #{TupClient::CMD_ALIASES.join(", ")}"}
 
     require 'tupelo/app/irb-shell'
-    IRB.start_session(client)
-
-    client.stop
+    IRB.start_session(self)
   end
 end
