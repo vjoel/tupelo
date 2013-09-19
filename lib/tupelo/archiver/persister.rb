@@ -72,7 +72,7 @@ class Tupelo::Archiver
       db.transaction do
         while rec
           n = db[:tuples].filter(id: rec.id).update(count: rec.count)
-          if n == 0 ## can we make this an upsert?
+          if n == 0
             db[:tuples].insert(id: rec.id, count: rec.count, packed: rec.packed)
           end
           rec.unmark_to_save
@@ -88,7 +88,7 @@ class Tupelo::Archiver
     end
     
     def clear_excess_zeros
-      ##
+      db[:tuples].filter(count: 0).delete ## limit rows to delete? threshold?
     end
   end
 end
