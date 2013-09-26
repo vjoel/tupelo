@@ -268,7 +268,7 @@ class Tupelo::Client
         end
       end
 
-      @global_tick += 1
+      @global_tick = msg.global_tick
       @delta = 0
 
       record_history msg
