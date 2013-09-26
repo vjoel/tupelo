@@ -160,8 +160,6 @@ class Tupelo::Client
 
     def read_messages_from_seq
       seq.each do |msg|
-        ## skip msg if tags not relevant
-        ## (and client must apply tags--i.e. not using multicast)
         self << msg
       end
     end
