@@ -26,6 +26,7 @@ module Tupelo
 
     def start
       super
+      subscribe_all ## for now, but eventually should start without subs
       worker.start
     end
 
