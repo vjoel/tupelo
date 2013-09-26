@@ -44,4 +44,8 @@ class MockMessage
   def hash
     @client_id.hash ^ @local_tick.hash ^ @global_tick.hash
   end
+  
+  def control?
+    false
+  end
 end
