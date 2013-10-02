@@ -9,14 +9,15 @@ hosts = ARGV.shift
 map = ARGV.slice!(0,3)
 reduce = ARGV.slice!(0,4)
 
-abort <<END unless hosts and
-  map[0] == "map" and reduce[0] == "reduce" and reduce[3]
-
-  usage: #$0 <ssh-host>,... map <var> <expr> reduce <var> <var> <expr> [<infile> ...]
+args_ok = hosts && map[0] == "map" && reduce[0] == "reduce" && reduce[3]
   
-  Input can be provided on standard input or as the contents of the files
-  specified in the infile arguments. Writes the result of the last
-  reduction to standard output.
+abort <<END unless args_ok
+
+  usage: #$0 <ssh-host>,... map <var> <expr> reduce <var> <var> <expr>
+  
+  Input is provided on standard input
+  
+  Writes the result of the last reduction to standard output.
   
   If --show-steps is set then intermediate reductions are printed as they
   are computed. If input is stdin at the terminal, then you can see these
