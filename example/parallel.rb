@@ -19,6 +19,9 @@ abort <<END unless args_ok
   
   Writes the result of the last reduction to standard output.
   
+  If <ssh-host> is of the form host:<number> than <number> processes are
+  started on host,
+  
   If --show-steps is set then intermediate reductions are printed as they
   are computed. If input is stdin at the terminal, then you can see these
   outputs even before you type the EOF character.
@@ -34,7 +37,11 @@ abort <<END unless args_ok
 
 END
 
-hosts = hosts.split(",")
+hosts = hosts.split(",").map do |s|
+  s.slice!(/:(\d+)\z/)
+  $1 ? [s] * Integer($1) : s
+end
+hosts.flatten!
 
 map_str = <<END
   proc do |#{map[1]}|
