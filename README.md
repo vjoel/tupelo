@@ -110,7 +110,7 @@ Getting started
           ...
         end
 
-  Note that a local match is still not a guarantee of `x_final == x_optimistic`. Another process may take `x_optimistic` first, and the take will be re-executed. (Think of #take_nowait as a way of saying "take a match, but don't bother trying if there is no match known at this time.")
+  Note that a local match is still not a guarantee of `x_final == x_optimistic`. Another process may take `x_optimistic` first, and the take will be re-executed. (Think of #take_nowait as a way of saying "take a match, but don't bother trying if there is no match known at this time.") Similarly, #take_nowait returning nil is not a guarantee that a match does not exist: another process could have written a match later than the time of the local search.
 
   Perform a general transaction:
 

@@ -24,7 +24,7 @@ Tupelo.application do
       sleep delay
       ch = channels[ pi % channels.size ]
       transaction do
-        take_nowait [ch, nil]
+        take [ch, nil]
         write [ch, "pub #{pi} slept for #{delay} sec"]
       end
     end
@@ -36,8 +36,7 @@ Tupelo.application do
       ch = channels[ si % channels.size ]
       loop do
         sleep 1
-        t = read_nowait [ch, nil]
-        log t if t
+        log read [ch, nil] # note asynchronous reads
       end
     end
   end
@@ -54,6 +53,10 @@ Tupelo.application do
   end
 
   local do
+    channels.each do |ch|
+      write [ch, nil]
+    end
+
     write ['start']
   end
 end
