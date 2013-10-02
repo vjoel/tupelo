@@ -165,7 +165,6 @@ class Tupelo::Client
     end
 
     def run_worker_thread
-      update_to_tick @start_tick
       run_request_loop
     rescue => ex
       log.error ex
@@ -220,7 +219,7 @@ class Tupelo::Client
 
       log.info "requesting tuplespace from arc"
       arc << [GET_TUPLESPACE, nil, tick]
-        ## replace nil with template tuples, if any
+        ## replace nil with tags, if any
 
       begin
         arc_tick = arc.read[0]
@@ -254,16 +253,25 @@ class Tupelo::Client
     def handle_message msg
       log.debug {"seq sent #{msg.inspect}"}
 
-      if msg.global_tick != global_tick + 1
-        if msg.global_tick < global_tick + 1
-          log.debug {"discarding redundant message at #{msg.global_tick}"}
-            # due to archiver timing, for example
-          return
-        elsif msg.global_tick > global_tick + 1
-          log.fatal "message out of order: #{msg.inspect}, " +
-            "received at global_tick=#{global_tick}"
-          raise "fatal error"
+      if msg.control?
+        client.handle_ack msg
+        op_type, *args = msg.control_op
+        if op_type == Funl::SUBSCRIBE_ALL
+          update_to_tick msg.global_tick
+        else
+          raise "Unimplemented: #{msg.inspect}"
         end
+        return
+      end
+
+      if !global_tick
+        raise "bug: should have subscribed and received ack before data"
+      end
+
+      if msg.global_tick < global_tick + 1
+        log.debug {"discarding redundant message at #{msg.global_tick}"}
+          # due to archiver timing, for example
+        return
       end
 
       @global_tick = msg.global_tick
