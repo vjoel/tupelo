@@ -10,8 +10,7 @@ Tupelo.application do |app|
   child_pid = app.child do |client|
     # Test that tuples written before this client started are readable.
     a = client.read_all [Integer]
-    client.write result: a
-    sleep 0.1
+    client.write_wait result: a
   end
 
   # Normally we would wait using tuples, but in this case we want more
