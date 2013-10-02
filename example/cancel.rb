@@ -1,17 +1,17 @@
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.child do |client|
+Tupelo.application do
+  child do
     ats = (0..4).map do |i|
-      client.transaction.async do |t|
-        t.take ["start"]
-        t.write [i]
+      transaction.async do
+        take ["start"]
+        write [i]
       end
     end
     
     [0,1,2,4].each {|i| ats[i].cancel}
 
-    client.write ["start"]
-    p client.take [Integer]
+    write ["start"]
+    p take [Integer]
   end
 end

@@ -352,11 +352,16 @@ class Tupelo::Client
       end
     end
 
-    def async
-      raise ArgumentError, "must provide block" unless block_given?
+    def async &block
+      raise ArgumentError, "must provide block" unless block
       TransactionThread.new(self) do ## Fiber?
         begin
-          val = yield self
+          val =
+            if block.arity == 0
+              instance_eval &block
+            else
+              yield self
+            end
           commit.wait
           val
         rescue TransactionFailure => ex
