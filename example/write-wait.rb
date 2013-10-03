@@ -1,17 +1,17 @@
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.local do |client|
-    client.write [1]
-    client.write [2]
-    w = client.write [3]
-    p client.read_all [nil]
+Tupelo.application do
+  local do
+    write [1]
+    write [2]
+    w = write [3]
+    p read_all
     w.wait # wait for the write to come back and be applied to the client
-    p client.read_all [nil]
+    p read_all
 
-    client.write [4]
-    client.write [5]
-    client.write_wait [6]
-    p client.read_all [nil]
+    write [4]
+    write [5]
+    write_wait [6]
+    p read_all
   end
 end

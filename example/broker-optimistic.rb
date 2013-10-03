@@ -9,15 +9,15 @@ require 'tupelo/app'
 
 N_PLAYERS = 10
 
-Tupelo.application do |app|
+Tupelo.application do
   N_PLAYERS.times do
     # sleep rand / 10 # reduce contention -- could also randomize inserts
-    app.child do |client|
-      me = client.client_id
-      client.write name: me
+    child do
+      me = client_id
+      write name: me
       
       begin
-        t = client.transaction
+        t = transaction
         if t.take_nowait name: me
           you = t.take(name: nil)["name"]
           t.write(
@@ -28,14 +28,14 @@ Tupelo.application do |app|
           t.fail!
         end
       rescue Tupelo::Client::TransactionFailure => ex
-        game = client.read_nowait(
+        game = read_nowait(
           player1: nil,
           player2: me)
         retry unless game
         you = game["player1"]
       end
 
-      client.log "now playing with #{you}"
+      log "now playing with #{you}"
     end
   end
 end

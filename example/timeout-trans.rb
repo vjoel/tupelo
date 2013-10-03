@@ -4,17 +4,17 @@
 
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.child do |client|
+Tupelo.application do
+  child do
     result =
       begin
-        client.transaction timeout: 1 do |t|
-          t.take ["foo"]
+        transaction timeout: 1 do
+          take ["foo"]
         end
       rescue TimeoutError => ex
         ex
       end
-    client.log "result = #{result.inspect}"
+    log "This should be a timeout error: #{result.inspect}"
   end
 end
 

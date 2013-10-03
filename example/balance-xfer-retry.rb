@@ -1,27 +1,27 @@
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.child do |client|
-    client.write(
+Tupelo.application do
+  child do
+    write(
       {name: "alice", balance: 1000},
       {name: "bob", balance: 200}
     )
     10.times do |i|
-      alice = client.take(name: "alice", balance: Numeric)
-      client.log alice
+      alice = take(name: "alice", balance: Numeric)
+      log alice
       alice = alice.dup
       alice["balance"] -= 10
-      client.write_wait alice
+      write_wait alice
       sleep 0.1
     end
     
-    client.log client.read_all(name: /^(?:alice|bob)$/, balance: nil)
+    log read_all(name: /^(?:alice|bob)$/, balance: nil)
   end
   
-  app.child do |client|
-    client.transaction do |t|
-      src = t.take(name: "alice", balance: Numeric)
-      dst = t.take(name: "bob", balance: Numeric)
+  child do
+    transaction do
+      src = take(name: "alice", balance: Numeric)
+      dst = take(name: "bob", balance: Numeric)
 
       if src["balance"] < 500
         abort "insufficient funds -- not attempting transfer"
@@ -37,19 +37,19 @@ Tupelo.application do |app|
         # force fail -- the tuples this client is trying to take
         # will be gone when it wakes up
       
-      client.log "attempting to set #{[src, dst]}"
-      t.write src, dst
+      log "attempting to set #{[src, dst]}"
+      write src, dst
 
       if false # enable this to see how failures are retried
         begin
-          t.commit.wait
+          commit.wait
         rescue => ex
-          client.log "retrying after #{ex}"
+          log "retrying after #{ex}"
           raise
         end
       end
     end
     
-    client.log client.read_all(name: /^(?:alice|bob)$/, balance: nil)
+    log read_all(name: /^(?:alice|bob)$/, balance: nil)
   end
 end

@@ -10,20 +10,20 @@ end
 require 'tupelo/app'
 
 # Must use marshal or yaml -- msgpack and json do not support custom classes.
-Tupelo.application blob_type: 'marshal' do |app|
-  app.child do |client|
+Tupelo.application blob_type: 'marshal' do
+  child do
     f = Foo.new; f.x = 3
     p f
 
-    client.write [f]
+    write [f]
 
-    p client.read [nil]
-    p client.read [Foo]
-    p client.read [f]
+    p read [nil]
+    p read [Foo]
+    p read [f]
 
-    p client.take [Foo]
+    p take [Foo]
 
-    client.write [f]
-    p client.take [f]
+    write [f]
+    p take [f]
   end  
 end

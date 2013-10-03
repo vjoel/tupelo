@@ -14,14 +14,14 @@ class MyClient < Tupelo::Client
   end
 end
 
-Tupelo.application do |app|
-  app.local MyClient do |client|
-    client.write [41, 42, 43]
-    client.write [42, 42, 42]
-    client.write [42, 42]
-    client.write_wait [42] # make sure all writes up to this one have completed
+Tupelo.application do
+  local MyClient do
+    write [41, 42, 43]
+    write [42, 42, 42]
+    write [42, 42]
+    write_wait [42] # make sure all writes up to this one have completed
 
-    client.log client.read_all [nil, nil, nil]
-    client.log client.read_all_diagonal 42
+    log read_all
+    log read_all_diagonal 42
   end
 end

@@ -11,19 +11,22 @@
 #
 # w [2]
 # w [3]
-# ra [nil] # => [[5]]
+# ra # => [[5]]
 # w [7.4]
-# ra [nil] # => [[12.4]]
+# ra # => [[12.4]]
 
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.child do |client|
+filename = "servers-#$$.yaml"
+puts "run this in another shell: tup #{filename}"
+
+Tupelo.application servers_file: filename do
+  child do
     loop do
-      client.transaction do |t|
-        x, = t.take [Numeric]
-        y, = t.take [Numeric]
-        t.write [x + y]
+      transaction do
+        x, = take [Numeric]
+        y, = take [Numeric]
+        write [x + y]
       end
     end
   end

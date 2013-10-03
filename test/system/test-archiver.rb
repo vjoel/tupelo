@@ -1,24 +1,24 @@
 require 'tupelo/app'
 
-Tupelo.application do |app|
+Tupelo.application do
   expected = [[1], [2], [3]]
 
-  app.local do |client|
-    client.write *expected
+  local do
+    write *expected
   end
       
-  child_pid = app.child do |client|
+  child_pid = child do
     # Test that tuples written before this client started are readable.
-    a = client.read_all [Integer]
-    client.write_wait result: a
+    a = read_all [Integer]
+    write_wait result: a
   end
 
   # Normally we would wait using tuples, but in this case we want more
   # isolation in the test case, so we wait in terms of the PID.
   Process.waitpid child_pid
 
-  app.local do |client|
-    h = client.read_all result: Array
+  local do
+    h = read_all result: Array
     begin
       a = h.first["result"]
     rescue => ex

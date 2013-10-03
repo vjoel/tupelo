@@ -1,28 +1,28 @@
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.child do |client|
-    client.write(
+Tupelo.application do
+  child do
+    write(
       {name: "alice", balance: 1000},
       {name: "bob", balance: 200}
     )
     10.times do |i|
-      alice = client.take(name: "alice", balance: Numeric)
-      client.log alice
+      alice = take(name: "alice", balance: Numeric)
+      log alice
       alice = alice.dup
       alice["balance"] -= 10
-      client.write_wait alice
+      write_wait alice
       sleep 0.1
     end
     
-    client.log client.read_all(name: /^(?:alice|bob)$/, balance: nil)
+    log read_all(name: /^(?:alice|bob)$/, balance: nil)
   end
   
-  app.child do |client|
+  child do
     sleep 0.3
 
-    src = client.take(name: "alice", balance: Numeric)
-    dst = client.take(name: "bob", balance: Numeric)
+    src = take(name: "alice", balance: Numeric)
+    dst = take(name: "bob", balance: Numeric)
 
     if src["balance"] < 500
       abort "insufficient funds -- not attempting transfer"
@@ -41,10 +41,10 @@ Tupelo.application do |app|
     src["balance"] -= 500
     dst["balance"] += 500
 
-    w = client.write src, dst
-    client.log "attempting to set #{[src, dst]}"
+    w = write src, dst
+    log "attempting to set #{[src, dst]}"
 
     w.wait
-    client.log client.read_all(name: /^(?:alice|bob)$/, balance: nil)
+    log read_all(name: /^(?:alice|bob)$/, balance: nil)
   end
 end

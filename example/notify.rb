@@ -1,35 +1,35 @@
-# See also bin/tspy
+# See also bin/tspy and the --trace switch on all tupelo apps and examples.
 
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.child do |client|
+Tupelo.application do
+  child do
     Thread.new do
-      note = client.notifier
-      client.write ["start"]
+      note = notifier
+      write ["start"]
 
-      client.log "%10s %10s %10s %s" % %w{ status tick client operation }
+      log "%10s %10s %10s %s" % %w{ status tick client operation }
       loop do
         status, global_tick, client_id, op = note.wait
-        client.log "%10s %10d %10d %p" % [status, global_tick, client_id, op]
+        log "%10s %10d %10d %p" % [status, global_tick, client_id, op]
       end
     end
 
-    client.take ["finish"]
+    take ["finish"]
   end
   
-  app.child do |client|
-    client.take ["start"]
+  child do
+    take ["start"]
 
-    client.write [1, 2]
-    client.write [3, 4]
-    client.write foo: "bar", baz: ["zap"]
+    write [1, 2]
+    write [3, 4]
+    write foo: "bar", baz: ["zap"]
     
-    client.transaction do |t|
-      x, y = t.take [Numeric, Numeric]
-      t.write [x, y, x + y]
+    transaction do
+      x, y = take [Numeric, Numeric]
+      write [x, y, x + y]
     end
     
-    client.write ["finish"]
+    write ["finish"]
   end
 end

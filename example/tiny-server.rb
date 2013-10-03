@@ -2,8 +2,8 @@ require 'tupelo/app'
 
 svr = "tiny-server.yaml"
 
-Tupelo.application servers_file: svr do |app|
-  if app.owns_servers
+Tupelo.application servers_file: svr do
+  if owns_servers
     puts "server started"
     sleep
   else

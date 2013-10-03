@@ -3,25 +3,26 @@
 
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.child do |client|
+Tupelo.application do
+  child do
     begin
       n_sec = 2
       Timeout.timeout n_sec do
-        client.log "waiting for non-existing tuple #{[0]}"
-        client.read [0]
+        log "waiting for non-existing tuple #{[0]}"
+        read [0]
       end
     rescue TimeoutError
+      log "stopped waiting"
     end
     
-    r = client.read [1]
-    client.log "got #{r}"
+    r = read [1]
+    log "got #{r}"
   end
 
-  app.child do |client|
+  child do
     sleep 1
-    client.log "writing [1]"
-    client.write [1]
+    log "writing [1]"
+    write [1]
   end
 end
 

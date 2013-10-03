@@ -6,35 +6,35 @@ N = 100
 client_class = Tupelo::TimeFuzz::Client
 Tupelo::TimeFuzz.sleep_max = 0.01
 
-Tupelo.application do |app|
-  app.child(client_class) do |client|
+Tupelo.application do
+  child(client_class) do
     N.times do
-      client.transaction do |t|
-        x, y = t.take [nil, nil]
-        t.write [x+1, y]
+      transaction do
+        x, y = take [nil, nil]
+        write [x+1, y]
       end
     end
-    client.write ["done"]
+    write ["done"]
   end
 
-  app.child(client_class) do |client|
+  child(client_class) do
     N.times do
-      client.transaction do |t|
-        x, y = t.take [nil, nil]
-        t.write [x, y+1]
+      transaction do
+        x, y = take [nil, nil]
+        write [x, y+1]
       end
     end
-    client.write ["done"]
+    write ["done"]
   end
 
-  app.local(client_class) do |client|
-    client.write [0, 0]
+  local(client_class) do
+    write [0, 0]
 
     2.times do
-      client.take ["done"]
+      take ["done"]
     end
 
-    x, y = client.read [nil, nil]
+    x, y = read [nil, nil]
     if x == N and y == N
       puts "OK"
     else

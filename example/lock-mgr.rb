@@ -4,14 +4,14 @@ require 'tupelo/app'
 
 N = 3
 
-Tupelo.application do |app|
-  app.child passive: true do |client| # the lock manager
-    client.log.progname << " (lock mgr)"
+Tupelo.application do
+  child passive: true do # the lock manager
+    log.progname << " (lock mgr)"
     loop do
-      client.write ["resource", "none"]
-      lock_id, client_id, duration = client.read ["resource", nil, nil]
+      write ["resource", "none"]
+      lock_id, client_id, duration = read ["resource", nil, nil]
       sleep duration
-      client.take [lock_id, client_id, duration]
+      take [lock_id, client_id, duration]
         # optimization: combine take and write in a transaction, just to
         # reduce delay
     end
@@ -20,10 +20,10 @@ Tupelo.application do |app|
   end
   
   N.times do |i|
-    app.child do |client|
-      client.transaction do |t|
-        t.take ["resource", "none"]
-        t.write ["resource", client.client_id, 0.5]
+    child do
+      transaction do
+        take ["resource", "none"]
+        write ["resource", client_id, 0.5]
       end
       # Thundering herd -- all N clients can respond at the same time.
       # Can be avoided with a queue -- see lock-mgr-with-queue.rb.
@@ -34,20 +34,20 @@ Tupelo.application do |app|
         # as all clients follow the read protocol below.
         sleep 0.2
 
-        client.transaction do |t|
-          t.read ["resource", client.client_id, nil]
-          t.write ["c#{client.client_id}##{j}"]
+        transaction do
+          read ["resource", client_id, nil]
+          write ["c#{client_id}##{j}"]
         end
       end
     end
   end
   
-  app.child passive: true do |client|
+  child passive: true do
     # This client never even tries to lock the resource, so it cannot write.
-    client.transaction do |t|
-      t.read ["resource", client.client_id, nil]
-      t.write ["c#{client.client_id}##{j}"]
+    transaction do
+      read ["resource", client_id, nil]
+      write ["c#{client_id}##{j}"]
     end
-    client.log.error "should never get here"
+    log.error "should never get here"
   end
 end

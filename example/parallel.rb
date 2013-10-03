@@ -20,7 +20,7 @@ abort <<END unless args_ok
   Writes the result of the last reduction to standard output.
   
   If <ssh-host> is of the form host:<number> than <number> processes are
-  started on host,
+  started on host.
   
   If --show-steps is set then intermediate reductions are printed as they
   are computed. If input is stdin at the terminal, then you can see these
@@ -32,7 +32,7 @@ abort <<END unless args_ok
   Example:
   
     ruby #$0 localhost,localhost map s s.length reduce l1 l2 l1+l2
-  
+    
   Use `s.split.length` to get word count instead of char count.
 
 END

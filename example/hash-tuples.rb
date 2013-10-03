@@ -35,19 +35,21 @@
 
 require 'tupelo/app'
 
-Tupelo.application do |app|
-  app.child do |client|
-    client.write x: 1, y: 2
+Tupelo.application do
+  child do
+    write x: 1, y: 2
   end
   
-  app.child do |client|
-    t = client.take x: Numeric, y: Numeric
-    client.write x: t["x"], y: t["y"], sum: t["x"] + t["y"]
-    client.log "sum result: #{client.read x: nil, y: nil, sum: nil}"
+  child do
+    t = take x: Numeric, y: Numeric
+    write x: t["x"], y: t["y"], sum: t["x"] + t["y"]
+    log "sum result: #{read x: nil, y: nil, sum: nil}"
     
     # N.B.: these are all empty, for the reason given above.
-    client.log client.read_all x: nil
-    client.log client.read_all y: nil
-    client.log client.read_all x: nil, y: nil, z: nil
+    log read_all x: nil
+    log read_all y: nil
+    log read_all x: nil, y: nil, z: nil
+    
+    log read_all
   end
 end
