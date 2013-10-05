@@ -6,14 +6,14 @@ Tupelo.application do
 
     note = notifier
 
-    transaction do
-      x = take [1]
-      write x
+    transaction do 
+      read [1]
+      take [1]
     end
     
     note.wait
     status, tick, cid, op = note.wait
-    p op # should "read [1]", not "write [1]; take [1]"
+    p op # should "take [1]", not "take [1]; read [1]"
     # this is just an optimization, not really a bug
   end
 end
