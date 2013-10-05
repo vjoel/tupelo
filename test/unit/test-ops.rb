@@ -164,6 +164,21 @@ class TestOps < Minitest::Test
     end
   end
   
+  def test_transaction_take_two
+    x = [0]; y = [1]
+    c = make_client(1)
+
+    w_op = c.now {write x, y}
+
+    c.will do
+      transaction do
+        [take([nil]), take([nil])]
+      end
+    end
+
+    assert_equal [x, y].sort, c.run.sort
+  end
+  
   def test_transaction_empty
     transactor = make_client(0)
 
