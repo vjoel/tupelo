@@ -33,7 +33,8 @@ Tupelo.application do
         req_id = nil
         transaction do
           # grouping the following ops in a transaction is not necessary for
-          # correctness, but it does reduce latency
+          # correctness, but it does reduce latency. Also, it's more robust
+          # in that a crash or network problem cannot cause a lost tuple.
           _, req_id = take ["next_req_id", Integer]
           write ["next_req_id", req_id + 1]
           write ["request", req_id, req_dat]

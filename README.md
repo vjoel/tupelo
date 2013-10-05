@@ -292,6 +292,17 @@ Transactions have a significant disadvantage compared to using take/write to loc
 
 Transactions do have an advantage over using take/write to lock/unlock tuples: there is no possibility of deadlock. See [example/deadlock.rb](example/deadlock.rb) and [example/parallel.rb](example/parallel.rb).
 
+Another advantage of tranactions is that it is possible to guarantee continuous existence of a time-series of tuples. For example, suppose that tuples matching `{step: Numeric}` indicate the progress of some activity. With transactions, you can guarantee that there is exactly one matching tuple at any time. So any client which reads this template will find a match without blocking.
+
+Another use of transactions: forcing a retry when something changes:
+
+    transaction do
+      step = read(step: nil)["step"]
+      take value: nil, step: step
+    end
+
+This code waits on the existence of a value, but retries if the step changes while waiting. See example/pregel/distributed.rb for a use of this techinique.
+
 Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. Durability is optional, but can be provided by the persistent archiver or other clients.
 
 On the CAP spectrum, tupelo tends towards consistency: for all clients, write and take operations are applied in the same order, so the state of the entire system up through a given tick of discrete time is universally agreed upon. Of course, because of the difficulties of distributed systems, one client may not yet have seen the same range of ticks as another.
