@@ -425,7 +425,7 @@ class Tupelo::Client
         skip = nil
         (read_tuples.size...read_templates.size).each do |i|
           read_tuples[i] = worker.tuplespace.find_match_for(
-            read_templates[i])
+            read_templates[i], distinct_from: take_tuples)
           if read_tuples[i]
             log.debug {"prepared #{inspect} with #{read_tuples[i]}"}
           else

@@ -179,6 +179,21 @@ class TestOps < Minitest::Test
     assert_equal [x, y].sort, c.run.sort
   end
   
+  def test_transaction_take_read
+    x = [0]
+    c = make_client(1)
+
+    w_op = c.now {write x}
+
+    c.will do
+      transaction do
+        [take(x), read_nowait(x)]
+      end
+    end
+
+    assert_equal [x, nil], c.run
+  end
+  
   def test_transaction_empty
     transactor = make_client(0)
 
