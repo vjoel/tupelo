@@ -19,7 +19,7 @@ Tupelo.application do
   child do
     log.progname = "visitor"
 
-    log "I think i am coming by train"
+    log "I think I am coming by train"
     write_wait mode: "train"
     sleep 1
 
