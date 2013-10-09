@@ -185,6 +185,7 @@ class Tupelo::Client
       
       ops = [ ["write", writes], ["pulse", pulses],
             ["take", take_templates], ["read", read_templates] ]
+            ## exclude templates that were satisfied locally by writes
       ops.map! do |label, tuples|
         ["#{label} #{tuples.map(&:inspect).join(", ")}"] unless tuples.empty?
       end
