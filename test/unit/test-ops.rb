@@ -194,6 +194,32 @@ class TestOps < Minitest::Test
     assert_equal [x, nil], c.run
   end
   
+  def test_transaction_write_read
+    x = [0]
+    c = make_client(1)
+
+    c.will do
+      transaction do
+        write(x); read(x)
+      end
+    end
+
+    assert_equal x, c.run
+  end
+
+  def test_transaction_write_take
+    x = [0]
+    c = make_client(1)
+
+    c.will do
+      transaction do
+        write(x); take(x)
+      end
+    end
+
+    assert_equal x, c.run
+  end
+
   def test_transaction_empty
     transactor = make_client(0)
 

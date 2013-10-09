@@ -456,8 +456,8 @@ class Tupelo::Client
           transaction.atomic,
           transaction.writes,
           transaction.pulses,
-          transaction.take_tuples,
-          transaction.read_tuples
+          transaction.take_tuples_for_remote.compact,
+          transaction.read_tuples_for_remote.compact
         ])
         ## optimization: use bitfields to identify which ops are present
         ## (instead of nils), and combine this with atomic flag in one int
