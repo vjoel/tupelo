@@ -17,6 +17,9 @@ Utility
   - read scaling out (redundant array of sqlite example)
   
   - process coordination of complex background job
+  
+  - lightweight coordination: when you need task queues or other mechanisms
+    and you don't want to run a standalone queue server
 
 
 Tuplets
