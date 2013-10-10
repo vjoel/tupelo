@@ -214,7 +214,10 @@ class Tupelo::Client
       raise TransactionStateError, "not open: #{inspect}" unless open? or
         failed?
       check_tuples tuples
-      @writes.concat tuples
+      blobber = worker.blobber
+      @writes.concat tuples.map {|t| blobber.load(blobber.dump(t))}
+        # this is both to de-alias (esp. in case of marshal or yaml) and
+        # to convert symbols to strings (in case of msgpack or json)
       nil
     end
     
@@ -223,7 +226,8 @@ class Tupelo::Client
       raise TransactionStateError, "not open: #{inspect}" unless open? or
         failed?
       check_tuples tuples
-      @pulses.concat tuples
+      blobber = worker.blobber
+      @pulses.concat tuples.map {|t| blobber.load(blobber.dump(t))}
       nil
     end
     

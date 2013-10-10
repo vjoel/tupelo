@@ -2,8 +2,6 @@ class Tupelo::Client
   # Simplest fully functional tuplespace. Not efficient for large spaces.
   class SimpleTuplespace < Array
     alias insert <<
-    ## in case of marshal or yaml blob, insert should dup an arg that is
-    ## already in the space
 
     def delete_once elt
       if i=index(elt)
