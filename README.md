@@ -482,6 +482,8 @@ Each inner serialization method ("blobber") has its own advantages and drawbacks
 
 For most purposes, msgpack is a good choice, so it is the default.
 
+The sending client's tupelo library must make sure that there is no aliasing within the list of tuples (this is only an issue for Marshal and YAML, since msgpack and json do not support references).
+
 
 Development
 ===========
