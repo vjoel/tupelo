@@ -21,6 +21,7 @@ Documentation
 ============
 
 * [FAQ](doc/faq.md)
+* [Subspaces](doc/subspace.md)
 
 Getting started
 ==========
@@ -219,6 +220,8 @@ In other words, a tuple is a fairly general object, though this depends on the s
 * hashes
 
 It's kind of like a "JSON object", except that, when using the json serializer, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
+
+The empty tuples `[]` and `{}` are allowed, but bare values such as `3.14` or `false` are not tuples by themselves.
 
 One other thing to keep in mind: in the array case, the order of the elements is significant. In the hash case, the order is not significant. So these are both true:
 
