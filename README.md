@@ -124,7 +124,17 @@ Getting started
           end
 
   Note that the block may execute more than once, if there is competition for the tuples that you are trying to #take or #read. When the block exits, however, the transaction is final and universally accepted by all clients.
+
+  Tuples written or taken during a transaction affect subsequent operations in the transaction without modifying the tuplespace or affecting other concurrent transactions (until the transaction completes):
   
+        transaction do |t|
+          t.write [3]
+          p t.read [3] # => 3
+          p read_all   # => [] # note read_all called on client, not trans.
+          t.take [3]
+          p t.read_nowait [3] # => nil
+        end
+
   You can timeout a transaction:
   
         transaction timeout: 1 do
