@@ -428,6 +428,8 @@ To compare
 
 * doozer, etcd
 
+* serf -- tupelo has lower latency and is transactional, but at a cost compared to serf; tupelo semantics is closer to databases
+
 * arakoon
 
 * hazelcast
