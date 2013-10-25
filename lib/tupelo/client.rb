@@ -10,7 +10,9 @@ module Tupelo
     attr_reader :worker
     attr_reader :tuplespace
 
-    def initialize(tuplespace: SimpleTuplespace, **opts)
+    TUPELO_SUBSPACE_TAG = "tupelo subspace"
+
+    def initialize(tuplespace: SimpleTuplespace, subscribe: :all, **opts)
       super **opts
       @tuplespace = tuplespace
       @worker = make_worker
@@ -27,7 +29,6 @@ module Tupelo
     def start
       super
       worker.start
-      subscribe_all ## for now, but eventually should start without subs
     end
 
     def stop
