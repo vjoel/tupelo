@@ -5,9 +5,13 @@ class Tupelo::Archiver
     attr_reader :zero_tolerance
 
     def initialize(zero_tolerance: Tupelo::Archiver::ZERO_TOLERANCE)
+      @zero_tolerance = zero_tolerance
+      clear
+    end
+    
+    def clear
       @counts = Hash.new(0) # tuple => count
       @nzero = 0
-      @zero_tolerance = zero_tolerance
     end
     
     # note: multiple equal tuples are yielded once

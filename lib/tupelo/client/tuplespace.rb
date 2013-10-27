@@ -44,6 +44,7 @@ class Tupelo::Client
     def insert(*); self; end
     def find_distinct_matches_for(*); raise; end ##?
     def find_match_for(*); raise; end ##?
+    def clear; end
     
     ## should store space metadata, so outgoing writes can be tagged
   end
