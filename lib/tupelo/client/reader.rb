@@ -61,9 +61,9 @@ class Tupelo::Client
     end
 
     def wait
-      @client.log.debug {"waiting for #{self}"}
+      @client.log.debug {"waiting for #{inspect}"}
       r = queue.pop
-      @client.log.debug {"finished waiting for #{self}"}
+      @client.log.debug {"finished waiting for #{inspect}"}
       r
     end
 
