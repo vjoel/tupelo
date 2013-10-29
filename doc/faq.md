@@ -21,6 +21,10 @@ Utility
   - lightweight coordination: when you need task queues or other mechanisms
     and you don't want to run a standalone queue server
 
+Is tupelo a database?
+
+  No. It's really more of a middleware. Tupelo doesn't have its own disk storage, indexing, queries, etc. It depends on other programs to provide these. That's actually a strength, since you can use different storage backends for different cases (subspaces, for example).
+
 
 Tuplets
 =======
