@@ -264,3 +264,5 @@ subspaces
     if not using UDP
       flag is needed only if requested by client (write_wait)
 
+    it is an error to wait on an all-write transaction unless reflected
+    
