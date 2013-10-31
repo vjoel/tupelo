@@ -16,6 +16,7 @@ module Tupelo
       super **opts
       @tuplespace = tuplespace
       @worker = make_worker
+      @initial_subscriptions = subscribe
     end
 
     def make_worker
@@ -29,6 +30,13 @@ module Tupelo
     def start
       super
       worker.start
+
+      case @initial_subscriptions
+      when :all
+        subscribe_all
+      when Array
+        subscribe @initial_subscriptions
+      end
     end
 
     def stop
