@@ -259,10 +259,4 @@ subspaces
         further coordination -- no 2PC needed
 
   if client writes to subspace that it does not also subscribe to
-    and if using UDP
-      then must set flag in message so that msg is bounced back as ack
-    if not using UDP
-      flag is needed only if requested by client (write_wait)
-
-    it is an error to wait on an all-write transaction unless reflected
-    
+    then must set flag in message so that msg is reflected as ack
