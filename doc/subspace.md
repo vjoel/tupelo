@@ -181,23 +181,21 @@ client
   client api keeps metadata tuples separate from other tuples, so that
   normally you only interact with them through a special api
     worker has separate data structure for them
-    they can be written, but not taken
+    they can be written, but not taken [OBSOLETE]
 
 * writes need to attach tags
     normally, do this by POT from subspace metadata
     for speed, can provide them explicitly
       with option to check against POT for debugging
+    If the set of tuples mentioned in a transaction crosses a subspace boundary
+      then the tuples outside of the boundary must all be writes [TODO]
   subscribe/subspace api
     sub sends coordinated requests to archiver and to funl
     unsub optionally purges unneeded data
 * incoming messages
-    if message contains unsubscribed tags
+    if message contains unsubscribed tags [TODO]
       must filter out tuples that are not subscribed (these must be writes,
       because of the transaction limitation)
-  write_wait to unsubscribed subspace
-    use funl reflect
-  write_nowait should still asynchrounously mark the write as done after
-    some op with a higher local_tick has completed
 
 
 Support from funl
