@@ -24,6 +24,7 @@ class Tupelo::Client
     attr_reader :prep_waiters
     attr_reader :trans_waiters
     attr_reader :notify_waiters
+    attr_reader :subspaces
 
     GET_TUPLESPACE = "get tuplespace"
 
@@ -36,6 +37,8 @@ class Tupelo::Client
         @atomic, @writes, @pulses, @takes, @reads =
           atomic, writes, pulses, takes, reads
       end
+      
+      NOOP = new([], [], [], [], [])
 
       def to_s
         ops = [ ["write", writes], ["pulse", pulses],
@@ -48,6 +51,22 @@ class Tupelo::Client
         [atomic ? "atomic" : "batch", ops.join("; ")].join(" ")
       end
       alias inspect to_s
+    end
+    
+    class Subspace
+      attr_reader :tag
+      
+      def initialize metatuple, worker
+        @metatuple = metatuple
+        @tag = metatuple["tag"]
+
+        spec = Marshal.load(Marshal.dump(metatuple["template"]))
+        @pot = worker.pot_for(spec).optimize!
+      end
+      
+      def === tuple
+        @pot === tuple
+      end
     end
 
     def initialize client
@@ -72,6 +91,7 @@ class Tupelo::Client
       @trans_waiters = []
       @notify_waiters = []
       @stopping = false
+      @subspaces = []
     end
 
     def log *args
@@ -202,9 +222,11 @@ class Tupelo::Client
       end
     end
 
-    def update_to_tick tick
-      # at this point we know that the seq messages now accumulating in
+    def update_to_tick tick: nil, tags: nil, all: false
+      # At this point we know that the seq messages now accumulating in
       # cmd_queue are tick+1, tick+2, ....
+      # (or a subset of this sequence if not subscribed_all).
+      # Some of these might get discarded later if archiver is more current.
       log.debug {"update_to_tick #{tick}"}
 
       unless arc
@@ -218,10 +240,20 @@ class Tupelo::Client
       end
 
       log.info "requesting tuplespace from arc"
-      arc << [GET_TUPLESPACE, nil, tick]
-        ## replace nil with tags, if any
+      subscription_delta = {
+        request_all: all,
+        request_tags: tags,
+        subscribed_all: client.subscribed_all,
+        subscribed_tags: client.subscribed_tags
+      }
+      arc << [GET_TUPLESPACE, subscription_delta, tick]
 
       begin
+        tuplespace.clear
+          ## in some cases, we can keep some of it, but the current
+          ## archiver is not smart enough to send exactly the delta
+          ### abort all current transactions???
+
         arc_tick = arc.read[0]
         log.info "arc says global_tick = #{arc_tick}"
 
@@ -232,6 +264,7 @@ class Tupelo::Client
             done = true
           else
             raise "bad object stream from archiver" if done
+            sniff_meta_tuple tuple
             tuplespace.insert tuple
             count += 1
           end
@@ -255,9 +288,18 @@ class Tupelo::Client
 
       if msg.control?
         client.handle_ack msg
-        op_type, *args = msg.control_op
-        if op_type == Funl::SUBSCRIBE_ALL
-          update_to_tick msg.global_tick
+        op_type, tags = msg.control_op
+        case op_type
+        when Funl::SUBSCRIBE_ALL
+          update_to_tick tick: msg.global_tick, all: true
+        when Funl::SUBSCRIBE
+          update_to_tick tick: msg.global_tick,
+            tags: (client.subscribed_tags + tags)
+        when Funl::UNSUBSCRIBE_ALL
+          update_to_tick tick: msg.global_tick, all: false
+        when Funl::UNSUBSCRIBE
+          update_to_tick tick: msg.global_tick,
+            tags: (client.subscribed_tags - tags)
         else
           raise "Unimplemented: #{msg.inspect}"
         end
@@ -278,7 +320,8 @@ class Tupelo::Client
       @delta = 0
 
       record_history msg
-      op = Operation.new(*blobber.load(msg.blob)) ## op.freeze_deeply
+      op = msg.blob ? Operation.new(*blobber.load(msg.blob)) : Operation::NOOP
+        ## op.freeze_deeply
       log.debug {"applying #{op} from client #{msg.client_id}"}
 
       notify_waiters.each do |waiter|
@@ -295,6 +338,20 @@ class Tupelo::Client
         log.debug {"inserting #{op.writes}; deleting #{actual_tuples}"}
         tuplespace.transaction inserts: op.writes, deletes: actual_tuples,
           tick: @global_tick
+      
+        op.writes.each do |tuple|
+          sniff_meta_tuple tuple
+        end
+
+        actual_tuples.each do |tuple|
+          ### abstract this out
+          if tuple.kind_of? Hash and tuple.key? "__tupelo__"
+            if tuple["__tupelo__"] == "subspace" # tuple is subspace metatdata
+              ## do some error checking
+              subspaces.delete_if {|sp| sp.tag == tuple["tag"]}
+            end
+          end
+        end
       end
 
       notify_waiters.each do |waiter|
@@ -364,6 +421,16 @@ class Tupelo::Client
           trans.done msg.global_tick, granted_tuples # note: tuples not frozen
         else
           trans.fail (op.takes - actual_tuples) + (op.reads - read_tuples)
+        end
+      end
+    end
+
+    def sniff_meta_tuple tuple
+      if tuple.kind_of? Hash and tuple.key? "__tupelo__"
+        if tuple["__tupelo__"] == "subspace" # tuple is subspace metatdata
+          ## do some error checking
+          ## what if subspace already exists?
+          subspaces << Subspace.new(tuple, self)
         end
       end
     end
@@ -443,21 +510,49 @@ class Tupelo::Client
       end
     end
 
-    def send_transaction transaction
+    # client can manually assign tags to avoid pot search
+    def send_transaction transaction, tags = nil
       msg = message_class.new
       msg.client_id = client_id
       msg.local_tick = local_tick + 1
       msg.global_tick = global_tick
       msg.delta = delta + 1 # pipelined write/take
-      ##msg.tags = nil
+      msg.tags = tags
+
+      writes = transaction.writes
+      pulses = transaction.pulses
+      takes = transaction.take_tuples_for_remote.compact
+      reads = transaction.read_tuples_for_remote.compact
+      
+      unless tags
+        tags = []
+        tuples = [writes, pulses, takes, reads].compact.flatten(1)
+        subspaces.each do |subspace|
+          tuples.each do |tuple|
+            if subspace === tuple
+              tags << subspace.tag
+              break
+            end
+          end
+        end
+
+        will_get_this_msg = client.subscribed_all ||
+          tags.any? {|tag| client.subscribed_tags.include? tag} ## optimize
+
+        unless will_get_this_msg
+          tags << true # reflect
+        end
+
+        if not tags.empty?
+          msg.tags = tags
+          log.debug {"tagged transaction: #{tags}"}
+        end
+      end
 
       begin
         msg.blob = blobber.dump([
           transaction.atomic,
-          transaction.writes,
-          transaction.pulses,
-          transaction.take_tuples_for_remote.compact,
-          transaction.read_tuples_for_remote.compact
+          writes, pulses, takes, reads
         ])
         ## optimization: use bitfields to identify which ops are present
         ## (instead of nils), and combine this with atomic flag in one int

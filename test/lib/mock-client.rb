@@ -105,4 +105,8 @@ class MockClient
     end
     val
   end
+  
+  def subscribed_all
+    true
+  end
 end

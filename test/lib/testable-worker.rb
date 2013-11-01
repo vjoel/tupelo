@@ -8,7 +8,7 @@ class TestableWorker < Tupelo::Client::Worker
     @cmd_queue = MockQueue.new
     
     observe_started_client
-    update_to_tick 0
+    update_to_tick tick: 0
   end
 
   def in_thread?

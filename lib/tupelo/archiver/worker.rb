@@ -38,7 +38,7 @@ class Tupelo::Archiver
       stream = client.arc_server_stream_for req.io
 
       begin
-        op, tags, tick = stream.read
+        op, sub_delta, tick = stream.read
       rescue EOFError
         log.debug {"#{stream.peer_name} disconnected from archiver"}
         return
@@ -48,18 +48,18 @@ class Tupelo::Archiver
 
       log.info {
         "#{stream.peer_name} requested #{op.inspect} at tick=#{tick}" +
-          (tags ? " on #{tags}" : "")}
+          (sub_delta ? " for #{sub_delta}" : "")}
 
       if tick <= global_tick
-        fork_for_op op, tags, tick, stream, req
+        fork_for_op op, sub_delta, tick, stream, req
       else
         at_tick tick do
-          fork_for_op op, tags, tick, stream, req
+          fork_for_op op, sub_delta, tick, stream, req
         end
       end
     end
 
-    def fork_for_op op, tags, tick, stream, req
+    def fork_for_op op, sub_delta, tick, stream, req
       fork do
         begin
           case op
@@ -68,7 +68,7 @@ class Tupelo::Archiver
           when "get range" ### handle this in Funl::HistoryWorker
             raise "Unimplemented" ###
           when GET_TUPLESPACE
-            send_tuplespace stream, tags
+            send_tuplespace stream, sub_delta
           else
             raise "Unknown operation: #{op.inspect}"
           end
@@ -94,18 +94,32 @@ class Tupelo::Archiver
       end
     end
 
-    def send_tuplespace stream, templates
+    def send_tuplespace stream, sub_delta
       log.info {
         "send_tuplespace to #{stream.peer_name} " +
         "at tick #{global_tick.inspect} " +
-        (templates ? " with templates #{templates.inspect}" : "")}
+        (sub_delta ? " with sub_delta #{sub_delta.inspect}" : "")}
       
       stream << [global_tick]
 
-      if templates
-        templates = templates.map {|t| Tupelo::Client::Template.new t}
+      ## better: make use of sub_delta["subscribed_*"] to reduce what
+      ## has to be sent.
+
+      if sub_delta["request_all"]
         tuplespace.each do |tuple, count|
-          if templates.any? {|template| template === tuple}
+          count.times do ## just dump and send str * count?
+            stream << tuple ## optimize this, and cache the serial
+            ## optimization: use stream.write_to_buffer
+          end
+        end
+
+      else
+        tags = sub_delta["request_tags"] ### use set
+        subs = subspaces.select {|sub| tags.include? sub.tag}
+
+        tuplespace.each do |tuple, count|
+          ## alternately, store tags with tuples (risk if dynamic spaces)
+          if subs.any? {|sub| sub === tuple}
             count.times do
               stream << tuple
               ## optimization: use stream.write_to_buffer
@@ -113,13 +127,6 @@ class Tupelo::Archiver
           end
           ## optimize this if templates have simple form, such as
           ##   [ [str1, nil, ...], [str2, nil, ...], ...]
-        end
-      else
-        tuplespace.each do |tuple, count|
-          count.times do ## just dump and send str * count?
-            stream << tuple ## optimize this, and cache the serial
-            ## optimization: use stream.write_to_buffer
-          end
         end
       end
 
