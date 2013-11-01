@@ -114,7 +114,7 @@ class Tupelo::Archiver
         end
 
       else
-        tags = sub_delta["request_tags"] ### use set
+        tags = sub_delta["request_tags"] ## use set
         subs = subspaces.select {|sub| tags.include? sub.tag}
 
         tuplespace.each do |tuple, count|
