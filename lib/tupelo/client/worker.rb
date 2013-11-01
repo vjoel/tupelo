@@ -510,21 +510,20 @@ class Tupelo::Client
       end
     end
 
-    # client can manually assign tags to avoid pot search
-    def send_transaction transaction, tags = nil
+    def send_transaction transaction
       msg = message_class.new
       msg.client_id = client_id
       msg.local_tick = local_tick + 1
       msg.global_tick = global_tick
       msg.delta = delta + 1 # pipelined write/take
-      msg.tags = tags
+      msg.tags = transaction.tags
 
       writes = transaction.writes
       pulses = transaction.pulses
       takes = transaction.take_tuples_for_remote.compact
       reads = transaction.read_tuples_for_remote.compact
       
-      unless tags
+      unless msg.tags
         tags = []
         tuples = [writes, pulses, takes, reads].compact.flatten(1)
         subspaces.each do |subspace|

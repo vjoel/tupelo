@@ -109,6 +109,7 @@ class Tupelo::Client
     attr_reader :read_tuples_for_local
     attr_reader :granted_tuples
     attr_reader :missing
+    attr_reader :tags
     
     STATES = [
       OPEN      = :open,    # initial state
@@ -148,6 +149,7 @@ class Tupelo::Client
       @read_tuples_for_local = []
       @granted_tuples = nil
       @missing = nil
+      @tags = nil
       @_take_nowait = nil
       @_read_nowait = nil
       
