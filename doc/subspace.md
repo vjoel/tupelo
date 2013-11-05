@@ -4,7 +4,7 @@ How subspaces work
 Introduction
 ------------
 
-A subspaces is a subset of a tuplespace defined by a special kind of pattern,
+A subspace is a subset of a tuplespace defined by a special kind of pattern,
 known as a "portable object template". These templates are less expressive than
 the [client-side templates] [1], but they are built out of simple, serializable
 objects that represent widely available matching constructs. Saying that a
