@@ -26,6 +26,20 @@ Is tupelo a database?
   No. It's really more of a middleware. Tupelo doesn't have its own disk storage, indexing, queries, etc. It depends on other programs to provide these. That's actually a strength, since you can use different storage backends for different cases (subspaces, for example).
 
 
+Tuplespace Operations and Transactions
+======================================
+
+1.  Why no update operation?
+
+  You can update by doing #take and #write in a transaction:
+    
+        transaction do
+          _, n = take ["my counter", Integer]
+          write ["my counter", n+1]
+        end
+
+  Some storage providers may detect this take-write and perform a more efficient update instead.
+
 Tuplets
 =======
 
