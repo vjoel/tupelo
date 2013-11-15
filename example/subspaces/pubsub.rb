@@ -40,7 +40,7 @@ Tupelo.application do
   N_PUBS.times do |pi|
     child subscribe: ["control"] do
       log.progname = "pub #{pi}"
-      read ['control', 'start']
+      read [nil, 'start'] # first elt can only be 'control'
       delay = pi/10.0
       sleep delay
       tag = pi % N_CHAN
@@ -53,7 +53,9 @@ Tupelo.application do
     child subscribe: [tag], passive: true do
       log.progname = "sub #{si} on tag #{tag}"
       loop do
-        log read [tag, nil]
+        log read [nil, nil]
+          # Note: match any pair, but in fact will only get [tag, ....]
+          # because of subspaces.
       end
     end
   end
