@@ -18,6 +18,7 @@ Tupelo.application do
   
   N_PUBS.times do |pi|
     child do
+      log.progname = "pub #{pi}"
       read ['start']
       delay = pi/10.0
       sleep delay
