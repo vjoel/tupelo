@@ -36,6 +36,9 @@ module Tupelo
         subscribe_all
       when Array
         subscribe @initial_subscriptions | [Tupelo::Client::TUPELO_SUBSPACE_TAG]
+      else
+        raise ArgumentError,
+          "bad subscription specifier: #{@initial_subscriptions}"
       end
     end
 
