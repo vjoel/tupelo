@@ -1,6 +1,6 @@
 # Synchronously deliver published messages to subscribers. Subscriber gets the
 # message only if waiting while the message is sent.
-# Compare message-bus.rb.
+# Compare message-bus.rb. Also: subspaces/pubsub.rb.
 #
 # Run with the --show-final-state switch to verify that published tuples
 # don't stay in the space.
