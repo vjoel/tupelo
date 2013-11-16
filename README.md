@@ -318,7 +318,7 @@ Another use of transactions: forcing a retry when something changes:
 
 This code waits on the existence of a value, but retries if the step changes while waiting. See example/pregel/distributed.rb for a use of this techinique.
 
-Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. Durability is optional, but can be provided by the persistent archiver or other clients.
+Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. This is also known as [sequential consistency] (https://en.wikipedia.org/wiki/Sequential_consistency). Durability is optional, but can be provided by the persistent archiver or other clients.
 
 On the CAP spectrum, tupelo tends towards consistency: for all clients, write and take operations are applied in the same order, so the state of the entire system up through a given tick of discrete time is universally agreed upon. Of course, because of the difficulties of distributed systems, one client may not yet have seen the same range of ticks as another.
 
