@@ -1,7 +1,8 @@
 tupelo
 ==
 
-A tuplespace that is fast, scalable, and language agnostic.
+A tuplespace that is fast, scalable, and language agnostic. It is designed for distribution of both computation and storage, in a unified language that has both transactional and tuple-operation (read/write/take) semantics.
+
 
 This is the reference implementation in ruby. It should be able to communicate with implementations in other languages. Planned implementation languages include C, Python, and Go.
 
