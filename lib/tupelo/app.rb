@@ -95,7 +95,7 @@ module Tupelo
 
     %w{--marshal --yaml --json --msgpack}.each do |switch|
       s = argv.delete(switch) and
-        otps[:blob_type] = s.delete("--")
+        opts[:blob_type] = s.delete("--")
     end
 
     opts[:trace] = argv.delete("--trace")
