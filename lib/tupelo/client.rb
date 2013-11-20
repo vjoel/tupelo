@@ -63,6 +63,7 @@ module Tupelo
     # call this just once at start of first client (it's optional to
     # preserve behavior of non-subspace-aware code)
     def use_subspaces!
+      return if subspace(TUPELO_SUBSPACE_TAG)
       define_subspace(
         tag:          TUPELO_SUBSPACE_TAG,
         template:     {
@@ -76,7 +77,7 @@ module Tupelo
 
     def subspace tag
       tag = tag.to_s
-      worker.subspaces.find {|sp| sp.tag == tag}
+      worker.subspaces.find {|sp| sp.tag == tag} ## should go thru worker queue
     end
   end
 end
