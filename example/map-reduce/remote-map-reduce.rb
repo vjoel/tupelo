@@ -1,4 +1,4 @@
-# see also parallel.rb
+# see also ../parallel.rb and ../remote.rb
 
 require 'tupelo/app/remote'
 
