@@ -21,9 +21,21 @@ Utility
   - lightweight coordination: when you need task queues or other mechanisms
     and you don't want to run a standalone queue server
 
-Is tupelo a database?
+3. Is tupelo a database?
 
   No. It's really more of a middleware. Tupelo doesn't have its own disk storage, indexing, queries, etc. It depends on other programs to provide these. That's actually a strength, since you can use different storage backends for different cases (subspaces, for example).
+
+4. What's really new about tupelo?
+
+  Tupelo combines these ideas:
+
+  - Atomic broadcast/multicast, virtual synchrony
+
+  - Tuplespace operation semantics (write, read, take)
+
+  - Transactions
+
+  All of these are old ideas, but the three together is possibly new.
 
 
 Tuplespace Operations and Transactions
@@ -31,7 +43,7 @@ Tuplespace Operations and Transactions
 
 1.  Why no update operation?
 
-  You can update by doing #take and #write in a transaction:
+  Tuples are immutable while in the space. However, you can update by doing #take and #write in a transaction:
     
         transaction do
           _, n = take ["my counter", Integer]
