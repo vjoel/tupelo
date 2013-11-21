@@ -1,4 +1,6 @@
 class Tupelo::Archiver
+  # Faster than the default tuplespace, but does not support some things
+  # that are not needed in the Archiver: template searches, for example.
   class Tuplespace
     include Enumerable
     
