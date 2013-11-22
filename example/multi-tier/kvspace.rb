@@ -9,14 +9,12 @@
 # This store should be used only by clients that subscribe to a subspace
 # that can be represented as pairs. (See memo2.rb.)
 #
-# Important: a client using this as its tuplespace should never #write a tuple.
-# (However, it may accept a #write from another client.) The problem is that we
-# don't store subspace metadata and so there is no way to classify and tag
-# outgoing tuples.
+# This store also manages meta tuples, which it keeps in an array, just like
+# the default Tuplespace class does.
 class KVSpace
   include Enumerable
 
-  attr_reader :tag, :hash
+  attr_reader :tag, :hash, :metas
 
   def initialize tag
     @tag = tag
@@ -25,7 +23,10 @@ class KVSpace
 
   def clear
     @hash = Hash.new {|h,k| h[k] = []}
-      # it's up to the application to enforce that these arrays have size <=1
+      # It's up to the application to enforce that these arrays have size <=1.
+    @metas = []
+      # We are automatically subscribed to tupelo metadata (subspace defs), so
+      # we need to keep them somewhere.
   end
 
   def each
@@ -34,41 +35,28 @@ class KVSpace
         yield tag, k, v
       end
     end
+    metas.each do |tuple|
+      yield tuple
+    end
   end
 
   def insert tuple
-    case tuple
-    when Hash # can only be meta tuple
-      raise ArgumentError unless tuple.key? "__tupelo__" ## is_meta?
-      # do nothing: this client never writes, so it doesn't need this info
-
-    when Array
-      #raise ArgumentError unless tuple.size == 3 ## subscribe works
+    if tuple.kind_of? Array
+        # and tuple.size == 3 and tuple[0] == tag and tuple[1].kind_of? String
+        # This is redundant, because of subscribe.
       t, k, v = tuple
-      #raise ArgumentError unless t == tag and k.kind_of? String ## ditto
-
       hash[k] << v
 
     else
-      raise ArgumentError
+      metas << tuple
     end
   end
 
   def delete_once tuple
-    case tuple
-    when Hash # can only be meta tuple
-      raise ArgumentError unless tuple.key? "__tupelo__" ## is_meta?
-      true # do nothing: this client never writes, so it doesn't need this info
-        ## It would be better not to get these tuples (or keep them in another
-        ## structure?) otherwise we might mistakenly reject a transaction that
-        ## involves meta tuples. However, dynamically changing subspaces will
-        ## never happen in this example!
-
-    when Array
-      #raise ArgumentError unless tuple.size == 3 ## subscribe works
+    if tuple.kind_of? Array
+        # and tuple.size == 3 and tuple[0] == tag and tuple[1].kind_of? String
+        # This is redundant, because of subscribe.
       t, k, v = tuple
-      #raise ArgumentError unless t == tag and k.kind_of? String ## ditto
-
       if hash.key?(k) and hash[k].include? v
         hash[k].delete v
         hash.delete k if hash[k].empty?
@@ -78,7 +66,9 @@ class KVSpace
       end
 
     else
-      raise ArgumentError
+      if i=metas.index(tuple)
+        delete_at i
+      end
     end
   end
 
@@ -102,18 +92,20 @@ class KVSpace
     # try to optimize if template can be satisfied by hash lookup
     if template.kind_of? RubyObjectTemplate
       spec = template.spec
-      key = spec[1]
-      if key.kind_of? String and spec[2] == nil
-        if hash.key? key
-          value = hash[key].last # most recently written
-          return [tag, key, value]
-        else
-          return nil
+      if spec.kind_of? Array
+        key = spec[1]
+        if key.kind_of? String and spec[2] == nil
+          if hash.key? key
+            value = hash[key].last # most recently written
+            return [tag, key, value]
+          else
+            return nil
+          end
         end
       end
     end
     
-    $stderr.puts "falling back to linear search"
+    # fall back to linear search
     find do |tuple|
       template === tuple and not distinct_from.any? {|t| t.equal? tuple}
     end
