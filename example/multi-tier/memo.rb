@@ -38,10 +38,7 @@ fork do
     child passive: true do
       100.times do |i|
         sleep 1
-        transaction do
-          take_nowait ["memo", i.to_s, nil]
-          write ["memo", i.to_s, Time.now.to_s]
-        end
+        write ["memo", i.to_s, Time.now.to_s]
       end
     end
   end
