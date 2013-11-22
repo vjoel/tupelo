@@ -1,6 +1,8 @@
-# A tupelo cluster may expose its services using some other protocol so that
-# process need not be tupelo-aware to use them. This example uses http to expose
-# a memcache-like service. See also memo2.rb.
+# Better, but more complex, implementation of memo.rb. Uses a custom tuplespace
+# that is optimized for storing key-value data, rather than general tuples.
+# Also, subscribes to just the relevant subspace. Consequently, this example
+# should scale up to large memo spaces much better than memo.rb, which uses
+# linear search.
 #
 # Depends on the sinatra, json, and http gems.
 
@@ -8,9 +10,23 @@ require 'json'
 
 fork do
   require 'tupelo/app'
-  
+  require_relative 'kvspace.rb'
+
   Tupelo.application do
-    child do |client|
+    local do
+      use_subspaces!
+
+      define_subspace(
+        tag:          "memo",
+        template:     [
+          {value: "memo"},    # tag is encoded in each tuple, for recognizing
+          {type:  "string"},  # key in the cache, must be string
+          nil                 # value, can be any object (e.g. JSON object)
+        ]
+      )
+    end
+
+    child tuplespace: [KVSpace, "memo"], subscribe: ["memo"] do |client|
       require 'sinatra/base'
 
       Class.new(Sinatra::Base).class_eval do
