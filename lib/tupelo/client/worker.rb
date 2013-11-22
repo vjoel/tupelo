@@ -497,19 +497,27 @@ class Tupelo::Client
     end
 
     def handle_waiter waiter
-      tuplespace.find {|tuple| waiter.gloms tuple} or
+      tuple = tuplespace.find_match_for waiter.template
+      if tuple
+        waiter.peek tuple
+      else
         read_waiters << waiter
-        ## optimize: if template is just a tuple, use hashing,
-        ## but will need to expose waiter.tuple
+      end
     end
 
     def handle_matcher matcher
       if matcher.all
         tuplespace.each {|tuple| matcher.gloms tuple}
+          ## maybe should have tuplespace.find_all_matches_for ...
+          ## in case there is an optimization
         matcher.fails
       else
-        tuplespace.find {|tuple| matcher.gloms tuple} or
+        tuple = tuplespace.find_match_for waiter.template
+        if tuple
+          waiter.peek tuple
+        else
           matcher.fails
+        end
       end
     end
 
