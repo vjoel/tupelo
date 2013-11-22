@@ -533,6 +533,9 @@ Other gems:
 
 * yajl-ruby (only used to support --json option)
 
+Optional gems for some of the examples:
+
+* sinatra, http, sequel, sqlite, rbtree, leveldb-native
 
 Contact
 =======
