@@ -106,6 +106,9 @@ class Tupelo::Client
       @tuplespace ||= begin
         if client.tuplespace.respond_to? :new
           client.tuplespace.new
+        elsif client.tuplespace.class == Array # but not subclass of Array
+          tsclass, *args = client.tuplespace
+          tsclass.new(*args)
         else
           client.tuplespace
         end
