@@ -137,6 +137,24 @@ methods.
 
 For the details of POTs, see the ruby implementation in the object-template gem.
 
+Subspaces and bin/tup
+---------------------
+
+The tup client CLI by default runs a client that subscribes to the entire tuplespace. If you wish to connect just to one or more subspaces, see the --help for the options --use-subspaces and --subscribe. For example:
+
+In terminal 1:
+
+    $ tup svr --use-subspaces
+    >> define_subspace tag: "foo", template: [{type: "number"}]
+    >> w [1], ["hello"]
+    >> ra Array
+    => [[1], ["hello"]]
+
+In terminal 2:
+
+    $ tup svr --subscribe foo
+    >> ra Array
+    => [[1]]
 
 Examples of Subspaces
 ---------------------
