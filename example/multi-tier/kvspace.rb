@@ -58,9 +58,11 @@ class KVSpace
     case tuple
     when Hash # can only be meta tuple
       raise ArgumentError unless tuple.key? "__tupelo__" ## is_meta?
-      true ### better not to get these tuples (or keep them in another ts?)
-        ### otherwise we might mistakenly accept a transaction
-      # do nothing: this client never writes, so it doesn't need this info
+      true # do nothing: this client never writes, so it doesn't need this info
+        ## It would be better not to get these tuples (or keep them in another
+        ## structure?) otherwise we might mistakenly reject a transaction that
+        ## involves meta tuples. However, dynamically changing subspaces will
+        ## never happen in this example!
 
     when Array
       #raise ArgumentError unless tuple.size == 3 ## subscribe works
@@ -97,7 +99,21 @@ class KVSpace
   end
 
   def find_match_for template, distinct_from: []
-    ## optimize for templates that correspond to hash lookup
+    # try to optimize if template can be satisfied by hash lookup
+    if template.kind_of? RubyObjectTemplate
+      spec = template.spec
+      key = spec[1]
+      if key.kind_of? String and spec[2] == nil
+        if hash.key? key
+          value = hash[key].last # most recently written
+          return [tag, key, value]
+        else
+          return nil
+        end
+      end
+    end
+    
+    $stderr.puts "falling back to linear search"
     find do |tuple|
       template === tuple and not distinct_from.any? {|t| t.equal? tuple}
     end
