@@ -308,7 +308,14 @@ Transactions have a significant disadvantage compared to using take/write to loc
 
 Transactions do have an advantage over using take/write to lock/unlock tuples: there is no possibility of deadlock. See [example/deadlock.rb](example/deadlock.rb) and [example/parallel.rb](example/parallel.rb).
 
-Another advantage of tranactions is that it is possible to guarantee continuous existence of a time-series of tuples. For example, suppose that tuples matching `{step: Numeric}` indicate the progress of some activity. With transactions, you can guarantee that there is exactly one matching tuple at any time. So any client which reads this template will find a match without blocking.
+Another advantage of tranactions is that it is possible to guarantee continuous existence of a time-series of tuples. For example, suppose that tuples matching `{step: Numeric}` indicate the progress of some activity. With transactions, you can guarantee that there is exactly one matching tuple at any time, and that no client ever sees in intermediate or inconsistent state of the counter:
+
+    transaction do
+      step = take(step: nil)["step"]
+      write step: step + 1
+    end
+
+Any client which reads this template will find a (unique) match without blocking.
 
 Another use of transactions: forcing a retry when something changes:
 
