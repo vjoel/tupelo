@@ -78,7 +78,7 @@ class KVSpace
     end
 
     inserts.each do |tuple|
-      insert tuple.freeze
+      insert tuple.freeze ## should be deep_freeze
     end
   end
 
