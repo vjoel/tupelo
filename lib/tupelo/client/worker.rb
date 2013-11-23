@@ -335,18 +335,18 @@ class Tupelo::Client
       read_tuples = op.reads.map {|t| tuplespace.find_match_for(t)}
 
       succeeded = !op.atomic || (granted_tuples.all? && read_tuples.all?)
-      actual_tuples = granted_tuples.compact
+      take_tuples = granted_tuples.compact
 
       if succeeded
-        log.debug {"inserting #{op.writes}; deleting #{actual_tuples}"}
-        tuplespace.transaction inserts: op.writes, deletes: actual_tuples,
+        log.debug {"inserting #{op.writes}; deleting #{take_tuples}"}
+        tuplespace.transaction inserts: op.writes, deletes: take_tuples,
           tick: @global_tick
       
         op.writes.each do |tuple|
           sniff_meta_tuple tuple
         end
 
-        actual_tuples.each do |tuple|
+        take_tuples.each do |tuple|
           ### abstract this out
           if tuple.kind_of? Hash and tuple.key? "__tupelo__"
             if tuple["__tupelo__"] == "subspace" # tuple is subspace metatdata
@@ -375,9 +375,9 @@ class Tupelo::Client
         log.debug {"operation belongs to this client: #{trans.inspect}"}
       end
 
-      if not actual_tuples.empty?
+      if not take_tuples.empty?
         if succeeded
-          actual_tuples.each do |tuple|
+          take_tuples.each do |tuple|
             prep_waiters.keep_if do |waiter|
               waiter.unprepare tuple
               ## optimization: track number of instances of tuple, to avoid
@@ -390,7 +390,7 @@ class Tupelo::Client
 
         else
           log.debug {
-            missing = op.takes - actual_tuples
+            missing = op.takes - take_tuples
             trans ? "failed to take #{missing}" :
             "client #{msg.client_id} failed to take #{missing}"}
         end
@@ -423,7 +423,7 @@ class Tupelo::Client
         if succeeded
           trans.done msg.global_tick, granted_tuples # note: tuples not frozen
         else
-          trans.fail (op.takes - actual_tuples) + (op.reads - read_tuples)
+          trans.fail (op.takes - take_tuples) + (op.reads - read_tuples)
         end
       end
     end
