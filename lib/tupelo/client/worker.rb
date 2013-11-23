@@ -297,7 +297,7 @@ class Tupelo::Client
           update_to_tick tick: msg.global_tick, all: true
         when Funl::SUBSCRIBE
           update_to_tick tick: msg.global_tick,
-            tags: (client.subscribed_tags + tags)
+            tags: (client.subscribed_tags | tags)
         when Funl::UNSUBSCRIBE_ALL
           update_to_tick tick: msg.global_tick, all: false
         when Funl::UNSUBSCRIBE
