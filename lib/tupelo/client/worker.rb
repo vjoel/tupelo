@@ -337,9 +337,19 @@ class Tupelo::Client
       succeeded = !op.atomic || (granted_tuples.all? && read_tuples.all?)
       take_tuples = granted_tuples.compact
 
+      if client.subscribed_all
+        write_tuples = op.writes
+      else
+        write_tuples = op.writes.select do |tuple|
+          subspaces.any? {|subspace| subspace === tuple}
+        end
+      end
+      ## This is duplicated effort: the sender has already done this.
+      ## So maybe the result could be transmitted in the msg protocol?
+
       if succeeded
         log.debug {"inserting #{op.writes}; deleting #{take_tuples}"}
-        tuplespace.transaction inserts: op.writes, deletes: take_tuples,
+        tuplespace.transaction inserts: write_tuples, deletes: take_tuples,
           tick: @global_tick
       
         op.writes.each do |tuple|
