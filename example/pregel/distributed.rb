@@ -1,4 +1,5 @@
-# Distributed version of pagerank.rb.
+# Distributed version of pagerank.rb. This uses only a single host. To use
+# many hosts, see remote.rb.
 
 # TODO
 #
@@ -7,7 +8,6 @@
 # And the subspaces could be defined by consistent hashing and smarter
 # partitioning.
 # Also, need to handle crashed process and lost tuple (as lease.rb maybe).
-# Would be nice to have remote option as well.
 # Abstract out domain-specific code from generic framework code.
 # Option to compare result with that of pagerank.rb using same seed.
 
