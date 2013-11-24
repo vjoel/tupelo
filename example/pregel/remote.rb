@@ -8,22 +8,23 @@ require 'tupelo/app'
 require 'tupelo/app/remote'
 require_relative 'update'
 
-NUM_WORKERS = 4
+NUM_WORKERS = 8
 NUM_VERTICES = 10
 PRNG_SEED = 1234
 
-HOSTS = %w{od1 od2} ### ARGV
-
 def host i
-  HOSTS[i % HOSTS.size]
+  if ARGV.empty?
+    abort "Usage: #{$0} [usual opts] host1 host2 host3 ..."
+  end
+  ARGV[i % ARGV.size]
 end
 
 Tupelo.tcp_application do
-  
   NUM_WORKERS.times do |i|
-#    child passive: true do
+    ## need better support from EasyServe:
+    ##  remote: ..., load: 'update.rb' OR rsync option and then require
     remote host: host(i), log: true, passive: true, eval: %{
-    log "hello"
+      log "starting worker #{i} on host #{host(i)}"
       def update vertex, incoming_messages, vs_dst
         vertex = vertex.dup
         incoming_messages ||= []
