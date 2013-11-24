@@ -5,43 +5,17 @@
 # Improvements listed in pagerank.rb.
 
 require 'tupelo/app'
+require 'tupelo/app/remote'
+require_relative 'update'
 
 NUM_WORKERS = 4
 NUM_VERTICES = 10
 PRNG_SEED = 1234
 
-def update vertex, incoming_messages, vs_dst
-  vertex = vertex.dup
-  incoming_messages ||= []
-  outgoing_messages = []
-  v_me = vertex["id"]
-  rank = vertex["rank"]
-  step = vertex["step"]
-  active = true
+HOSTS = %w{od1 od2} ### ARGV
 
-  if step < 50
-    rank = 0.15 / NUM_VERTICES + 0.85 * incoming_messages.inject(0.0) {|sum, m|
-      sum + m["rank"]}
-    outgoing_rank = rank / vs_dst.size
-    outgoing_messages = vs_dst.map {|v_dst|
-      {src: v_me, dst: v_dst, step: step + 1, rank: outgoing_rank}}
-  else
-    active = false
-  end
-
-  vertex["rank"] = rank
-  vertex["active"] = active
-  vertex["step"] += 1
-
-  [vertex, outgoing_messages]
-end
-
-require 'tupelo/app/remote'
 def host i
-  case i % 2
-  when 0; "od1"
-  when 1; "od2"
-  end
+  HOSTS[i % HOSTS.size]
 end
 
 Tupelo.tcp_application do
