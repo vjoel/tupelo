@@ -44,15 +44,6 @@ fork do
         end
       end
     end
-    
-    child passive: true do
-      loop do
-        transaction do
-          _, x, y = take ["request", nil, nil]
-          write ["response", x, y, x + y]
-        end
-      end
-    end
   end
 end
 
