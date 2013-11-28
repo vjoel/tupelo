@@ -10,7 +10,7 @@ Tupelo.application do
     child do
       read ["ready"]
       r = take_nowait [1]
-      log "winner! result = #{r.inspect}" if r
+      log "winner! result = #{r}" if r
     end
   end
 
