@@ -10,8 +10,6 @@ require 'tupelo/app'
 PRODUCT_IDS = 1..10
 CUSTOMER_IDS = 1..10
 
-POSITIVE = 1..(1.0/0)
-
 Tupelo.application do
   local do
     PRODUCT_IDS.each do |product_id|
@@ -26,7 +24,7 @@ Tupelo.application do
         sleep rand % 0.1
         transaction do
           # buy the first product we see:
-          _, product_id, count = take ["product", nil, POSITIVE]
+          _, product_id, count = take ["product", nil, 1..Float::INFINITY]
           write ["product", product_id, count-1]
           write ["cart", customer_id, product_id]
         end
