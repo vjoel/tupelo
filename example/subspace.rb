@@ -1,3 +1,5 @@
+# Run with --trace to see assignment to subspaces.
+
 require 'tupelo/app'
 
 Tupelo.application do
