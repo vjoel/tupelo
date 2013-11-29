@@ -328,7 +328,7 @@ class Tupelo::Client
       log.debug {"applying #{op} from client #{msg.client_id}"}
 
       notify_waiters.each do |waiter|
-        waiter << [:attempt, msg.global_tick, msg.client_id, op]
+        waiter << [:attempt, msg.global_tick, msg.client_id, op, msg.tags]
       end
 
       granted_tuples = tuplespace.find_distinct_matches_for(op.takes)
@@ -370,7 +370,7 @@ class Tupelo::Client
       notify_waiters.each do |waiter|
         waiter << [
           succeeded ?  :success : :failure,
-          msg.global_tick, msg.client_id, op]
+          msg.global_tick, msg.client_id, op, msg.tags]
       end
 
       trans = nil

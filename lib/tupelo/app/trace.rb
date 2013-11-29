@@ -12,10 +12,14 @@ class Tupelo::AppBuilder
       note = client.notifier
       log << ( "%6s %6s %6s %s\n" % %w{ tick cid status operation } )
       loop do
-        status, tick, cid, op = note.wait
+        status, tick, cid, op, tags = note.wait
         unless status == :attempt
           s = status == :failure ? "FAIL" : ""
-          log << ( "%6d %6d %6s %p\n" % [tick, cid, s, op] )
+          if tags and not tags.empty?
+            log << ( "%6d %6d %6s %p to %p\n" % [tick, cid, s, op, tags] )
+          else
+            log << ( "%6d %6d %6s %p\n" % [tick, cid, s, op] )
+          end
         end
       end
     end
