@@ -36,6 +36,10 @@ Tupelo.application do
           _, product_id, count = take ["product", nil, 1..Float::INFINITY]
           write ["product", product_id, count-1]
           write ["cart", customer_id, product_id]
+          # Note that the transaction *takes* from inventory and *writes*
+          # outside inventory. To support this, the client must subscribe
+          # to inventory. It doesn't matter whether it subscribes to the
+          # rest of the tuplespace. See the [subspace doc](doc/subspace.md).
         end
       end
     end
