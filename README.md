@@ -492,6 +492,10 @@ Some design principles:
 
 * Once a transaction has been sent from a client to the message sequencer, it references only tuples, not templates. This makes it faster and simpler for each receiving client to apply or reject the transaction. Also, clients that do not support local template searching (such as archivers) can store tuples using especially efficient data structures that only support tuple-insert, tuple-delete, and iterate/export operations.
 
+* Use non-blocking protocols. For example, transactions can be evaluated in one client without waiting for information from other clients. Even at the level of reading messages over sockets, tupelo uses (via funl and object-stream) non-blocking constructs. At the application level, you can use transactions to optimistically modify shared state (but applications are free to use locking if high contention demands it).
+
+* Do the hard work on the client side. For example, all pattern matching happens in the client that requested an operation that has a template argument, not on the server or other clients.
+
 Protocol
 --------
 
