@@ -486,6 +486,10 @@ General application clients:
 
 * client threads construct transactions and wait for results (communicating with the worker thread over queues); they may also use asynchronous transactions
 
+Some design principles:
+
+* Once a transaction has been sent from a client to the message sequencer, it references only tuples, not templates. This makes it faster and simpler for each receiving client to apply or reject the transaction. Also, clients that do not support local template searching (such as archivers) can store tuples using especially efficient data structures that only support tuple-insert, tuple-delete, and iterate/export operations.
+
 Protocol
 --------
 
