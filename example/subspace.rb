@@ -1,3 +1,4 @@
+# Minimal example of using subspaces to limit which tuples each client sees.
 # Run with --trace to see assignment to subspaces.
 
 require 'tupelo/app'
