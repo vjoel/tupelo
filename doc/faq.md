@@ -6,11 +6,12 @@ Utility
 
 1. What is tupelo not good for?
 
-  - high availability, large scale systems
+  - high availability, very large scale systems
   
   - high volume stream data
   
-  - applications that cannot accept a SPoF
+  - applications that cannot accept a SPoF (though in the future, "SPoF" may be
+    reduced to simply a "bottleneck" by replicating the message sequencer)
 
 2. What is tupelo good for? What are the "use cases"?
 
