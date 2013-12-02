@@ -28,9 +28,12 @@ if ARGV.delete("-h") or ARGV.delete("--help")
 end
 
 require 'tupelo/app'
+require 'tupelo/archiver/tuplespace'
 
 Tupelo.application do
-  local do
+  # Use hash-and-count-based storage, for efficiency (this client never
+  # does take or read).
+  local tuplespace: [Tupelo::Archiver::Tuplespace, zero_tolerance: 1000] do
     trap :INT do
       exit!
     end
