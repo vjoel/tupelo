@@ -9,10 +9,15 @@ module Tupelo
 
     # Does this app own (as child processes) the seq, cseq, and arc servers?
     attr_reader :owns_servers
+    
+    # Arguments available to application after tupelo has parsed out switches
+    # and args that it recognizes.
+    attr_reader :argv
 
-    def initialize ez, owns_servers: nil
+    def initialize ez, owns_servers: nil, argv: argv
       @ez = ez
       @owns_servers = owns_servers
+      @argv = argv
     end
 
     def log
@@ -181,7 +186,7 @@ module Tupelo
         end
       end
 
-      app = AppBuilder.new(ez, owns_servers: owns_servers)
+      app = AppBuilder.new(ez, owns_servers: owns_servers, argv: argv.dup)
       
       if enable_trace
         require 'tupelo/app/trace'
