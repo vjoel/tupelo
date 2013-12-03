@@ -1,4 +1,4 @@
-**NEWS**: Come hear a talk on Tupelo on December 11 in San Francisco at the [SF Distributed Computing meetup](http://www.meetup.com/San-Francisco-Distributed-Computing). Location is TBD. Abstract: [doc/sfdc.txt](doc/sfdc.txt).
+**NEWS**: Come hear a talk on Tupelo on December 11 in San Francisco at the [SF Distributed Computing meetup](http://www.meetup.com/San-Francisco-Distributed-Computing/events/153886592/). Abstract: [doc/sfdc.txt](doc/sfdc.txt).
 
 tupelo
 ==
