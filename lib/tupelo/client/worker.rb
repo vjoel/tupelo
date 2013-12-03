@@ -509,7 +509,10 @@ class Tupelo::Client
     def handle_waiter waiter
       tuple = tuplespace.find_match_for waiter.template
       if tuple
-        waiter.peek tuple
+        once = waiter.peek tuple
+        unless once
+          read_waiters << waiter
+        end
       else
         read_waiters << waiter
       end

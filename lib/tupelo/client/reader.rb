@@ -1,14 +1,23 @@
 require 'tupelo/client/common'
 
 class Tupelo::Client
-  # include into class that defines #worker and #log
+  # Include into class that defines #worker and #log.
   module Api
+    # If block given, yield matching tuple to the block if one is found
+    # locally and then yield each new tuple as it arrives.
+    # Otherwise, return one matching tuple, blocking if necessary.
     def read_wait template
-      waiter = Waiter.new(worker.make_template(template), self)
+      waiter = Waiter.new(worker.make_template(template), self, !block_given?)
       worker << waiter
-      result = waiter.wait
-      waiter = nil
-      result
+      if block_given?
+        loop do
+          yield waiter.wait
+        end
+      else
+        result = waiter.wait
+        waiter = nil
+        result
+      end
     ensure
       worker << Unwaiter.new(waiter) if waiter
     end
@@ -40,17 +49,18 @@ class Tupelo::Client
   class WaiterBase
     attr_reader :template
     attr_reader :queue
+    attr_reader :once
 
-    def initialize template, client
+    def initialize template, client, once = true
       @template = template
       @queue = client.make_queue
       @client = client
+      @once = once
     end
 
     def gloms tuple
       if template === tuple
         peek tuple
-        true
       else
         false
       end
@@ -58,6 +68,7 @@ class Tupelo::Client
     
     def peek tuple
       queue << tuple
+      once
     end
 
     def wait
