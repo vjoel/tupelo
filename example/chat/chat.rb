@@ -22,7 +22,7 @@ Thread.abort_on_exception = true
 
 def display_message msg
   from, time, line = msg.values_at(*%w{from time line})
-  time_str = Time.at(time).strftime("%I:%M.%S")
+  time_str = Time.at(time).strftime("%I:%M:%S")
   puts "#{from}@#{time_str}> #{line}"
 end
 
@@ -40,8 +40,9 @@ Tupelo.tcp_application servers_file: svr do
       
       read from: nil, line: nil, time: nil do |msg|
         next if msg["from"] == me or seen_at_start[msg]
-        print "\r"; display_message msg
-        Readline.redisplay ### why not u work?
+        print "\r\033[2K" # Esc[2K is "Clear entire line"
+        display_message msg
+        Readline.refresh_line
       end
     end
     
