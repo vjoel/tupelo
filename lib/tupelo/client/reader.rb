@@ -3,9 +3,11 @@ require 'tupelo/client/common'
 class Tupelo::Client
   # Include into class that defines #worker and #log.
   module Api
-    # If block given, yield matching tuple to the block if one is found
-    # locally and then yield each new tuple as it arrives.
-    # Otherwise, return one matching tuple, blocking if necessary.
+    # If no block given, return one matching tuple, blocking if necessary.
+    # If block given, yield all matching tuples that are found
+    # locally and then yield each new match written to the space.
+    # Guaranteed not to miss tuples, even if they arrive and are immediately
+    # taken.
     def read_wait template
       waiter = Waiter.new(worker.make_template(template), self, !block_given?)
       worker << waiter

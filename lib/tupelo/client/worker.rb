@@ -507,13 +507,15 @@ class Tupelo::Client
     end
 
     def handle_waiter waiter
-      tuple = tuplespace.find_match_for waiter.template
-      if tuple
-        once = waiter.peek tuple
-        unless once
+      if waiter.once
+        tuple = tuplespace.find_match_for waiter.template
+        if tuple
+          waiter.peek tuple
+        else
           read_waiters << waiter
         end
       else
+        tuplespace.each {|tuple| waiter.gloms tuple}
         read_waiters << waiter
       end
     end
