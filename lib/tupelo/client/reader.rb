@@ -26,7 +26,8 @@ class Tupelo::Client
     end
     alias read read_wait
 
-    def read_nowait template
+    # The template defaults to Object, which matches any tuple.
+    def read_nowait template = Object
       matcher = Matcher.new(worker.make_template(template), self)
       worker << matcher
       matcher.wait
