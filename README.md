@@ -93,6 +93,11 @@ Getting started
 
   reads all 2-tuples.
 
+  Read tuples in a stream, both existing and as they arrive:
+
+        read <template> do |tuple| ... end
+        read do |tuple| ... end             # match any tuple
+
   Take a tuple matching a template:
 
         t <template>
