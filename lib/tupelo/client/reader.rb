@@ -8,7 +8,8 @@ class Tupelo::Client
     # locally and then yield each new match written to the space.
     # Guaranteed not to miss tuples, even if they arrive and are immediately
     # taken.
-    def read_wait template
+    # The template defaults to Object, which matches any tuple.
+    def read_wait template = Object
       waiter = Waiter.new(worker.make_template(template), self, !block_given?)
       worker << waiter
       if block_given?
