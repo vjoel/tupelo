@@ -8,7 +8,7 @@ Utility
 
   - high availability, very large scale systems
   
-  - high volume stream data
+  - high volume stream data (for low volume stream data, see [chat](example/chat/chat.rb))
   
   - applications that cannot accept a SPoF (though in the future, "SPoF" may be
     reduced to simply a "bottleneck" by replicating the message sequencer)
