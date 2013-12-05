@@ -86,6 +86,30 @@ class TestOps < Minitest::Test
     end
   end
 
+  def test_read_stream
+    writer, reader = make_clients(2)
+    a = []
+    n = 10; k = 3
+
+    (0...k).each do |i|
+      writer.now {write [i]}
+    end
+
+    reader.will {read([nil]){|t| a << t}}
+
+    (0...k).each do |i|
+      reader.run_until_blocked
+      assert_equal [i], a[i]
+    end
+
+    assert_equal [0], a[0]
+    (k...n).each do |i|
+      writer.now {write [i]}
+      reader.run_until_blocked
+      assert_equal [i], a[i]
+    end
+  end
+
   def test_take_existing
     t = ["foo"]
     cl = make_clients(2)
