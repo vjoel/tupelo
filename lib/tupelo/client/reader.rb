@@ -4,10 +4,11 @@ class Tupelo::Client
   # Include into class that defines #worker and #log.
   module Api
     # If no block given, return one matching tuple, blocking if necessary.
-    # If block given, yield all matching tuples that are found
-    # locally and then yield each new match written to the space.
+    # If block given, yield each matching tuple that is found
+    # locally and then yield each new match as it is written to the space.
     # Guaranteed not to miss tuples, even if they arrive and are immediately
-    # taken.
+    # taken. (Note that simply doing read(template) in a loop would not
+    # have this guarantee.)
     # The template defaults to Object, which matches any tuple.
     def read_wait template = Object
       waiter = Waiter.new(worker.make_template(template), self, !block_given?)
@@ -33,7 +34,9 @@ class Tupelo::Client
       matcher.wait
     end
 
-    # By default, reads *everything*.
+    # Returns all matching tuples currently in the space. The template defaults
+    # to Object, which matches any tuple. Does not wait for more tuples to
+    # arrive.
     def read_all template = Object
       matcher = Matcher.new(worker.make_template(template), self, :all => true)
       worker << matcher
