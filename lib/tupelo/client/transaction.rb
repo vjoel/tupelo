@@ -345,8 +345,8 @@ class Tupelo::Client
 
     rescue TransactionAbort, Interrupt, TimeoutError => ex ## others?
       worker_push Unwaiter.new(self)
-      raise ex.class,
-        "#{ex.message}: client #{client_id} waiting for #{inspect}"
+      cstr = "client #{client_id} (#{log.progname})"
+      raise ex.class, "#{ex.message}: #{cstr} waiting for #{inspect}"
     end
 
     def value
