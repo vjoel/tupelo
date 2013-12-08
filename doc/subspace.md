@@ -4,6 +4,8 @@ How subspaces work
 Introduction
 ------------
 
+Subspaces are the units of sharding a tuplespace.
+
 A subspace is a subset of a tuplespace defined by a special kind of pattern,
 known as a "portable object template". These templates are less expressive than
 the [client-side templates] [1], but they are built out of simple, serializable
@@ -119,8 +121,7 @@ tuple.
 If `set` is present, then the associated value must include (as a list) the
 value in the tuple.
 
-If `type` is present, then the associated value must be `number`, `string`,
-`list`, or `map` and must equal the type of the value in the tuple.
+If `type` is present, then the associated value must be `boolean`, `number`, `string`, `list`, or `map` and must equal the type of the value in the tuple.
 
 If `range` is present, then range defined by the associated pair must include
 the value in the tuple.

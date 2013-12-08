@@ -53,6 +53,19 @@ Tuplespace Operations and Transactions
 
   Some storage providers may detect this take-write and perform a more efficient update instead.
 
+Debugging
+=========
+
+1. How can I see what tuples a client is getting?
+
+Use --trace or #notify or just add this thread:
+
+    Thread.new do
+      read {|tt| log tt}
+    end
+
+and if you want pass a template to #read.
+
 Tuplets
 =======
 
