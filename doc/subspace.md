@@ -40,8 +40,10 @@ More precisely, we check a transaction as follows. For a tuple `t`, define `S_t`
 2. For each tuple `w` in a write operation of `T`, `S_w` must be contained in `S_T`.
 
 There are ways to work around this limitation, however. See [example/ramp.rb](example/ramp.rb).
-[example/ramp.rb]
-(example/ramp.rb)
+
+[example/ramp.rb] foo bar
+
+(example/ramp.rb) baz
 
 [1]: The ruby object templates used by the ruby tupelo client may include
 classes, procs, ranges, regexes, etc.
