@@ -37,7 +37,7 @@ More precisely, we check a transaction as follows. For a tuple `t`, define `S_t`
 
 1. All `S_t` must be equal for all `t` appearing in a take or read operation of `T`. Denote this set as `S_T`.
 
-2. For each tuple `w` in a write operation of `T`, `S_w` must be contained in `S_T`.
+2. If `T` has reads or takes, then for each tuple `w` in a write operation of `T`, `S_w` must be contained in `S_T`.
 
 There are ways to work around this limitation, however. See [example/ramp.rb](example/ramp.rb).
 
