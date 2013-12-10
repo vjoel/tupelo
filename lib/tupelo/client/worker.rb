@@ -536,6 +536,10 @@ class Tupelo::Client
       end
     end
 
+    def collect_tags tuple
+      subspaces.select {|subspace| subspace === tuple}.map(&:tag)
+    end
+
     def send_transaction transaction
       msg = message_class.new
       msg.client_id = client_id
@@ -550,14 +554,33 @@ class Tupelo::Client
       reads = transaction.read_tuples_for_remote.compact
       
       unless msg.tags
-        tags = []
-        tuples = [writes, pulses, takes, reads].compact.flatten(1)
-        subspaces.each do |subspace|
-          tuples.each do |tuple|
-            if subspace === tuple
-              tags << subspace.tag
-              break
+        tags = nil
+        [takes, reads].compact.flatten(1).each do |tuple|
+          if tags
+            tuple_tags = collect_tags(tuple)
+            unless tuple_tags == tags
+              d = (tuple_tags - tags) + (tags - tuple_tags)
+              raise TransactionSubspaceError,
+                "tuples crossing subspaces: #{d} in #{transaction.inspect}"
             end
+          else
+            tags = collect_tags(tuple)
+          end
+        end
+        tags ||= []
+
+        write_tags = []
+        [writes, pulses].compact.flatten(1).each do |tuple|
+          write_tags |= collect_tags(tuple)
+        end
+
+        if takes.empty? and reads.empty?
+          tags = write_tags
+        else
+          d = write_tags - tags
+          unless d.empty?
+            raise TransactionSubspaceError,
+              "writes crossing subspaces: #{d} in #{transaction.inspect}"
           end
         end
 

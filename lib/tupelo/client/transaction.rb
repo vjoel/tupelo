@@ -6,6 +6,7 @@ class Tupelo::Client
   class TransactionStateError < TransactionError; end
   class TransactionAbort < TransactionError; end
   class TransactionFailure < TransactionError; end
+  class TransactionSubspaceError < TransactionError; end
 
   module Api
     def trans_class
