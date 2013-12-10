@@ -41,10 +41,6 @@ More precisely, we check a transaction as follows. For a tuple `t`, define `S_t`
 
 There are ways to work around this limitation, however. See [example/ramp.rb](example/ramp.rb).
 
-[example/ramp.rb] foo bar
-
-(example/ramp.rb) baz
-
 [1]: The ruby object templates used by the ruby tupelo client may include
 classes, procs, ranges, regexes, etc.
 
