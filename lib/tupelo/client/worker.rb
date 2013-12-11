@@ -527,9 +527,9 @@ class Tupelo::Client
           ## in case there is an optimization
         matcher.fails
       else
-        tuple = tuplespace.find_match_for waiter.template
+        tuple = tuplespace.find_match_for matcher.template
         if tuple
-          waiter.peek tuple
+          matcher.peek tuple
         else
           matcher.fails
         end
