@@ -21,7 +21,9 @@
 require 'tupelo/app'
 require_relative 'sorted-set-space'
 
-N_REPLICAS = 1
+SHOW_HANDLERS = ARGV.delete("--show-handlers")
+
+N_REPLICAS = 3
 
 ab_tag = "my address book"
 cmd_tag = "#{ab_tag} commands"
@@ -81,6 +83,9 @@ Tupelo.application do
 
       loop do
         _, rqid, cmd, args = take(subspace cmd_tag)
+        if SHOW_HANDLERS
+          log "handling request for #{cmd} #{args}"
+        end
 
         case cmd
         when "delete"                # handled by one replica
