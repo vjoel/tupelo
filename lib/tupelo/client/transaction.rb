@@ -167,6 +167,10 @@ class Tupelo::Client
       client.client_id
     end
     
+    def subspace tag
+      client.subspace tag
+    end
+
     def log *args
       if args.empty?
         @log
