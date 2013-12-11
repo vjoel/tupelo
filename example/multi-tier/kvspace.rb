@@ -32,7 +32,7 @@ class KVSpace
   def each
     hash.each do |k, vs|
       vs.each do |v|
-        yield tag, k, v
+        yield [tag, k, v]
       end
     end
     metas.each do |tuple|
