@@ -14,6 +14,7 @@
 #
 # This is kinda like redis, but the data is distributed, not stored on the same
 # process that is managing concurrency. Multiple replicas increase concurrency.
+# Run this example with --show-handlers to see which replicas are responding.
 #
 # Note that a subspace can be sharded to different clients, and different
 # clients can each use their own data structure for these tuples.
