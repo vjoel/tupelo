@@ -80,7 +80,13 @@ module Tupelo
 
     def subspace tag
       tag = tag.to_s
-      worker.subspaces.find {|sp| sp.tag == tag} ## should go thru worker queue
+      worker.subspaces.find {|sp| sp.tag == tag} or begin
+        if subscribed_tags.include? tag
+          read __tupelo__: "subspace", tag: tag, addr: nil, template: nil
+          worker.subspaces.find {|sp| sp.tag == tag}
+        end
+      end
+      ## this impl will not be safe with dynamic subspaces
     end
   end
 end
