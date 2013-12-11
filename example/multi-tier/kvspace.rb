@@ -67,7 +67,7 @@ class KVSpace
 
     else
       if i=metas.index(tuple)
-        delete_at i
+        metas.delete_at i
       end
     end
   end
