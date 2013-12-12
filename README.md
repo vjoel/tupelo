@@ -1,5 +1,3 @@
-**NEWS**: Come hear a talk on Tupelo on December 11 in San Francisco at the [SF Distributed Computing meetup](http://www.meetup.com/San-Francisco-Distributed-Computing/events/153886592/). Abstract: [doc/sfdc.txt](doc/sfdc.md).
-
 tupelo
 ==
 
@@ -78,7 +76,12 @@ Getting started
 
         read_nowait <template>
 
-  Read all tuples matching a template, no waiting:
+  Note that neither #read nor #read_nowait wait for any previously issued writes to complete. The difference is that #read waits for a match to exist and #read_nowait does not. Compare:
+  
+        write [1]; read_nowait [1]        # ==> nil, probably
+        write [2]; read [2]               # ==> [2]
+
+  Read all tuples matching a template, no waiting (like #read_nowait):
 
         ra <template>
         read_all <template>
@@ -142,6 +145,17 @@ Getting started
           p read_all   # => [] # note read_all called on client, not trans.
           t.take [3]
           p t.read_nowait [3] # => nil
+        end
+
+  Be careful about context within the do...end. If you omit the `|t|` block argument, then all operations are automatically scoped to the transaction, rather than the client. The following is equivalent to the previous example:
+  
+        client = self # local var that we can use inside the block
+        transaction do
+          write [3]
+          p read [3]
+          p client.read_all
+          take [3]
+          p read_nowait [3]
         end
 
   You can timeout a transaction:
