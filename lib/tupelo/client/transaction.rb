@@ -13,13 +13,12 @@ class Tupelo::Client
       Transaction
     end
 
-    # Transactions are atomic by default, and are always isolated. In the
-    # non-atomic case, a "transaction" is really a batch op. Without a block,
-    # returns the Transaction. In the block form, transaction automatically
-    # waits for successful completion and returns the value of the block.
-    def transaction atomic: true, timeout: nil, &block
+    # Transactions are atomic and isolated. Without a block, returns the
+    # Transaction. In the block form, transaction automatically waits for
+    # successful completion and returns the value of the block.
+    def transaction timeout: nil, &block
       deadline = timeout && Time.now + timeout
-      t = trans_class.new self, atomic: atomic, deadline: deadline
+      t = trans_class.new self, deadline: deadline
       return t unless block_given?
 
       val =
@@ -41,17 +40,13 @@ class Tupelo::Client
       t.cancel if t and t.open? and block_given?
     end
     
-    def batch &bl
-      transaction atomic: false, &bl
-    end
-    
     def abort
       raise TransactionAbort
     end
 
     # returns an object whose #wait method waits for write to be ack-ed
     def write_nowait *tuples
-      t = transaction atomic: false
+      t = transaction
       t.write *tuples
       t.commit
     end
@@ -63,7 +58,7 @@ class Tupelo::Client
     end
 
     def pulse_nowait *tuples
-      t = transaction atomic: false
+      t = transaction
       t.pulse *tuples
       t.commit
     end
@@ -94,7 +89,6 @@ class Tupelo::Client
   class Transaction
     attr_reader :client
     attr_reader :worker
-    attr_reader :atomic
     attr_reader :deadline
     attr_reader :status
     attr_reader :global_tick
@@ -129,11 +123,10 @@ class Tupelo::Client
       }
     end
 
-    def initialize client, atomic: true, deadline: nil
+    def initialize client, deadline: nil
       @client = client
       @worker = client.worker
       @log = client.log
-      @atomic = atomic
       @deadline = deadline
       @global_tick = nil
       @exception = nil
@@ -197,15 +190,13 @@ class Tupelo::Client
         ["#{label} #{tuples.map(&:inspect).join(", ")}"] unless tuples.empty?
       end
       ops.compact!
-      
-      b = atomic ? "atomic" : "batch"
       ops << "missing: #{missing}" if missing
 
       ## show take/read tuples too?
       ## show current tick, if open or closed
       ## show nowait
       
-      "<#{self.class} #{stat} #{b} #{ops.join('; ')}>"
+      "<#{self.class} #{stat} #{ops.join('; ')}>"
     end
     
     # :section: Client methods
@@ -240,7 +231,6 @@ class Tupelo::Client
     
     # raises TransactionFailure
     def take template_spec
-      raise "cannot take in batch" unless atomic
       raise exception if failed?
       raise TransactionStateError, "not open: #{inspect}" unless open? or
         failed?
@@ -253,7 +243,6 @@ class Tupelo::Client
     end
     
     def take_nowait template_spec
-      raise "cannot take in batch" unless atomic
       raise exception if failed?
       raise TransactionStateError, "not open: #{inspect}" unless open? or
         failed?
@@ -270,7 +259,6 @@ class Tupelo::Client
     
     # transaction applies only if template has a match
     def read template_spec
-      raise "cannot read in batch" unless atomic
       raise exception if failed?
       raise TransactionStateError, "not open: #{inspect}" unless open? or
         failed?
@@ -283,7 +271,6 @@ class Tupelo::Client
     end
 
     def read_nowait template_spec
-      raise "cannot read in batch" unless atomic
       raise exception if failed?
       raise TransactionStateError, "not open: #{inspect}" unless open? or
         failed?

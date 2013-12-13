@@ -29,16 +29,15 @@ class Tupelo::Client
     GET_TUPLESPACE = "get tuplespace"
 
     class Operation
-      attr_reader :atomic, :writes, :pulses, :takes, :reads
+      attr_reader :writes, :pulses, :takes, :reads
       ## "put" or "set" operation to ensure that at least one
       ## copy of a tuple exists?
 
-      def initialize atomic, writes, pulses, takes, reads
-        @atomic, @writes, @pulses, @takes, @reads =
-          atomic, writes, pulses, takes, reads
+      def initialize writes, pulses, takes, reads
+        @writes, @pulses, @takes, @reads = writes, pulses, takes, reads
       end
       
-      NOOP = new([], [], [], [], [])
+      NOOP = new([], [], [], [])
 
       def to_s
         ops = [ ["write", writes], ["pulse", pulses],
@@ -47,8 +46,7 @@ class Tupelo::Client
           ["#{label} #{tuples.map(&:inspect).join(", ")}"] unless tuples.empty?
         end
         ops.compact!
-
-        [atomic ? "atomic" : "batch", ops.join("; ")].join(" ")
+        ops.join("; ")
       end
       alias inspect to_s
     end
@@ -334,7 +332,7 @@ class Tupelo::Client
       granted_tuples = tuplespace.find_distinct_matches_for(op.takes)
       read_tuples = op.reads.map {|t| tuplespace.find_match_for(t)}
 
-      succeeded = !op.atomic || (granted_tuples.all? && read_tuples.all?)
+      succeeded = granted_tuples.all? && read_tuples.all?
       take_tuples = granted_tuples.compact
 
       if client.subscribed_all
@@ -598,12 +596,9 @@ class Tupelo::Client
       end
 
       begin
-        msg.blob = blobber.dump([
-          transaction.atomic,
-          writes, pulses, takes, reads
-        ])
+        msg.blob = blobber.dump([writes, pulses, takes, reads])
         ## optimization: use bitfields to identify which ops are present
-        ## (instead of nils), and combine this with atomic flag in one int
+        ## (instead of nils), in one int
       rescue => ex
         raise ex, "cannot serialize #{transaction.inspect}: #{ex}"
       end
