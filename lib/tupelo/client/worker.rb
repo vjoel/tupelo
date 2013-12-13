@@ -30,8 +30,6 @@ class Tupelo::Client
 
     class Operation
       attr_reader :writes, :pulses, :takes, :reads
-      ## "put" or "set" operation to ensure that at least one
-      ## copy of a tuple exists?
 
       def initialize writes, pulses, takes, reads
         @writes, @pulses, @takes, @reads = writes, pulses, takes, reads

@@ -473,7 +473,6 @@ class Tupelo::Client
       
       ## convert cancelling write/take to pulse
       ## convert cancelling take/write to read
-      ## check that remaining take/read tuples do not cross a space boundary
       
       if take_tuples_for_local.all? and read_tuples_for_local.all?
         @queue << true
