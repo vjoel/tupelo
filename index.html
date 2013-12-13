@@ -1,0 +1,612 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Tupelo by vjoel</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/vjoel/tupelo">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/vjoel/tupelo/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/vjoel/tupelo/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Tupelo</h1>
+          <p>A tuplespace that is fast, scalable, and language agnostic.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/vjoel">vjoel</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="tupelo" class="anchor" href="#tupelo"><span class="octicon octicon-link"></span></a>tupelo</h1>
+
+<p>A tuplespace that is fast, scalable, and language agnostic. It is designed for distribution of both computation and storage, in a unified language that has both transactional and tuple-operation (read/write/take) semantics.</p>
+
+<p>This is the reference implementation in ruby. It should be able to communicate with implementations in other languages. Planned implementation languages include C, Python, and Go.</p>
+
+<p>Tupelo differs from other spaces in several ways:</p>
+
+<ul>
+<li><p>minimal central storage: the only state in the server is a counter and socket connections</p></li>
+<li><p>minimal central computation: just counter increment, message dispatch, and connection management (and it never unpacks serialized tuples)</p></li>
+<li><p>clients do all the tuple work: registering and checking waiters, matching, searching, notifying, storing, inserting, deleting, persisting, etc. Each client is free to to decide how to do these things (application code is insulated from this, however). Special-purpose clients (known as <em>tuplets</em>) may use specialized algorithms and stores for the subspaces they manage.</p></li>
+<li><p>transactions, in addition to the classic operators (and transactions execute client-side, reducing bottleneck and increasing expressiveness).</p></li>
+<li><p>replication is inherent in the design (in fact it is unavoidable), for better or worse.</p></li>
+</ul><h1>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h1>
+
+<ul>
+<li><a href="doc/faq.md">FAQ</a></li>
+<li><a href="doc/subspace.md">Subspaces</a></li>
+</ul><h1>
+<a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting started</h1>
+
+<ol>
+<li><p>Install ruby 2 (not 1.9) from <a href="http://ruby-lang.org">http://ruby-lang.org</a>. Examples and tests will not work on windows (they use fork and unix sockets) or jruby, though probably the underying libs will (using tcp sockets).</p></li>
+<li>
+<p>Install the gem and its dependencies (you may need to <code>sudo</code> this):</p>
+
+<pre><code>gem install tupelo
+</code></pre>
+</li>
+<li>
+<p>Try running tup:</p>
+
+<pre><code>$ tup
+&gt;&gt; w ["hello", "world"]
+&gt;&gt; ra
+=&gt; [["hello", "world"]]
+&gt;&gt; t [nil, nil]
+=&gt; ["hello", "world"]
+</code></pre>
+
+<p>If you run tup with the --info switch it will tell you the aliases to the tuple API (and also tell you much about what is happening in your transactions). Here's an overview of the API, including the short aliases avilable in tup:</p>
+
+<p>Write one or more tuples (and wait for the transaction to be recorded in the local space):</p>
+
+<pre><code>  w &lt;tuple&gt;,...
+  write_wait &lt;tuple&gt;,...
+</code></pre>
+
+<p>Write without waiting:</p>
+
+<pre><code>  write &lt;tuple&gt;,...
+</code></pre>
+
+<p>Write and then wait, under user control:</p>
+
+<pre><code>  write(...).wait
+</code></pre>
+
+<p>Pulse a tuple or several (write but immediately delete it, like pubsub):</p>
+
+<pre><code>  pl &lt;tuple&gt;,...
+  pulse_wait ...
+</code></pre>
+
+<p>Pulse without waiting:</p>
+
+<pre><code>  pulse_nowait &lt;tuple&gt;,...
+</code></pre>
+
+<p>Read tuple matching a template, waiting for a match to exist:</p>
+
+<pre><code>  r &lt;template&gt;
+  read &lt;template&gt;
+  read_wait &lt;template&gt;
+</code></pre>
+
+<p>Read tuple matching a template and return it, without waiting for a match to exist (returning nil in that case):</p>
+
+<pre><code>  read_nowait &lt;template&gt;
+</code></pre>
+
+<p>Note that neither #read nor #read_nowait wait for any previously issued writes to complete. The difference is that #read waits for a match to exist and #read_nowait does not. Compare:</p>
+
+<pre><code>  write [1]; read_nowait [1]        # ==&gt; nil, probably
+  write [2]; read [2]               # ==&gt; [2]
+</code></pre>
+
+<p>Read all tuples matching a template, no waiting (like #read_nowait):</p>
+
+<pre><code>  ra &lt;template&gt;
+  read_all &lt;template&gt;
+</code></pre>
+
+<p>If the template is omitted, reads everything (careful, you get what you ask for!). The template can be a standard template as discussed below or anything with a #=== method. Hence</p>
+
+<pre><code>  ra Hash
+</code></pre>
+
+<p>reads all hash tuples (and ignores array tuples), and</p>
+
+<pre><code>  ra proc {|t| t.size==2}
+</code></pre>
+
+<p>reads all 2-tuples.</p>
+
+<p>Read tuples in a stream, both existing and as they arrive:</p>
+
+<pre><code>  read &lt;template&gt; do |tuple| ... end
+  read do |tuple| ... end             # match any tuple
+</code></pre>
+
+<p>Take a tuple matching a template:</p>
+
+<pre><code>  t &lt;template&gt;
+  take &lt;template&gt;
+</code></pre>
+
+<p>Take a tuple matching a template and optimistically use the local value before the transaction is complete:</p>
+
+<pre><code>  x_final = take &lt;template&gt; do |x_optimistic|
+    ...
+  end
+</code></pre>
+
+<p>There is no guarantee that <code>x_final == x_optimistic</code>. The block may execute more than once.</p>
+
+<p>Take a tuple matching a template, but only if a local match exists (otherwise return nil):</p>
+
+<pre><code>  take_nowait &lt;template&gt;
+
+  x_final = take_nowait &lt;template&gt; do |x_optimistic|
+    ...
+  end
+</code></pre>
+
+<p>Note that a local match is still not a guarantee of <code>x_final == x_optimistic</code>. Another process may take <code>x_optimistic</code> first, and the take will be re-executed. (Think of #take_nowait as a way of saying "take a match, but don't bother trying if there is no match known at this time.") Similarly, #take_nowait returning nil is not a guarantee that a match does not exist: another process could have written a match later than the time of the local search.</p>
+
+<p>Perform a general transaction:</p>
+
+<pre><code>  result =
+    transaction do |t|
+      rval = t.read ... # optimistic value
+      t.write ...
+      t.pulse ...
+      tval = t.take ... # optimistic value
+      [rval, tval]      # pass out result
+    end
+</code></pre>
+
+<p>Note that the block may execute more than once, if there is competition for the tuples that you are trying to #take or #read. When the block exits, however, the transaction is final and universally accepted by all clients.</p>
+
+<p>Tuples written or taken during a transaction affect subsequent operations in the transaction without modifying the tuplespace or affecting other concurrent transactions (until the transaction completes):</p>
+
+<pre><code>  transaction do |t|
+    t.write [3]
+    p t.read [3] # =&gt; 3
+    p read_all   # =&gt; [] # note read_all called on client, not trans.
+    t.take [3]
+    p t.read_nowait [3] # =&gt; nil
+  end
+</code></pre>
+
+<p>Be careful about context within the do...end. If you omit the <code>|t|</code> block argument, then all operations are automatically scoped to the transaction, rather than the client. The following is equivalent to the previous example:</p>
+
+<pre><code>  client = self # local var that we can use inside the block
+  transaction do
+    write [3]
+    p read [3]
+    p client.read_all
+    take [3]
+    p read_nowait [3]
+  end
+</code></pre>
+
+<p>You can timeout a transaction:</p>
+
+<pre><code>  transaction timeout: 1 do
+    read ["does not exist"]
+  end
+</code></pre>
+
+<p>This uses tupelo's internal lightweight scheduler, rather than ruby's heavyweight (one thread per timeout) Timeout, though the latter works with tupelo as well.</p>
+
+<p>You can also abort a transaction while inside it by calling <code>#abort</code> on it:</p>
+
+<pre><code>  write [1]
+  transaction {take [1]; abort}
+  read_all # =&gt; [[1]]
+</code></pre>
+
+<p>Another thread can abort a transaction in progress (to the extent possible) by calling <code>#cancel</code> on it. See <a href="example/cancel.rb">example/cancel.rb</a>.</p>
+</li>
+<li>
+<p>Run tup with a server file so that two sessions can interact. Do this in two terminals in the same dir:</p>
+
+<pre><code>$ tup svr
+</code></pre>
+
+<p>(The 'svr' argument names a file that the first instance of tup uses to store information like socket addresses and the second instance uses to connect. The first instance starts the servers as child processes. However, both instances appear in the terminal as interactive shells.)</p>
+
+<p>To do this on two hosts, copy the svr file and edit its hostname params as needed.</p>
+</li>
+<li>
+<p>Look at the examples. You may need to dig a bit to find the gem installation. For example:</p>
+
+<pre><code>ls -d /usr/local/lib/ruby/gems/*/gems/tupelo*
+</code></pre>
+
+<p>Note that all bin and example programs accept blob type (e.g., --msgpack, --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.</p>
+</li>
+<li>
+<p>Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful; it shows all tuplespace events in sequence that they occur. For example, run</p>
+
+<pre><code>$ tspy svr
+</code></pre>
+
+<p>in another terminal after running <code>tup svr</code>. The output shows the clock tick, sending client, operation, and operation status (success or failure).</p>
+
+<p>There is also the similar --trace switch that is available to all bin and example programs. This turns on diagnostic output for each transaction. For example:</p>
+
+<pre><code>  tick    cid status operation
+     1      2        batch write ["x", 1]
+     2      2        batch write ["y", 2]
+     3      3        atomic take ["x", 1], ["y", 2]
+</code></pre>
+
+<p>The <code>Tupelo.application</code> command, provided by <code>tupelo/app</code>, is the source of all these options and is available to your programs. It's a kind of lightweight process deployment and control framework; however <code>Tupelo.application</code> is not necessary to use tupelo.</p>
+</li>
+</ol><h1>
+<a name="what-is-a-tuplespace" class="anchor" href="#what-is-a-tuplespace"><span class="octicon octicon-link"></span></a>What is a tuplespace?</h1>
+
+<p>A tuplespace is a service for coordination, configuration, and control of concurrent and distributed systems. The model it provides to processes is a shared space that they can use to communicate in a deterministic and sequential manner. (Deterministic in that all clients see the same, consistent view of the data.) The space contains tuples. The operations on the space are few, but powerful. It's not a database, but it might be a front-end for one or more databases.</p>
+
+<p>See <a href="https://en.wikipedia.org/wiki/Tuple_space">https://en.wikipedia.org/wiki/Tuple_space</a> for general information and history. This project is strongly influenced by Masatoshi Seki's Rinda implementation, part of the Ruby standard library. See <a href="http://pragprog.com/book/sidruby/the-druby-book">http://pragprog.com/book/sidruby/the-druby-book</a> for a good introduction to rinda and druby.</p>
+
+<p>See <a href="http://dbmsmusings.blogspot.com/2010/08/problems-with-acid-and-how-to-fix-them.html">http://dbmsmusings.blogspot.com/2010/08/problems-with-acid-and-how-to-fix-them.html</a> for an explanation of the importance of determinism in distributed transaction systems.</p>
+
+<h2>
+<a name="what-is-a-tuple" class="anchor" href="#what-is-a-tuple"><span class="octicon octicon-link"></span></a>What is a tuple?</h2>
+
+<p>A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuple does not have an identity other than the data it contains. A tuplespace can contain multiple copies of the same tuple. (In the ruby client, two tuples are considered the same when they are #==.)</p>
+
+<p>A tuple is either an array:</p>
+
+<pre><code>["hello", 7]
+[nil, true, false]
+["foo", 3.2, [6,5,4], {"bar" =&gt; 3}]
+</code></pre>
+
+<p>... or a hash:</p>
+
+<pre><code>{name: "Myrtle", location: [100,200]}
+{ [1,2] =&gt; 3, [5,7] =&gt; 12 }
+</code></pre>
+
+<p>In other words, a tuple is a fairly general object, though this depends on the serializer--see below. More or less, a tuple is anything that can be built out of:</p>
+
+<ul>
+<li><p>strings</p></li>
+<li><p>numbers</p></li>
+<li><p>nil, true, false</p></li>
+<li><p>arrays</p></li>
+<li><p>hashes</p></li>
+</ul><p>It's kind of like a "JSON object", except that, when using the json serializer, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.</p>
+
+<p>The empty tuples <code>[]</code> and <code>{}</code> are allowed, but bare values such as <code>3.14</code> or <code>false</code> are not tuples by themselves.</p>
+
+<p>One other thing to keep in mind: in the array case, the order of the elements is significant. In the hash case, the order is not significant. So these are both true:</p>
+
+<pre><code>[1,2] != [2,1]
+{a:1, b:2} == {b:2, a:1}
+</code></pre>
+
+<h2>
+<a name="what-is-a-template" class="anchor" href="#what-is-a-template"><span class="octicon octicon-link"></span></a>What is a template?</h2>
+
+<p>A template an object that matches (or does not match) tuples. It's used for querying a tuplespace. Typically, a template looks just like a tuple, but possibly with wildcards of some sort. The template:</p>
+
+<pre><code>[3..5, Integer, /foo/, nil]
+</code></pre>
+
+<p>would match the tuple:</p>
+
+<pre><code>[4, 7, "foobar", "xyz"]
+</code></pre>
+
+<p>but not these tuples:</p>
+
+<pre><code>[6, 7, "foobar", "xyz"]
+[3, 7.2, "foobar", "xyz"]
+[3, 7, "fobar", "xyz"]
+</code></pre>
+
+<p>The nil wildcard matches anything. The Range, Regexp, and Class entries function as wildcards because of the way they define the #=== (match) method. See ruby docs for general information on "threequals" matching.</p>
+
+<p>Every tuple can also be used as a template. The template:</p>
+
+<pre><code>[4, 7, "foobar", "xyz"]
+</code></pre>
+
+<p>matches itself.</p>
+
+<p>Here's a template for matching some hash tuples:</p>
+
+<pre><code>{name: String, location: "home"}
+</code></pre>
+
+<p>This would match all tuples whose keys are "name" and "location" and whose values for those keys are any string and the string "home", respectively.</p>
+
+<p>A template doesn't have to be a tuple pattern with wildcards, though. It can be anything with a #=== method. For example:</p>
+
+<pre><code>read_all proc {|t| some_predicate(t)}
+read_all Hash
+read_all Array
+read_all Object
+</code></pre>
+
+<p>An optional library, <code>tupelo/util/boolean</code>, provides a #match_any method to construct the boolean <code>or</code> of other templates:</p>
+
+<pre><code>read_all match_any( [1,2,3], {foo: "bar"} )
+</code></pre>
+
+<p>Unlike in some tuplespace implementations, templates are a client-side concept (except for subspace-defining templates), which is a source of efficiency and scalability. Matching operations (which can be computationally heavy) are performed on the client, rather than on the server, which would bottleneck the whole system.</p>
+
+<h2>
+<a name="what-are-the-operations-on-tuples" class="anchor" href="#what-are-the-operations-on-tuples"><span class="octicon octicon-link"></span></a>What are the operations on tuples?</h2>
+
+<ul>
+<li><p>read - search the space for matching tuples, waiting if none found</p></li>
+<li><p>write - insert the tuple into the space</p></li>
+<li><p>take - search the space for matching tuples, waiting if none found, removing the tuple if found</p></li>
+<li><p>pulse - write and take the tuple; readers see it, but it cannot be taken by other client, and it cannot be read later (this is not a classical tuplespace operation, but is useful for publish-subscribe communication patterns)</p></li>
+</ul><p>These operations have a few variations (wait vs nowait) and options (timeouts).</p>
+
+<h2>
+<a name="transactions-and-optimistic-concurrency" class="anchor" href="#transactions-and-optimistic-concurrency"><span class="octicon octicon-link"></span></a>Transactions and optimistic concurrency</h2>
+
+<p>Transactions combine operations into a group that take effect at the same instant in (logical) time, isolated from other transactions.</p>
+
+<p>However, it may take some time to prepare the transaction. This is true in terms of both real time (clock and process) and logical time (global sequence of operations). Preparing a transaction means finding tuples that match the criteria of the read and take operations. Finding tuples may require searching (locally) for tuples, or waiting for new tuples to be written by others. Also, the transaction may fail even after matching tuples are found (when another process takes tuples of interest). Then the transaction needs to be prepared again. Once prepared, transaction is sent to all clients, where it may either succeed (in all clients) or fail (for the same reason as before--someone else grabbed one of our tuples). If it fails, then the preparation begins again. A transaction guarantees that, when it completes, all the operations were performed on the tuples at the same logical time. It does not guarantee that the world stands still while one process is inside the <code>transaction {...}</code> block.</p>
+
+<p>Transactions are not just about batching up operations into a more efficient package (though you can do that with the #batch api). A transaction makes the combined operations execute atomically: the transaction finishes only when all of its operations can be successfully performed. Writes and pulses can always succeed, but takes and reads only succeed if the tuples exist.</p>
+
+<p>Transactions give you a means of optimistic locking: the transaction proceeds in a way that depends on preconditions. See <a href="example/increment.rb">example/increment.rb</a> for a very simple example. Not only can you make a transaction depend on the existence of a tuple, you can make the effect of the transaction a function of existing tuples (see <a href="example/transaction-logic.rb">example/transaction-logic.rb</a> and <a href="example/broker-optimistic.rb">example/broker-optimistic.rb</a>).</p>
+
+<p>If you prefer classical tuplespace locking, you can simply use certain tuples as locks, using take/write to lock/unlock them. See the examples, such as <a href="example/broker-locking.rb">example/broker-locking.rb</a>. If you have a lot of contention and want to avoid the thundering herd, see <a href="example/lock-mgr-with-queue.rb">example/lock-mgr-with-queue.rb</a>.</p>
+
+<p>If an optimistic transaction fails (for example, it is trying to take a tuple, but the tuple has just been taken by another transaction), then the transaction block is re-executed, possibly waiting for new matches to the templates. Application code must be aware of the possible re-execution of the block. This is better explained in the examples...</p>
+
+<p>Transactions have a significant disadvantage compared to using take/write to lock/unlock tuples: a transaction can protect only resources that are represented in the tuplespace, whereas a lock can protect anything: a file, a device, a service, etc. This is because a transaction begins and ends within a single instant of logical (tuplespace) time, whereas a lock tuple can be taken out for an arbitrary duration of real (and logical) time. Furthermore, the instant of logical time in which a transaction takes effect may occur at different wall-clock times on different processes, even on the same host.</p>
+
+<p>Transactions do have an advantage over using take/write to lock/unlock tuples: there is no possibility of deadlock. See <a href="example/deadlock.rb">example/deadlock.rb</a> and <a href="example/parallel.rb">example/parallel.rb</a>.</p>
+
+<p>Another advantage of tranactions is that it is possible to guarantee continuous existence of a time-series of tuples. For example, suppose that tuples matching <code>{step: Numeric}</code> indicate the progress of some activity. With transactions, you can guarantee that there is exactly one matching tuple at any time, and that no client ever sees in intermediate or inconsistent state of the counter:</p>
+
+<pre><code>transaction do
+  step = take(step: nil)["step"]
+  write step: step + 1
+end
+</code></pre>
+
+<p>Any client which reads this template will find a (unique) match without blocking.</p>
+
+<p>Another use of transactions: forcing a retry when something changes:</p>
+
+<pre><code>transaction do
+  step = read(step: nil)["step"]
+  take value: nil, step: step
+end
+</code></pre>
+
+<p>This code waits on the existence of a value, but retries if the step changes while waiting. See example/pregel/distributed.rb for a use of this techinique.</p>
+
+<p>Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. This is also known as <a href="https://en.wikipedia.org/wiki/Sequential_consistency">sequential consistency</a>. Durability is optional, but can be provided by the persistent archiver or other clients.</p>
+
+<p>On the CAP spectrum, tupelo tends towards consistency: for all clients, write and take operations are applied in the same order, so the state of the entire system up through a given tick of discrete time is universally agreed upon. This is known as <a href="http://en.wikipedia.org/wiki/State%20machine%20replication">state machine replication</a>. Of course, because of the difficulties of distributed systems, one client may not yet have seen the same range of ticks as another. Tupelo's replication model (especially in the use of subspaces) can also be described as <a href="https://en.wikipedia.org/wiki/Virtual_synchrony">virtual synchrony</a>.</p>
+
+<p>Tupelo transactions do not require two-phase commit, because they are less powerful than general transactions. Each client has enough information to decide (in the same way as all other clients) whether the transaction succeeds or fails. This has performance advantages, but imposes some limitations on transactions over subspaces that are known to one client but not another. <a href="doc/subspace.md">Subspaces</a>.</p>
+
+<h1>
+<a name="syntax" class="anchor" href="#syntax"><span class="octicon octicon-link"></span></a>Syntax</h1>
+
+<p>You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare <a href="example/add-dsl.rb">example/add-dsl.rb</a> and <a href="example/add.rb">example/add.rb</a>.</p>
+
+<h1>
+<a name="advantages" class="anchor" href="#advantages"><span class="octicon octicon-link"></span></a>Advantages</h1>
+
+<p>Tupelo can be used to impose a unified transactional structure and distributed access model on a mixture of programs and stores. ("Polyglot persistence".) Need examples....</p>
+
+<p>Speed (latency, throughput):</p>
+
+<ul>
+<li><p>minimal system-wide bottlenecks</p></li>
+<li><p>non-blocking socket reads</p></li>
+<li><p>read -- local and hence very fast</p></li>
+<li><p>write -- fast, pipelined (waiting for acknowledgement is optional);  </p></li>
+<li><p>transactions -- combine several takes and writes, reducing latency and avoiding locking</p></li>
+</ul><p>Can use optimal data structure for each subspace of tuplespace.</p>
+
+<p>Decouples storage from query. (E.g. archiver for storage, optimized for just insert, delete, dump. And in-memory data structure, such as red-black tree, optimized for sorted query.)</p>
+
+<p>Each client can have its own matching agorithms and api -- matching is not part of the comm protocol, which is defined purely in terms of tuples.</p>
+
+<p>Data replication is easy--hard to avoid in fact.</p>
+
+<h1>
+<a name="limitations" class="anchor" href="#limitations"><span class="octicon octicon-link"></span></a>Limitations</h1>
+
+<p>Better for small messages, because they tend to propagate widely.</p>
+
+<p>May stress network and local memory (but subspaces can help).</p>
+
+<p>Worker thread has cpu cost (but subspaces can help).</p>
+
+<p>What other potential problems and how does tupelo solve them?</p>
+
+<h1>
+<a name="future" class="anchor" href="#future"><span class="octicon octicon-link"></span></a>Future</h1>
+
+<ul>
+<li><p>Subspaces. Redundancy, for read-heavy data stores (redundant array of in-memory sqlite, for example). Clients managing different subspaces may benefit by using different stores and algorithms.</p></li>
+<li><p>More persistence options.</p></li>
+<li><p>Fail-over. Robustness.</p></li>
+<li><p>Investigate nio4r for faster networking, especially with many clients.</p></li>
+<li><p>Interoperable client and server implementations in C, Python, Go, .... Elixir?</p></li>
+<li><p>UDP multicast to further reduce the bottleneck in the message sequencer.</p></li>
+<li><p>Tupelo as a service; specialized and replicated subspace managers as services.</p></li>
+</ul><h1>
+<a name="comparisons" class="anchor" href="#comparisons"><span class="octicon octicon-link"></span></a>Comparisons</h1>
+
+<h2>
+<a name="redis" class="anchor" href="#redis"><span class="octicon octicon-link"></span></a>Redis</h2>
+
+<p>Unlike redis, computations are not a centralized bottleneck. Set intersection, for example.</p>
+
+<p>Pushing data to client eliminates need for polling, makes reads faster.</p>
+
+<p>Tupelo's pulse/read ops are like pubsub in redis.</p>
+
+<p>However, tupelo is not a substitute for the caching functionality of redis and memcache.</p>
+
+<h2>
+<a name="rinda" class="anchor" href="#rinda"><span class="octicon octicon-link"></span></a>Rinda</h2>
+
+<p>Very similar api.</p>
+
+<p>Rinda has a severe bottleneck, though: all matching, waiting, etc. are performed in one process.</p>
+
+<p>Rinda is rpc-based, which is slower and also more vulnerable due to the extra client-server state; tupelo is imlemented on a message layer, rather than rpc. This also helps with pipelined writes.</p>
+
+<p>Tupelo also supports custom classes in tuples, but only with marshal / yaml; must define #==; see <a href="example/custom-class.rb">example/custom-class.rb</a></p>
+
+<p>Both: tuples can be arrays or hashes.</p>
+
+<p>Spaces have an advantage over distributed hash tables: different clients may acccess tuples in terms of different dimensions. For example, a producer generates [producer_id, value]; a consumer looks for [nil, SomeParticularValues]. Separation of concerns, decoupling in the data space.</p>
+
+<h2>
+<a name="to-compare" class="anchor" href="#to-compare"><span class="octicon octicon-link"></span></a>To compare</h2>
+
+<ul>
+<li><p>beanstalkd</p></li>
+<li><p>resque</p></li>
+<li><p>zookeeper -- totally ordered updates; tupelo trades availability for lower latency (?)</p></li>
+<li><p>chubby</p></li>
+<li><p>doozer, etcd</p></li>
+<li><p>serf -- tupelo has lower latency and is transactional, but at a cost compared to serf; tupelo semantics is closer to databases</p></li>
+<li><p>arakoon</p></li>
+<li><p>hazelcast</p></li>
+<li><p>lmax -- minimal spof</p></li>
+<li><p>datomic -- similar distribution of "facts", but not tuplespace; similar use of pluggable storage managers</p></li>
+<li><p>job queues: sidekiq, resque, delayedjob, <a href="http://queues.io">http://queues.io</a>, <a href="https://github.com/factual/skuld">https://github.com/factual/skuld</a></p></li>
+<li><p>pubsubs: kafka</p></li>
+<li><p>spark, storm</p></li>
+<li><p>tibco and gigaspace</p></li>
+<li><p>gridgain</p></li>
+</ul><h1>
+<a name="architecture" class="anchor" href="#architecture"><span class="octicon octicon-link"></span></a>Architecture</h1>
+
+<p>Two central processes:</p>
+
+<ul>
+<li><p>message sequencer -- assigns unique increasing IDs to each message (a message is essentially a transaction containing operations on the tuplespace). This is the key to the whole design. By sequencing all transactions in a way that all clients agree with, the transactions can be applied (or rejected) by all clients without further negotiation.</p></li>
+<li><p>client sequencer -- assigns unique increasing IDs to clients when they join the distributed system</p></li>
+</ul><p>Specialized clients:</p>
+
+<ul>
+<li><p>archiver -- dumps tuplespace state to clients joining the system later than t=0; at least one archiver is required, unless all clients start at t=0.</p></li>
+<li><p>tup -- command line shell for accessing (and creating) tuplespaces</p></li>
+<li><p>tspy -- uses the notification API to watch all events in the space</p></li>
+<li><p>queue / lock / lease managers (see examples)</p></li>
+</ul><p>General application clients:</p>
+
+<ul>
+<li><p>contain a worker thread and any number of application-level client threads</p></li>
+<li><p>worker thread manages local tuplespace state and requests to modify or access it</p></li>
+<li><p>client threads construct transactions and wait for results (communicating with the worker thread over queues); they may also use asynchronous transactions</p></li>
+</ul><p>Some design principles:</p>
+
+<ul>
+<li><p>Once a transaction has been sent from a client to the message sequencer, it references only tuples, not templates. This makes it faster and simpler for each receiving client to apply or reject the transaction. Also, clients that do not support local template searching (such as archivers) can store tuples using especially efficient data structures that only support tuple-insert, tuple-delete, and iterate/export operations.</p></li>
+<li><p>Use non-blocking protocols. For example, transactions can be evaluated in one client without waiting for information from other clients. Even at the level of reading messages over sockets, tupelo uses (via funl and object-stream) non-blocking constructs. At the application level, you can use transactions to optimistically modify shared state (but applications are free to use locking if high contention demands it).</p></li>
+<li><p>Do the hard work on the client side. For example, all pattern matching happens in the client that requested an operation that has a template argument, not on the server or other clients.</p></li>
+</ul><h2>
+<a name="protocol" class="anchor" href="#protocol"><span class="octicon octicon-link"></span></a>Protocol</h2>
+
+<p>Nothing in the protocol specifies local searching or storage, or matching, or notification, or templating. That's all up to each client. The protocol only contains tuples and operations on them (take, write, pulse, read), combined into transactions.</p>
+
+<p>The protocol has two layers. The outer (message) layer is 6 fields, managed by the funl gem, using msgpack for serialization. All socket reads are non-blocking (using msgpack's stream mode), so a slow sender will not block other activity in the system.</p>
+
+<p>One of those 6 fields is a data blob, containing the actual transaction and tuple information. The inner (blob) layer manages that field using msgpack (by default), marshal, json, or yaml. This layer contains the transaction operations. The blob is not unpacked by the server, only by clients.</p>
+
+<p>Each inner serialization method ("blobber") has its own advantages and drawbacks:</p>
+
+<ul>
+<li><p>marshal is ruby only, but can contain the widest variation of objects</p></li>
+<li><p>yaml is portable and humanly readable, and still fairly diverse, but very inefficient</p></li>
+<li><p>msgpack and json (yajl) are both relatively efficient (in terms of packet size, as well as parse/emit time)</p></li>
+<li><p>msgpack and json support the least diversity of objects (just "JSON objects"), but msgpack also supports hash keys that are objects rather than just strings.</p></li>
+</ul><p>For most purposes, msgpack is a good choice, so it is the default.</p>
+
+<p>The sending client's tupelo library must make sure that there is no aliasing within the list of tuples (this is only an issue for Marshal and YAML, since msgpack and json do not support references).</p>
+
+<h1>
+<a name="development" class="anchor" href="#development"><span class="octicon octicon-link"></span></a>Development</h1>
+
+<p>Patches and bug reports are most welcome.</p>
+
+<p>This project is hosted at</p>
+
+<p><a href="https://github.com/vjoel/tupelo">https://github.com/vjoel/tupelo</a></p>
+
+<h2>
+<a name="dependencies" class="anchor" href="#dependencies"><span class="octicon octicon-link"></span></a>Dependencies</h2>
+
+<p>Gems that were developed to support this project:</p>
+
+<ul>
+<li><p><a href="https://github.com/vjoel/atdo">https://github.com/vjoel/atdo</a></p></li>
+<li><p><a href="https://github.com/vjoel/easy-serve">https://github.com/vjoel/easy-serve</a></p></li>
+<li><p><a href="https://github.com/vjoel/funl">https://github.com/vjoel/funl</a></p></li>
+<li><p><a href="https://github.com/vjoel/object-stream">https://github.com/vjoel/object-stream</a></p></li>
+<li><p><a href="https://github.com/vjoel/object-template">https://github.com/vjoel/object-template</a></p></li>
+</ul><p>Other gems:</p>
+
+<ul>
+<li><p>msgpack</p></li>
+<li><p>yajl-ruby (only used to support --json option)</p></li>
+</ul><p>Optional gems for some of the examples:</p>
+
+<ul>
+<li>sinatra, http, sequel, sqlite, rbtree, leveldb-native</li>
+</ul><h1>
+<a name="contact" class="anchor" href="#contact"><span class="octicon octicon-link"></span></a>Contact</h1>
+
+<p>Joel VanderWerf, <a href="mailto:vjoel@users.sourceforge.net">vjoel@users.sourceforge.net</a>, @JoelVanderWerf.</p>
+
+<h1>
+<a name="license-and-copyright" class="anchor" href="#license-and-copyright"><span class="octicon octicon-link"></span></a>License and Copyright</h1>
+
+<p>Copyright (c) 2013, Joel VanderWerf</p>
+
+<p>License for this project is BSD. See the COPYING file for the standard BSD license. The supporting gems developed for this project are similarly licensed.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
