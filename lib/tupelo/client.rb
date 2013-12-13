@@ -19,6 +19,10 @@ module Tupelo
       @initial_subscriptions = subscribe
     end
 
+    def inspect
+      "#<#{self.class} #{client_id} (#{log.progname}) at tick #{worker.global_tick}>"
+    end
+
     def make_worker
       Worker.new self
     end
