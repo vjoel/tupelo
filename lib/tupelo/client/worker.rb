@@ -329,11 +329,9 @@ class Tupelo::Client
         waiter << [:attempt, msg.global_tick, msg.client_id, op, msg.tags]
       end
 
-      granted_tuples = tuplespace.find_distinct_matches_for(op.takes)
+      take_tuples = tuplespace.find_distinct_matches_for(op.takes)
       read_tuples = op.reads.map {|t| tuplespace.find_match_for(t)}
-
-      succeeded = granted_tuples.all? && read_tuples.all?
-      take_tuples = granted_tuples.compact
+      succeeded = take_tuples.all? && read_tuples.all?
 
       if client.subscribed_all
         write_tuples = op.writes
@@ -393,8 +391,8 @@ class Tupelo::Client
             end
           end
 
-          log.debug {trans ? "taking #{granted_tuples}" :
-            "client #{msg.client_id} takes #{granted_tuples}"}
+          log.debug {trans ? "taking #{take_tuples}" :
+            "client #{msg.client_id} takes #{take_tuples}"}
 
         else
           log.debug {
@@ -429,7 +427,7 @@ class Tupelo::Client
         trans_waiters.delete trans
 
         if succeeded
-          trans.done msg.global_tick, granted_tuples # note: tuples not frozen
+          trans.done msg.global_tick, take_tuples # note: tuples not frozen
         else
           trans.fail (op.takes - take_tuples) + (op.reads - read_tuples)
         end
