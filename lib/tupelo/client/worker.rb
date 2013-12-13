@@ -37,7 +37,7 @@ class Tupelo::Client
         @writes, @pulses, @takes, @reads = writes, pulses, takes, reads
       end
       
-      NOOP = new([], [], [], [])
+      NOOP = new([].freeze, [].freeze, [].freeze, [].freeze).freeze
 
       def to_s
         ops = [ ["write", writes], ["pulse", pulses],
