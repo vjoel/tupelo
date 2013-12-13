@@ -198,9 +198,9 @@ Getting started
 
   ```
     tick    cid status operation
-       1      2        batch write ["x", 1]
-       2      2        batch write ["y", 2]
-       3      3        atomic take ["x", 1], ["y", 2]
+       1      2        write ["x", 1]
+       2      2        write ["y", 2]
+       3      3        take ["x", 1], ["y", 2]
   ```
 
   The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs. It's a kind of lightweight process deployment and control framework; however `Tupelo.application` is not necessary to use tupelo.
@@ -317,7 +317,7 @@ Transactions combine operations into a group that take effect at the same instan
 
 However, it may take some time to prepare the transaction. This is true in terms of both real time (clock and process) and logical time (global sequence of operations). Preparing a transaction means finding tuples that match the criteria of the read and take operations. Finding tuples may require searching (locally) for tuples, or waiting for new tuples to be written by others. Also, the transaction may fail even after matching tuples are found (when another process takes tuples of interest). Then the transaction needs to be prepared again. Once prepared, transaction is sent to all clients, where it may either succeed (in all clients) or fail (for the same reason as before--someone else grabbed one of our tuples). If it fails, then the preparation begins again. A transaction guarantees that, when it completes, all the operations were performed on the tuples at the same logical time. It does not guarantee that the world stands still while one process is inside the `transaction {...}` block.
 
-Transactions are not just about batching up operations into a more efficient package (though you can do that with the #batch api). A transaction makes the combined operations execute atomically: the transaction finishes only when all of its operations can be successfully performed. Writes and pulses can always succeed, but takes and reads only succeed if the tuples exist.
+Transactions are not just about batching up operations into a more efficient package. A transaction makes the combined operations execute atomically: the transaction finishes only when all of its operations can be successfully performed. Writes and pulses can always succeed, but takes and reads only succeed if the tuples exist.
 
 Transactions give you a means of optimistic locking: the transaction proceeds in a way that depends on preconditions. See [example/increment.rb](example/increment.rb) for a very simple example. Not only can you make a transaction depend on the existence of a tuple, you can make the effect of the transaction a function of existing tuples (see [example/transaction-logic.rb](example/transaction-logic.rb) and [example/broker-optimistic.rb](example/broker-optimistic.rb)).
 
