@@ -23,6 +23,7 @@ Documentation
 
 * [FAQ](doc/faq.md)
 * [Subspaces](doc/subspace.md)
+* [Abstract](sfdc.md) and [slides](doc/sfdc.pdf) for San Francisco Distributed Systems meetup
 
 Getting started
 ==========
