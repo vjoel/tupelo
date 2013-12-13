@@ -396,7 +396,10 @@ class Tupelo::Client
 
         else
           log.debug {
-            missing = op.takes - take_tuples
+            missing = []
+            take_tuples.each_with_index do |tuple, i|
+              missing << op.takes[i] unless tuple
+            end
             trans ? "failed to take #{missing}" :
             "client #{msg.client_id} failed to take #{missing}"}
         end
