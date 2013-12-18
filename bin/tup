@@ -5,21 +5,21 @@ if ARGV.delete("-h") or ARGV.delete("--help")
     Usage:
       #$0
 
-      #$0 servers_file
-      #$0 servers_file <script...
+      #$0 services_file
+      #$0 services_file <script...
 
-      #$0 servers_file unix [path]
-      #$0 servers_file tcp [host [port]]]
+      #$0 services_file unix [path]
+      #$0 services_file tcp [host [port]]]
     
-    The first form starts a tuplespace server as a child process. Then it
+    The first form starts a tuplespace service as a child process. Then it
     enters an interactive session in which the current object is the proxy to
     that tuplespace. This form is useful for an isolated tuplespace for
     simple experiments.
     
-    The second form tries to open the servers_file. If it cannot, then as in the
-    first form, it starts a tuplespace server child process and writes its
-    address to servers_file. If it can open the servers_file, then it simply
-    connects to the referenced tuplespace server. In either case, as in the
+    The second form tries to open the services_file. If it cannot, then as in
+    the first form, it starts a tuplespace service child process and writes its
+    address to services_file. If it can open the services_file, then it simply
+    connects to the referenced tuplespace service. In either case, as in the
     first form, an interactive session starts. This form (in its two variants)
     is useful for starting two sessions operating on the same tuplespace.
 
@@ -29,13 +29,13 @@ if ARGV.delete("-h") or ARGV.delete("--help")
     transcripts.
 
     The fourth and fifth forms are like the previous, but can be used to expose
-    the server on more or less public sockets with specified addresses. In the
-    tcp case, the servers_file can be copied to other hosts and used with tup
-    to connect to the servers (adjust the host references as needed). The
+    the service on more or less public sockets with specified addresses. In the
+    tcp case, the services_file can be copied to other hosts and used with tup
+    to connect to the services (adjust the host references as needed). The
     default for unix is, as in the first three forms, a path in a tmpdir. The
     default for tcp is localhost with port 0, and hence a dynamically chosen
-    port. These forms are only for starting a new server; connecting to an
-    existing server uses the simpler form "#$0 servers_file".
+    port. These forms are only for starting a new service; connecting to an
+    existing service uses the simpler form "#$0 services_file".
 
     Options:
     
@@ -62,9 +62,10 @@ if ARGV.delete("-h") or ARGV.delete("--help")
       
       --persist-dir DIR
                   load and save tuplespace to DIR
+                    (only needs to be set on first tup invocation)
 
       --use-subspaces
-                  enable subspaces for this tupelo server
+                  enable subspaces for this tupelo service
                     (only needs to be set on first tup invocation)
       --subscribe TAG,TAG,...
                   subscribe to specified subspaces; use "" for none
@@ -86,13 +87,22 @@ if i=argv.index("--subscribe") # default is to subscribe to all
   subscribed_tags = argv.delete_at(i).split(",")
 end
 
-servers_file = argv.shift
-addr = argv.shift(3)
+services_file = argv.shift
+proto = (argv.shift || :unix).to_sym
+addr = {proto: proto}
+case proto
+when :unix
+  addr[:path] = argv.shift
+when :tcp
+  addr[:bind_host] = argv.shift
+  addr[:port] = argv.shift
+  addr[:port] = Integer(addr[:port]) if addr[:port]
+end
 
 Tupelo.application(
   argv: argv,
   **tupelo_opts,
-  servers_file: servers_file,
+  services_file: services_file,
   seqd_addr: addr,
   cseqd_addr: addr, # using same addr causes autoincrement of port/filename
   arcd_addr: addr) do

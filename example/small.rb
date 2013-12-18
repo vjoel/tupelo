@@ -12,18 +12,18 @@ log_level = case
   else Logger::WARN
 end
 
-EasyServe.start(servers_file: "small-servers.yaml") do |ez|
+EasyServe.start(services_file: "small-services.yaml") do |ez|
   log = ez.log
   log.level = log_level
   log.progname = "parent"
 
-  ez.start_servers do
+  ez.start_services do
     arc_to_seq_sock, seq_to_arc_sock = UNIXSocket.pair
     arc_to_cseq_sock, cseq_to_arc_sock = UNIXSocket.pair
     
-    ez.server :seqd do |svr|
+    ez.service :seqd do |sv|
       require 'funl/message-sequencer'
-      seq = Funl::MessageSequencer.new svr, seq_to_arc_sock, log: log,
+      seq = Funl::MessageSequencer.new sv, seq_to_arc_sock, log: log,
         blob_type: 'msgpack' # the default
         #blob_type: 'marshal' # if you need to pass general ruby objects
         #blob_type: 'yaml' # less general ruby objects, but cross-language
@@ -31,15 +31,15 @@ EasyServe.start(servers_file: "small-servers.yaml") do |ez|
       seq.start
     end
     
-    ez.server :cseqd do |svr|
+    ez.service :cseqd do |sv|
       require 'funl/client-sequencer'
-      cseq = Funl::ClientSequencer.new svr, cseq_to_arc_sock, log: log
+      cseq = Funl::ClientSequencer.new sv, cseq_to_arc_sock, log: log
       cseq.start
     end
 
-    ez.server :arcd do |svr|
+    ez.service :arcd do |sv|
       require 'tupelo/archiver'
-      arc = Tupelo::Archiver.new svr,
+      arc = Tupelo::Archiver.new sv,
         seq: arc_to_seq_sock, cseq: arc_to_cseq_sock, log: log
       arc.start
     end

@@ -1,7 +1,7 @@
 # It's very easy to connect tup to an existing app.
 # Just run this file, and then do (in another terminal):
 #
-# ../bin/tup servers-nnnn.yaml
+# ../bin/tup services-nnnn.yaml
 #
 # where nnnn is determined by looking in this dir. You can also
 # set the filename explicitly (first ARGV), rather than let it be generated
@@ -17,10 +17,10 @@
 
 require 'tupelo/app'
 
-filename = "servers-#$$.yaml"
+filename = "services-#$$.yaml"
 puts "run this in another shell: tup #{filename}"
 
-Tupelo.application servers_file: filename do
+Tupelo.application services_file: filename do
   child do
     loop do
       transaction do

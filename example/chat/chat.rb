@@ -15,7 +15,7 @@
 
 require 'tupelo/app'
 
-svr = "chat.yaml"
+sv = "chat.yaml"
 history_period = 60 # seconds -- discard _my_ messages older than this
 
 Thread.abort_on_exception = true
@@ -27,7 +27,7 @@ def display_message msg
   puts "#{from}@#{time_str}> #{line}"
 end
 
-Tupelo.tcp_application servers_file: svr do
+Tupelo.tcp_application services_file: sv do
   me = argv.shift
 
   local do

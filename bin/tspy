@@ -3,18 +3,18 @@
 if ARGV.delete("-h") or ARGV.delete("--help")
   puts <<-END
     Usage:
-      #$0 servers_file
+      #$0 services_file
 
-      Connect to the tuplespace specified by the servers_file and
+      Connect to the tuplespace specified by the services_file and
       use the notification api to print out all events.
       
       For example, you can start a tup with
       
-          tup svr
+          tup sv
       
       and then in another terminal
       
-          tspy svr
+          tspy sv
 
     Options:
     

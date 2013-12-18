@@ -4,16 +4,16 @@ module Tupelo
   class AppBuilder
     attr_reader :ez
 
-    # Does this app own (as child processes) the seq, cseq, and arc servers?
-    attr_reader :owns_servers
+    # Does this app own (as child processes) the seq, cseq, and arc services?
+    attr_reader :owns_services
 
     # Arguments available to application after tupelo has parsed out switches
     # and args that it recognizes.
     attr_reader :argv
 
-    def initialize ez, owns_servers: nil, argv: argv
+    def initialize ez, owns_services: nil, argv: argv
       @ez = ez
-      @owns_servers = owns_servers
+      @owns_services = owns_services
       @argv = argv
     end
 

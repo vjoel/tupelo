@@ -177,11 +177,11 @@ Getting started
 
 4. Run tup with a server file so that two sessions can interact. Do this in two terminals in the same dir:
 
-        $ tup svr
+        $ tup sv
 
-  (The 'svr' argument names a file that the first instance of tup uses to store information like socket addresses and the second instance uses to connect. The first instance starts the servers as child processes. However, both instances appear in the terminal as interactive shells.)
+  (The 'sv' argument names a file that the first instance of tup uses to store information like socket addresses and the second instance uses to connect. The first instance starts the servers as child processes. However, both instances appear in the terminal as interactive shells.)
   
-  To do this on two hosts, copy the svr file and edit its hostname params as needed.
+  To do this on two hosts, copy the sv file and, if necessary, edit its connect_host field.
 
 5. Look at the examples. You may need to dig a bit to find the gem installation. For example:
 
@@ -191,9 +191,9 @@ Getting started
 
 6. Debugging: in addition to the --info switch on all bin and example programs, bin/tspy is also really useful; it shows all tuplespace events in sequence that they occur. For example, run
 
-        $ tspy svr
+        $ tspy sv
 
-  in another terminal after running `tup svr`. The output shows the clock tick, sending client, operation, and operation status (success or failure).
+  in another terminal after running `tup sv`. The output shows the clock tick, sending client, operation, and operation status (success or failure).
 
   There is also the similar --trace switch that is available to all bin and example programs. This turns on diagnostic output for each transaction. For example:
 

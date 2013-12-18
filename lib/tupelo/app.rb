@@ -38,12 +38,10 @@ module Tupelo
   end
 
   # same as application, but with tcp sockets the default
-  def self.tcp_application argv: nil,
-        servers_file: nil, blob_type: nil,
-        seqd_addr:  [:tcp, nil, 0],
-        cseqd_addr: [:tcp, nil, 0],
-        arcd_addr:  [:tcp, nil, 0], **opts, &block
-    application argv: argv, servers_file: servers_file, blob_type: blob_type,
+  def self.tcp_application argv: nil, services_file: nil, blob_type: nil,
+        seqd_addr: {}, cseqd_addr: {}, arcd_addr: {}, **opts, &block
+    seqd_addr[:proto] = cseqd_addr[:proto] = arcd_addr[:proto] = :tcp
+    application argv: argv, services_file: services_file, blob_type: blob_type,
       seqd_addr: seqd_addr, cseqd_addr: cseqd_addr, arcd_addr: arcd_addr, &block
   end
 
@@ -53,8 +51,8 @@ module Tupelo
   #blob_type: 'json' # more portable than yaml, but more restrictive
 
   def self.application argv: nil,
-        servers_file: nil, blob_type: nil,
-        seqd_addr: [], cseqd_addr: [], arcd_addr: [], **opts, &block
+        services_file: nil, blob_type: nil,
+        seqd_addr: {}, cseqd_addr: {}, arcd_addr: {}, **opts, &block
   
     unless argv
       argv, h = parse_args(ARGV)
@@ -68,7 +66,7 @@ module Tupelo
     persist_dir = opts[:persist_dir]
 
     ez_opts = {
-      servers_file: servers_file || argv.shift,
+      services_file: services_file || argv.shift,
       interactive: $stdin.isatty
     }
 
@@ -77,37 +75,37 @@ module Tupelo
       log.level = log_level
       log.formatter = nil if verbose
       log.progname = File.basename($0)
-      owns_servers = false
+      owns_services = false
 
-      ez.start_servers do
-        owns_servers = true
+      ez.start_services do
+        owns_services = true
 
         arc_to_seq_sock, seq_to_arc_sock = UNIXSocket.pair
         arc_to_cseq_sock, cseq_to_arc_sock = UNIXSocket.pair
 
-        ez.server :seqd, *seqd_addr do |svr|
+        ez.service :seqd, **seqd_addr do |sv|
           require 'funl/message-sequencer'
-          seq = Funl::MessageSequencer.new svr, seq_to_arc_sock, log: log,
+          seq = Funl::MessageSequencer.new sv, seq_to_arc_sock, log: log,
             blob_type: blob_type
           seq.start
         end
 
-        ez.server :cseqd, *cseqd_addr do |svr|
+        ez.service :cseqd, **cseqd_addr do |sv|
           require 'funl/client-sequencer'
-          cseq = Funl::ClientSequencer.new svr, cseq_to_arc_sock, log: log
+          cseq = Funl::ClientSequencer.new sv, cseq_to_arc_sock, log: log
           cseq.start
         end
 
-        ez.server :arcd, *arcd_addr do |svr|
+        ez.service :arcd, **arcd_addr do |sv|
           require 'tupelo/archiver'
           if persist_dir
             require 'tupelo/archiver/persistent-tuplespace'
-            arc = Archiver.new svr, seq: arc_to_seq_sock,
+            arc = Archiver.new sv, seq: arc_to_seq_sock,
                     tuplespace: Archiver::PersistentTuplespace,
                     persist_dir: persist_dir,
                     cseq: arc_to_cseq_sock, log: log
           else
-            arc = Archiver.new svr, seq: arc_to_seq_sock,
+            arc = Archiver.new sv, seq: arc_to_seq_sock,
                     tuplespace: Archiver::Tuplespace,
                     cseq: arc_to_cseq_sock, log: log
           end
@@ -115,7 +113,7 @@ module Tupelo
         end
       end
 
-      app = AppBuilder.new(ez, owns_servers: owns_servers, argv: argv.dup)
+      app = AppBuilder.new(ez, owns_services: owns_services, argv: argv.dup)
       
       if enable_trace
         require 'tupelo/app/trace'

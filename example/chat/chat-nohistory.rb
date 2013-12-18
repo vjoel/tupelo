@@ -2,7 +2,7 @@
 
 require 'tupelo/app'
 
-svr = "chat-nohistory.yaml"
+sv = "chat-nohistory.yaml"
 
 Thread.abort_on_exception = true
 
@@ -13,7 +13,7 @@ def display_message msg
   puts "#{from}@#{time_str}> #{line}"
 end
 
-Tupelo.tcp_application servers_file: svr do
+Tupelo.tcp_application services_file: sv do
   me = argv.shift
 
   local do

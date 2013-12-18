@@ -1,10 +1,10 @@
 require 'tupelo/app'
 
-svr = "tiny-server.yaml"
+sv = "tiny-service.yaml"
 
-Tupelo.application servers_file: svr do
-  if owns_servers
-    abort "server not running"
+Tupelo.application services_file: sv do
+  if owns_services
+    abort "service not running"
   end
 
   child do

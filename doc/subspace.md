@@ -153,7 +153,7 @@ The tup client CLI by default runs a client that subscribes to the entire tuples
 
 In terminal 1:
 
-    $ tup svr --use-subspaces
+    $ tup sv --use-subspaces
     >> define_subspace tag: "foo", template: [{type: "number"}]
     >> w [1], ["hello"]
     >> ra Array
@@ -161,7 +161,7 @@ In terminal 1:
 
 In terminal 2:
 
-    $ tup svr --subscribe foo
+    $ tup sv --subscribe foo
     >> ra Array
     => [[1]]
 
