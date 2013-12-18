@@ -2,12 +2,14 @@
 
 require 'tupelo/app/remote'
 
+tunnel = !!ARGV.delete("--tunnel")
+
 hosts = ARGV.shift or abort "usage: #$0 <ssh-hostname>,<ssh-hostname>,..."
 hosts = hosts.split(",")
 
 Tupelo.tcp_application do
   hosts.each do |host|
-    remote host: host, passive: true, eval: %{
+    remote host: host, passive: true, tunnel: tunnel, eval: %{
       loop do
         len = take([String])[0].size
         write [len]
