@@ -20,11 +20,19 @@ module Tupelo
     #
     # Unlike #child, there is no mode that returns a Client instance.
     #
+    # Note that EasyServe options apply, including the `tunnel: true` option.
+    # The default for this option is true if the `--tunnel` switch is present
+    # on the command line.
+    #
     def remote client_class = Client,
         client_lib: 'tupelo/client', host: nil, **opts
       require 'easy-serve/remote'
       ## detach option so that remote process doesn't keep ssh connection
       snames = :seqd, :cseqd, :arcd
+
+      if tunnel_default and not opts.key?(:tunnel)
+        opts[:tunnel] = true
+      end
 
       if opts[:eval]
         ez.remote *snames, host: host, **opts, eval: %{

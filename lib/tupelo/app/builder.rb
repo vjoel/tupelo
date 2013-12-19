@@ -7,13 +7,18 @@ module Tupelo
     # Does this app own (as child processes) the seq, cseq, and arc services?
     attr_reader :owns_services
 
+    # Do #remote clients default to using ssh tunnels for data?
+    attr_reader :tunnel_default
+
     # Arguments available to application after tupelo has parsed out switches
     # and args that it recognizes.
     attr_reader :argv
 
-    def initialize ez, owns_services: nil, argv: argv
+    def initialize ez, argv: argv,
+        owns_services: nil, tunnel_default: false
       @ez = ez
       @owns_services = owns_services
+      @tunnel_default = tunnel_default
       @argv = argv
     end
 

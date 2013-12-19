@@ -33,6 +33,7 @@ module Tupelo
     end
 
     opts[:trace] = argv.delete("--trace")
+    opts[:tunnel] = argv.delete("--tunnel")
     
     [argv, opts]
   end
@@ -63,6 +64,7 @@ module Tupelo
     verbose = opts[:verbose]
     blob_type = blob_type || "msgpack"
     enable_trace = opts[:trace]
+    tunnel_default = !!opts[:tunnel]
     persist_dir = opts[:persist_dir]
 
     ez_opts = {
@@ -113,7 +115,8 @@ module Tupelo
         end
       end
 
-      app = AppBuilder.new(ez, owns_services: owns_services, argv: argv.dup)
+      app = AppBuilder.new(ez, argv: argv.dup,
+          owns_services: owns_services, tunnel_default: tunnel_default)
       
       if enable_trace
         require 'tupelo/app/trace'

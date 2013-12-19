@@ -48,6 +48,8 @@ if ARGV.delete("-h") or ARGV.delete("--help")
       -v          verbose mode (include time and pid in log messages)
       
       --trace     enable trace output
+
+      --tunnel    remote clients use ssh tunnels by default (OpenSSH >= 6.0)
       
       --pubsub    publish/subscribe mode; does not keep local tuple store:
       
