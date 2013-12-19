@@ -1,15 +1,18 @@
-# see also ../parallel.rb and ../remote.rb
+# See also ../parallel.rb and ../remote.rb.
+#
+# To run this example over an ssh tunnel, either pass "--tunnel" on the command
+# line (the switch is parsed by the app framework) or explicitly pass the
+# `tunnel: true` argument to the #remote call below. The --tunnel switch works
+# for all examples and other programs based on 'tupelo/app'.
 
 require 'tupelo/app/remote'
-
-tunnel = !!ARGV.delete("--tunnel")
 
 hosts = ARGV.shift or abort "usage: #$0 <ssh-hostname>,<ssh-hostname>,..."
 hosts = hosts.split(",")
 
 Tupelo.tcp_application do
   hosts.each do |host|
-    remote host: host, passive: true, tunnel: tunnel, eval: %{
+    remote host: host, passive: true, eval: %{
       loop do
         len = take([String])[0].size
         write [len]
