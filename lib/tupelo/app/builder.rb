@@ -28,8 +28,7 @@ module Tupelo
     # and args that it recognizes.
     attr_reader :argv
 
-    def initialize ez, argv: argv,
-        owns_services: nil, tunnel_default: false
+    def initialize ez, argv: argv, owns_services: nil, tunnel_default: false
       @ez = ez
       @owns_services = owns_services
       @tunnel_default = tunnel_default

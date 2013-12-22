@@ -181,7 +181,12 @@ Getting started
 
   (The 'sv' argument names a file that the first instance of tup uses to store information like socket addresses and the second instance uses to connect. The first instance starts the servers as child processes. However, both instances appear in the terminal as interactive shells.)
   
-  To do this on two hosts, copy the sv file and, if necessary, edit its connect_host field.
+  To do this on two hosts, copy the sv file and, if necessary, edit its connect_host field. You can even do this:
+  
+        host1$ tup sv tcp localhost
+        
+        host2$ tup host1:path/to/sv --tunnel
+
 
 5. Look at the examples. You may need to dig a bit to find the gem installation. For example:
 
