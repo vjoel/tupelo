@@ -57,6 +57,44 @@ Tuplespace Operations and Transactions
 
   Tupelo does not use wall clocks for any distributed coordination. The only use of wall clock time is purely client-side, to manage client-requested transaction timeouts. Transactions are linearly ordered by a "tick" counter in the message sequencer.
 
+3. Are transactions concurrent? What's happening in parallel?
+
+Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines the commit succeeds).
+
+During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions. There is no synchronization between two concurrent transactions in in this stage. For example:
+
+      $ tup
+      >> t1 = transaction
+      => Tupelo::Client::Transaction open 
+      >> t2 = transaction
+      => Tupelo::Client::Transaction open 
+      >> w [1], [2], [3]
+      => Tupelo::Client::Transaction done at global_tick: 1 write [1], [2], [3]
+      >> t1.read [1]
+      => [1]
+      >> t2.read [2]
+      => [2]
+      >> t1.take [3]
+      => [3]
+      >> t2.take [3]
+      => [3]
+      >> t1.commit.value
+      => [[3]]
+      >> t2
+      => Tupelo::Client::Transaction failed take RubyObjectTemplate: [3] read RubyObjectTemplate: [2] missing: [[3]]
+
+  Before the t1.commit, there is no synchronization.
+
+Typically, there is one transaction at a time per thread, unlike in the above example. Tupelo supports multiple client threads per process. The client threads interact with a single worker thread that manages the local subspaces and the communication with the message sequencer.
+
+After #commit, the transaction executes on all clients that subscribe to the affected subspaces, resulting (deterministically, the same for all clients) in either success or failure. These executions are performed by the worker thread in each client in (deterministic) linear order based on the tick. In this phase, there is no synchronization among proceses or threads, except that, within a process, a client thread that is waiting for a template match (#read or #take) will be notified by the worker thread when the match arrives (or immediately if the match already exists). For example:
+
+      >> Thread.new { read {|x| puts "Got #{x}"} }
+      => #<Thread:0x007f677b93f258 run>
+      >> write ["some", "tuple"]
+      Got ["some", "tuple"]
+
+The lack of many points of synchronization means that client threads run mostly in parallel, if the language/hardware permit, and separate client processes are completely parallel except for waiting for template matches.
 
 Apps, Tools, Command-line Interface
 ===================================
