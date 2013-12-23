@@ -53,6 +53,11 @@ Tuplespace Operations and Transactions
 
   Some storage providers may detect this take-write and perform a more efficient update instead.
 
+2. What kind of clocks does tupelo use?
+
+  Tupelo does not use wall clocks for any distributed coordination. The only use of wall clock time is purely client-side, to manage client-requested transaction timeouts. Transactions are linearly ordered by a "tick" counter in the message sequencer.
+
+
 Apps, Tools, Command-line Interface
 ===================================
 
