@@ -24,7 +24,7 @@ Utility
 
 3. Is tupelo a database?
 
-  No. It's really more of a middleware. Tupelo doesn't have its own disk storage, indexing, queries, etc. It depends on other programs to provide these. That's actually a strength, since you can use different storage backends for different cases (subspaces, for example).
+  No. It's really more of a middleware. Tupelo doesn't have its own disk storage, indexing, queries, etc. It depends on other programs to provide these. That's actually a strength, since you can use different storage backends for different cases (subspaces, for example). Furthermore, those backends are not just storage, but unlimited processing in potentially any language that can talk the msgpack-based tupelo protocol.
 
 4. What's really new about tupelo?
 
@@ -36,7 +36,7 @@ Utility
 
   - Transactions
 
-  All of these are old ideas, but the three together is possibly new.
+  All of these are old ideas, but putting the three together is possibly new.
 
 
 Tuplespace Operations and Transactions
@@ -59,9 +59,9 @@ Tuplespace Operations and Transactions
 
 3. Are transactions concurrent? What's happening in parallel?
 
-Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines the commit succeeds).
+  Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines the commit succeeds).
 
-During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions. There is no synchronization between two concurrent transactions in in this stage. For example:
+  During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions. There is no synchronization between two concurrent transactions in in this stage. For example:
 
       $ tup
       >> t1 = transaction
@@ -85,16 +85,16 @@ During the _prepare_ phase, each transaction is a separate sequence of events (c
 
   Before the t1.commit, there is no synchronization.
 
-Typically, there is one transaction at a time per thread, unlike in the above example. Tupelo supports multiple client threads per process. The client threads interact with a single worker thread that manages the local subspaces and the communication with the message sequencer.
+  Typically, there is one transaction at a time per thread, unlike in the above example. Tupelo supports multiple client threads per process. The client threads interact with a single worker thread that manages the local subspaces and the communication with the message sequencer.
 
-After #commit, the transaction executes on all clients that subscribe to the affected subspaces, resulting (deterministically, the same for all clients) in either success or failure. These executions are performed by the worker thread in each client in (deterministic) linear order based on the tick. In this phase, there is no synchronization among proceses or threads, except that, within a process, a client thread that is waiting for a template match (#read or #take) will be notified by the worker thread when the match arrives (or immediately if the match already exists). For example:
+  After #commit, the transaction executes on all clients that subscribe to the affected subspaces, resulting (deterministically, the same for all clients) in either success or failure. These executions are performed by the worker thread in each client in (deterministic) linear order based on the tick. In this phase, there is no synchronization among proceses or threads, except that, within a process, a client thread that is waiting for a template match (#read or #take) will be notified by the worker thread when the match arrives (or immediately if the match already exists). For example:
 
       >> Thread.new { read {|x| puts "Got #{x}"} }
       => #<Thread:0x007f677b93f258 run>
       >> write ["some", "tuple"]
       Got ["some", "tuple"]
 
-The lack of many points of synchronization means that client threads run mostly in parallel, if the language/hardware permit, and separate client processes are completely parallel except for waiting for template matches.
+  The lack of many points of synchronization means that client threads run mostly in parallel, if the language/hardware permit, and separate client processes are completely parallel except for waiting for template matches.
 
 Apps, Tools, Command-line Interface
 ===================================
@@ -111,40 +111,40 @@ Networking: Security, Firewalls, Hostnames
 
 1. How can I run tupelo securely over a public network?
 
-The built-in security mechanism for tupelo is based on ssh for process control and ssh tunnels for data sockets. OpenSSH 6.0 or later is recommended (tupelo has workarounds for earlier versions). Details of the implementation are in the [easy-serve library](https://github.com/vjoel/easy-serve).
+  The built-in security mechanism for tupelo is based on ssh for process control and ssh tunnels for data sockets. OpenSSH 6.0 or later is recommended (tupelo has workarounds for earlier versions). Details of the implementation are in the [easy-serve library](https://github.com/vjoel/easy-serve).
 
-But first, if you are working within a single host, just use UNIX sockets, so you can use UNIX permissions to control access within the host and don't have to worry about access from outside the host. The Tupelo.application framework defaults to UNIX sockets in a tmpdir. You can also explicitly request them from the command line for any program based on the framework, such as bin/tup. For example:
+  But first, if you are working within a single host, just use UNIX sockets, so you can use UNIX permissions to control access within the host and don't have to worry about access from outside the host. The Tupelo.application framework defaults to UNIX sockets in a tmpdir. You can also explicitly request them from the command line for any program based on the framework, such as bin/tup. For example:
 
       $ tup srv unix /path/to/sock
       
       $ tup srv
 
-If you need TCP networking but want to minimize exposure, you can request that tupelo listen only on localhost:
+  If you need TCP networking but want to minimize exposure, you can request that tupelo listen only on localhost:
 
       $ tup srv tcp localhost
 
-Then, you can connect from other hosts _only_ using ssh tunnels:
+  Then, you can connect from other hosts _only_ using ssh tunnels:
 
       $ tup myhost:path/to/srv --tunnel
 
-Here, myhost is whatever you need to ssh into the first host (it might be username@example.com). The services file at path/to/srv is read using ssh (it doesn't have to be on the same host as the services themselves, but usually is). Then tunnels to those services are set up over the ssh connection. This is client-managed tunneling.
+  Here, myhost is whatever you need to ssh into the first host (it might be username@example.com). The services file at path/to/srv is read using ssh (it doesn't have to be on the same host as the services themselves, but usually is). Then tunnels to those services are set up over the ssh connection. This is client-managed tunneling.
 
-The procedure for server-managed tunneling is different. When a main Tupelo.application process needs to start a remote client that tunnels back to the server, simply pass `tunnel: true` to the #remote call. (In fact, if you pass --tunnel on the command line, the `true` value becomes the default for all #remote clients.) For [example](example/map-reduce/remote-map-reduce.rb).
+  The procedure for server-managed tunneling is different. When a main Tupelo.application process needs to start a remote client that tunnels back to the server, simply pass `tunnel: true` to the #remote call. (In fact, if you pass --tunnel on the command line, the `true` value becomes the default for all #remote clients.) For [example](example/map-reduce/remote-map-reduce.rb).
 
 2. How can I connect clients across private subnets and behind firewalls?
 
-The built-in solution in tupelo is to use ssh tunnels. If the services in the services file are accessible from a host (via tunnels, if necessary), then a tupelo client on that host can share data with other clients (it's a star topology).
+  The built-in solution in tupelo is to use ssh tunnels. If the services in the services file are accessible from a host (via tunnels, if necessary), then a tupelo client on that host can share data with other clients (it's a star topology).
 
 3. How should I configure ssh?
 
-Using remotes and tunnels is much easier if you configure ssh to use control sockets to multiplex ssh sessions over a single connection per host pair. The following works well in .ssh/config:
+  Using remotes and tunnels is much easier if you configure ssh to use control sockets to multiplex ssh sessions over a single connection per host pair. The following works well in .ssh/config:
 
       Host *
         ControlMaster auto
         ControlPath ~/tmp/.ssh/%r@%h:%p
         ControlPersist yes
 
-Note that the dir `~/tmp/.ssh` must exist, so if ~/tmp is periodically cleaned, you might want to create it in your .profile / .bashrc / .zshrc file. You can  also install public ssh keys to avoid typing your password on first connection.
+  Note that the dir `~/tmp/.ssh` must exist, so if ~/tmp is periodically cleaned, you might want to create it in your .profile / .bashrc / .zshrc file. You can  also install public ssh keys to avoid typing your password on first connection.
 
 
 Debugging
@@ -152,7 +152,7 @@ Debugging
 
 1. How can I see what tuples a client is getting?
 
-Use --trace or #notify or just add this thread:
+  Use --trace or #notify or just add this thread:
 
     Thread.new do
       read {|tt| log tt}
@@ -169,6 +169,4 @@ General
 
 1. Why "tupelo"?
 
-    Resonance with "tuple", I guess... Also, I'm a fan of Uncle Tupelo.
-
-2. 
+  Resonance with "tuple", I guess... Also, I'm a fan of Uncle Tupelo.
