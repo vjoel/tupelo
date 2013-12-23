@@ -99,9 +99,7 @@ Tuplespace Operations and Transactions
 Apps, Tools, Command-line Interface
 ===================================
 
-1. Why is there no CLI for a single transaction or operation, like maybe
-
-      tup ... "read [...]"
+1. Why is there no CLI for a single transaction or operation, like maybe `tup ... "read [...]"`?
 
   This would only make sense for write and pulse ops, not read or take. The
 reason is that #read and #take depend on the client being subscribed to the subspace to which the ops apply. Subscribing may involve significant data transfer, depending on the size of the subspace. It is not generally efficient to do this for a single operation. Use bin/tup instead.
@@ -154,9 +152,9 @@ Debugging
 
   Use --trace or #notify or just add this thread:
 
-    Thread.new do
-      read {|tt| log tt}
-    end
+      Thread.new do
+        read {|tt| log tt}
+      end
 
 and if you want pass a template to #read.
 
