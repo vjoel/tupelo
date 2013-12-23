@@ -83,7 +83,7 @@ Tuplespace Operations and Transactions
       >> t2
       => Tupelo::Client::Transaction failed take RubyObjectTemplate: [3] read RubyObjectTemplate: [2] missing: [[3]]
 
-  Before the t1.commit, there is no synchronization.
+  Before the `t1.commit`, there is no synchronization.
 
   Typically, there is one transaction at a time per thread, unlike in the above example. Tupelo supports multiple client threads per process. The client threads interact with a single worker thread that manages the local subspaces and the communication with the message sequencer.
 
@@ -156,7 +156,8 @@ Debugging
         read {|tt| log tt}
       end
 
-and if you want pass a template to #read.
+  and if you want pass a template to #read.
+
 
 Tuplets
 =======
