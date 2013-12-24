@@ -96,6 +96,49 @@ Tuplespace Operations and Transactions
 
   The lack of many points of synchronization means that client threads run mostly in parallel, if the language/hardware permit, and separate client processes are completely parallel except for waiting for template matches.
 
+Performance
+===========
+
+1. What factors determine the latency of a request?
+
+  A #read is always local (no network hops). A Transaction#commit generally requires one round-trip to the message sequencer (two network hops).
+
+2. How can I reduce latency?
+
+  Use #write (same as #write_nowait) instead of #write_wait. The usual warnings for un-acked writes apply, but if some later write or other transaction succeeds, then the previous one did.
+
+  Optimistically use results of #take within a transaction. For example, rather than this:
+
+      >> Thread.new do
+           op = take ["multiply", Numeric, Numeric]
+           write ["result", op[1]*op[2]]
+         end
+      => #<Thread:0x007fc2300af448 run>
+      >> write ["multiply", 3, 4]
+      => Tupelo::Client::Transaction closed write ["multiply", 3, 4]
+      >> read ["result", nil]
+      => ["result", 12]
+
+  you could wrap the take-compute-write in a transaction:
+
+      $ tup
+      >> Thread.new do
+           transaction do
+             op = take ["multiply", Numeric, Numeric]
+             write ["result", op[1]*op[2]]
+           end
+         end
+      => #<Thread:0x007f5500a32c88 run>
+      >> write ["multiply", 3, 4]
+      => Tupelo::Client::Transaction closed write ["multiply", 3, 4]
+      >> read ["result", nil]
+      => ["result", 12]
+
+  Note that the #take value is used immediately (as soon as the value is available in local storage), before the transaction has even executed. If some other process concurrently takes that same tuple, then this transaction will roll back and attempt again to take a matching tuple.
+  The latency of the transaction is less than that of the two operations separately: two hops rather than four hops. The more expensive the calculation, of course, the more (clock) time is spent inside the transaction, which increases the chance that there will be contention for that tuple.
+  Another advantage of the transaction is that it is atomic, so a network failure or hardware failure in the client between the #take and the #write will not cause the tuple to be lost, as it would in the first case.
+
+
 Apps, Tools, Command-line Interface
 ===================================
 
