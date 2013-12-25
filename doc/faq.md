@@ -17,7 +17,7 @@ Utility
 
   - read scaling out (redundant array of sqlite example)
   
-  - process coordination of complex background job
+  - process coordination of complex background job; dataflow more complex than map-reduce
   
   - lightweight coordination: when you need task queues or other mechanisms
     and you don't want to run a standalone queue server
@@ -42,7 +42,7 @@ Utility
 Tuplespace Operations and Transactions
 ======================================
 
-1.  Why no update operation?
+1. Why no update operation?
 
   Tuples are immutable while in the space. However, you can update by doing #take and #write in a transaction:
     
@@ -59,7 +59,7 @@ Tuplespace Operations and Transactions
 
 3. Are transactions concurrent? What's happening in parallel?
 
-  Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines the commit succeeds).
+  Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines whether the commit succeeds).
 
   During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions. There is no synchronization between two concurrent transactions in in this stage. For example:
 
@@ -95,6 +95,11 @@ Tuplespace Operations and Transactions
       Got ["some", "tuple"]
 
   The lack of many points of synchronization means that client threads run mostly in parallel, if the language/hardware permit, and separate client processes are completely parallel except for waiting for template matches.
+
+4. How do transactions fail?
+
+  two failure modes, rollback, retry, block syntax
+
 
 Performance
 ===========
@@ -135,7 +140,7 @@ Performance
       => ["result", 12]
 
   Note that the #take value is used immediately (as soon as the value is available in local storage), before the transaction has even executed. If some other process concurrently takes that same tuple, then this transaction will roll back and attempt again to take a matching tuple.
-  The latency of the transaction is less than that of the two operations separately: two hops rather than four hops. The more expensive the calculation, of course, the more (clock) time is spent inside the transaction, which increases the chance that there will be contention for that tuple.
+  The latency of the transaction is less than that of the two operations separately: two hops rather than four hops. The more expensive the calculation, of course, the more (clock) time is spent inside the transaction, which increases the chance that there will be contention for that tuple. You can run a tspy process to see the sequence of messages.
   Another advantage of the transaction is that it is atomic, so a network failure or hardware failure in the client between the #take and the #write will not cause the tuple to be lost, as it would in the first case.
 
 
@@ -199,7 +204,7 @@ Debugging
         read {|tt| log tt}
       end
 
-  and if you want pass a template to #read.
+  Optionally, pass a template to #read.
 
 
 Tuplets
