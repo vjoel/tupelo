@@ -68,6 +68,8 @@ module Tupelo
     # the passive flag for processes that wait for tuples and respond in some
     # way. Then you do not have to manually interrupt the whole application when
     # the active processes are done. See examples.
+    #
+    # Returns pid of child process.
     def child client_class = Client, passive: false, **opts, &block
       ez.child :seqd, :cseqd, :arcd, passive: passive do |seqd, cseqd, arcd|
         opts = {seq: seqd, cseq: cseqd, arc: arcd, log: log}.merge(opts)
