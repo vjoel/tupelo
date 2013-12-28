@@ -1,11 +1,23 @@
-# Accepts usual tupelo switches (such as --trace, --debug), plus one argument: a
-# user name to be shared with other chat clients. New clients see a brief
-# history of the chat, as well as new messages from other clients.
+# Network chat program.
 #
 # You can run several instances of chat.rb. The first will set up all needed
-# services. The rest will connect by referring to a yaml file in the same dir.
-# Copy that file to remote hosts (and modify hostnames as needed) for remote
-# access. If the first instance is run with "--persist-dir <dir>", messages
+# services, as well as run the chat shell. The rest will connect by referring to
+# the services specified in a yaml file, and then run the chat shell.
+#
+# Usage:
+#
+#   ruby chat.rb chat.yaml username
+#
+# For remote clients, you can copy the yaml file, or use scp syntax:
+#
+#   ruby chat.rb host:path/to/chat.yaml username
+#
+# The username is shared with other chat clients. New clients see a brief
+# history of the chat, as well as new messages from other clients.
+#
+# Accepts usual tupelo switches (such as --trace, --debug, --tunnel).
+#
+# If the first instance is run with "--persist-dir <dir>", messages
 # will persist across service shutdown.
 #
 # Compare: https://github.com/bloom-lang/bud/blob/master/examples/chat.
@@ -15,7 +27,6 @@
 
 require 'tupelo/app'
 
-sv = "chat.yaml"
 history_period = 60 # seconds -- discard _my_ messages older than this
 
 Thread.abort_on_exception = true
@@ -27,7 +38,7 @@ def display_message msg
   puts "#{from}@#{time_str}> #{line}"
 end
 
-Tupelo.tcp_application services_file: sv do
+Tupelo.tcp_application do
   me = argv.shift
 
   local do
