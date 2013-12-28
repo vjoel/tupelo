@@ -8,7 +8,7 @@ Utility
 
   - high availability, very large scale systems
   
-  - high volume stream data (for low volume stream data, see [chat](example/chat/chat.rb))
+  - high volume stream data. For low volume stream data, see [chat](example/chat/chat.rb). For using tupelo to coordinate access to high volume data, see [socket-broker.rb](example/socket-broker.rb).
   
   - applications that cannot accept a SPoF (though in the future, "SPoF" may be
     reduced to simply a "bottleneck" by replicating the message sequencer)
@@ -26,7 +26,12 @@ Utility
 
   No. It's really more of a middleware. Tupelo doesn't have its own disk storage, indexing, queries, etc. It depends on other programs to provide these. That's actually a strength, since you can use different storage backends for different cases (subspaces, for example). Furthermore, those backends are not just storage, but unlimited processing in potentially any language that can talk the msgpack-based tupelo protocol.
 
-4. What's really new about tupelo?
+4. Is tupelo a web framework or application?
+
+  No. But see the [web examples](example/multi-tier).
+  Also, tuple space has some similarities to REST: the emphasis on objects with few verbs, and constraints on the meaning of those verbs.
+
+5. What's really new about tupelo?
 
   Tupelo combines these ideas:
 
