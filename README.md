@@ -28,7 +28,7 @@ Documentation
 Getting started
 ==========
 
-1. Install ruby 2 (not 1.9) from http://ruby-lang.org. Examples and tests will not work on windows (they use fork and unix sockets) or jruby, though probably the underying libs will (using tcp sockets).
+1. Install ruby 2.0 or 2.1 (not 1.9) from http://ruby-lang.org. Examples and tests will not work on windows (they use fork and unix sockets) or jruby, though probably the underying libs will (using tcp sockets).
 
 2. Install the gem and its dependencies (you may need to `sudo` this):
 

@@ -66,7 +66,7 @@ Tuplespace Operations and Transactions
 
   Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines whether the commit succeeds).
 
-  During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions. There is no synchronization between two concurrent transactions in in this stage. For example:
+  During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions and *locally* in the client process. There is no synchronization between two concurrent transactions in in this stage. For example:
 
       $ tup
       >> t1 = transaction
@@ -88,7 +88,7 @@ Tuplespace Operations and Transactions
       >> t2
       => Tupelo::Client::Transaction failed take RubyObjectTemplate: [3] read RubyObjectTemplate: [2] missing: [[3]]
 
-  Before the `t1.commit`, there is no synchronization.
+  Before the `t1.commit`, there is no synchronization. So both t1 axnd t2 were able to take the tuple [3], but only in the context of preparing the transactions.
 
   Typically, there is one transaction at a time per thread, unlike in the above example. Tupelo supports multiple client threads per process. The client threads interact with a single worker thread that manages the local subspaces and the communication with the message sequencer.
 
@@ -178,9 +178,14 @@ Networking: Security, Firewalls, Hostnames
 
       $ tup myhost:path/to/srv --tunnel
 
-  Here, myhost is whatever you need to ssh into the first host (it might be username@example.com). The services file at path/to/srv is read using ssh (it doesn't have to be on the same host as the services themselves, but usually is). Then tunnels to those services are set up over the ssh connection. This is client-managed tunneling.
+  Here, myhost is whatever you need to ssh into the first host (it might be username@example.com). The services file at path/to/srv is read using ssh (it doesn't have to be on the same host as the services themselves, but usually is). Then tunnels to those services are set up over the ssh connection. This is client-managed tunneling (corresponding to the -L switch for ssh).
+  All the command line programs (and any program using Tupelo::Application) can make use of tunneling. For example, the [chat app](example/chat):
+  
+      host1$ ruby chat.rb chat.yaml Fred
 
-  The procedure for server-managed tunneling is different. When a main Tupelo.application process needs to start a remote client that tunnels back to the server, simply pass `tunnel: true` to the #remote call. (In fact, if you pass --tunnel on the command line, the `true` value becomes the default for all #remote clients.) For [example](example/map-reduce/remote-map-reduce.rb).
+      host2$ ruby chat.rb host1:path/to/chat.yaml Wilma --tunnel
+
+  The procedure for server-managed tunneling (corresponding to the -R switch for ssh) is different. When a main Tupelo.application process needs to start a remote client that tunnels back to the server, simply pass `tunnel: true` to the #remote call. (In fact, if you pass --tunnel on the command line, the `true` value becomes the default for all #remote clients.) For [example](example/map-reduce/remote-map-reduce.rb).
 
 2. How can I connect clients across private subnets and behind firewalls?
 
@@ -211,6 +216,23 @@ Debugging
 
   Optionally, pass a template to #read.
 
+2. Related to the last question, why doesn't the following loop see all tuples as they arrive in the space?
+
+      loop do
+        tuple = read some_template
+        do_somthing_with tuple
+      end
+
+  This is wrong in two ways. First, there is a race condition. If another client thread or process does a take between the iterations of the loop, then that tuple will not be seen by the read loop. Similarly, a pulse occuring at the wrong point in the loop will not be seen. Second, read is not guaranteed to read in any particular order (unless you are using a custom datastructre for your subspace that). So read may simply return the same tuple over and over.
+
+  For this use case, it is better to use read with block:
+  
+      read some_template do |tuple|
+        do_somthing_with tuple
+      end
+
+  The semantics of this construct is to iterate over each matching tuple in the space exactly once, including tuples that already existed before the read call.
+
 
 Tuplets
 =======
@@ -221,4 +243,4 @@ General
 
 1. Why "tupelo"?
 
-  Resonance with "tuple", I guess... Also, I'm a fan of Uncle Tupelo.
+  Resonance with "tuple", I guess... Also, I'm a fan of Uncle Tupelo. And Elvis was born in Tupelo, Miss.
