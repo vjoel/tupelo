@@ -8,12 +8,11 @@ Utility
 
   Some uses that tupelo is not good for:
 
-  - high availability, very large scale systems
+  High availability, very large scale systems.
   
-  - high volume stream data. For low volume stream data, see [chat](example/chat/chat.rb). For using tupelo to coordinate access to high volume data, see [socket-broker.rb](example/socket-broker.rb).
+  High volume stream data. For low volume stream data, see [chat](example/chat/chat.rb). For using tupelo to coordinate access to high volume data, see [socket-broker.rb](example/socket-broker.rb).
   
-  - applications that cannot accept a SPoF (though in the future, "SPoF" may be
-    reduced to simply a "bottleneck" by replicating the message sequencer)
+  Applications that cannot accept a SPoF (though in the future, "SPoF" may be reduced to simply a "bottleneck" by replicating the message sequencer).
 
 2. What is tupelo good for? What are the "use cases"?
 
