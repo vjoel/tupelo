@@ -6,6 +6,8 @@ Utility
 
 1. What is tupelo not good for?
 
+  Some uses that tupelo is not good for:
+
   - high availability, very large scale systems
   
   - high volume stream data. For low volume stream data, see [chat](example/chat/chat.rb). For using tupelo to coordinate access to high volume data, see [socket-broker.rb](example/socket-broker.rb).
