@@ -16,12 +16,11 @@ Utility
 
 2. What is tupelo good for? What are the "use cases"?
 
-  - read scaling out (redundant array of sqlite example)
+  Read scaling out (redundant array of sqlite example)
   
-  - process coordination of complex background job; dataflow more complex than map-reduce
+  Process coordination of complex background job; dataflow more complex than map-reduce
   
-  - lightweight coordination: when you need task queues or other mechanisms
-    and you don't want to run a standalone queue server
+  Lightweight coordination: when you need task queues or other mechanisms and you don't want to run a standalone queue server.
 
 3. Is tupelo a database?
 
