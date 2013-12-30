@@ -103,7 +103,25 @@ Tuplespace Operations and Transactions
 
 4. How do transactions fail?
 
-  two failure modes, rollback, retry, block syntax
+  Let's consider for the moment only failures due to concurrency, and exclude external causes such as host or network problems. Then transactions have two failure modes.
+
+  During the prepare phase, transaction A can fail because some other transaction, B, successfully committed a take of a tuple that A has assumed to exist, by calling #read or #take. In this case, the transaction will roll back to its starting point and (if using the block syntax) automatically retry. You can see this in action, by running two transactions, interleaved as shown:
+
+      $ tup
+      >> w [1]
+      => Tupelo::Client::Transaction done at global_tick: 1 write [1]
+      >> txn = transaction
+      => Tupelo::Client::Transaction open 
+      >> txn.take [1]
+      => [1]
+      >> txn
+      => Tupelo::Client::Transaction open take RubyObjectTemplate: [1]
+      >> take [1] # NOTE: this is a different, concurrent transaction
+      => [1]
+      >> txn
+      => Tupelo::Client::Transaction failed take RubyObjectTemplate: [1] missing: [[1]]
+
+  After the transaction has been sent through the sequencer (either by calling #commit or by reaching the end of the syntactic block), it can fail for essentially the same reason: another transaction happened first, and a tuple is missing. This is harder to see using interactive tools, because the latency window between the #commit call and execution is too short. However, with higher load and contention for a small set of tuples, you can see this failure quite easily using the --trace switch. For example, [example/lock-mgr.rb](example/lock-mgr.rb) and  [example/map-reduce/prime-factor.rb](example/map-reduce/prime-factor.rb).
 
 
 Performance
