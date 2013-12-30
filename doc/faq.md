@@ -124,6 +124,37 @@ Tuplespace Operations and Transactions
   After the transaction has been sent through the sequencer (either by calling #commit or by reaching the end of the syntactic block), it can fail for essentially the same reason: another transaction happened first, and a tuple is missing. This is harder to see using interactive tools, because the latency window between the #commit call and execution is too short. However, with higher load and contention for a small set of tuples, you can see this failure quite easily using the --trace switch. For example, [example/lock-mgr.rb](example/lock-mgr.rb) and  [example/map-reduce/prime-factor.rb](example/map-reduce/prime-factor.rb).
 
 
+Distributing
+============
+
+1. How can I distribute work to multiple CPUs?
+
+  For multiple CPUs in one host, the best way is to use unix domain sockets, which are a bit more efficient than TCP sockets (and manageable as files). This is actually the default for tup and other programs. You can use the #child method inside of an application block to start a child process connected to the tuplespace by UNIX sockets, as most of the examples do. You can also connect to an already running tuplespace from an unrelated (non-child) process; simply pass the service config to it, as in `tup sv`.
+  
+2. How can I distribute work to networked hosts?
+
+  For multiple hosts, you can use the #remote method in place of #child (if you want the remote processes to be controlled by a main process, such as for batch map-reduce jobs) or you can use the service config file (which you can either copy or reference remotely using scp syntax) if you want a process with a more independent life cycle. For example:
+
+  On my_host, start the server (let's use tup for simplicity, but it could be any app) and indicate that we are using tcp (but let tupelo choose ports):
+
+      tup sv.yaml tcp
+
+  and then on another host:
+
+      scp my_host:sv.yaml .
+      tup sv.yaml
+
+  or
+
+      tup my_host:sv.yaml
+
+  You may want to use ssh tunneling:
+
+      tup my_host:sv.yaml --tunnel
+
+  See the section on security below for more details.
+
+
 Performance
 ===========
 
