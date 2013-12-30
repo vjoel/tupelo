@@ -154,6 +154,10 @@ Distributing
 
   See the section on security below for more details.
 
+3. How can I distribute work to programs written in other languages?
+
+  Help write a client!
+
 
 Performance
 ===========
@@ -269,18 +273,18 @@ Debugging
 
       loop do
         tuple = read some_template
-        do_somthing_with tuple
+        do_something_with tuple
       end
 
-  This is wrong in two ways. First, there is a race condition. If another client thread or process does a take between the iterations of the loop, then that tuple will not be seen by the read loop. Similarly, a pulse occuring at the wrong point in the loop will not be seen. Second, read is not guaranteed to read in any particular order (unless you are using a custom datastructre for your subspace that). So read may simply return the same tuple over and over.
+  This is wrong in two ways. First, there is a race condition. If another client thread or process does a write and a take between the iterations of the loop, then that tuple will not be seen by the read loop. Similarly, a pulse occuring at the wrong point in the loop will not be seen. Second, read is not guaranteed to read in any particular order (unless you are using a custom datastructure for your subspace and expose that ordering to the #read method). So read may simply return the same tuple over and over.
 
-  For this use case, it is better to use read with block:
+  For this use case, it is better to use read with a block:
   
       read some_template do |tuple|
-        do_somthing_with tuple
+        do_something_with tuple
       end
 
-  The semantics of this construct is to iterate over each matching tuple in the space exactly once, including tuples that already existed before the read call.
+  The semantics of this construct is to iterate over each matching tuple in the space exactly once, including tuples that already existed before the read call and including tuples as they arrive. Of course, if the #do_something_with is too slow, then arriving tuples will simply queue up and not get processed in a timely manner.
 
 
 Tuplets
