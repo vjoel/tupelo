@@ -353,11 +353,13 @@ Another use of transactions: forcing a retry when something changes:
 
 This code waits on the existence of a value, but retries if the step changes while waiting. See example/pregel/distributed.rb for a use of this techinique.
 
-Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. This is also known as [sequential consistency] (https://en.wikipedia.org/wiki/Sequential_consistency). Durability is optional, but can be provided by the persistent archiver or other clients.
+Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. This is also known as [sequential consistency] (https://en.wikipedia.org/wiki/Sequential_consistency). Also see the Calvin database described in http://dbmsmusings.blogspot.com/2012/05/if-all-these-new-dbms-technologies-are.html, which uses this same technique (and like tupelo, avoids 2PC).
+
+Durability is optional, but can be provided by the persistent archiver or other clients.
 
 On the CAP spectrum, tupelo tends towards consistency: for all clients, write and take operations are applied in the same order, so the state of the entire system up through a given tick of discrete time is universally agreed upon. This is known as [state machine replication] (http://en.wikipedia.org/wiki/State%20machine%20replication). Of course, because of the difficulties of distributed systems, one client may not yet have seen the same range of ticks as another. Tupelo's replication model (especially in the use of subspaces) can also be described as [virtual synchrony](https://en.wikipedia.org/wiki/Virtual_synchrony).
 
-Tupelo transactions do not require two-phase commit, because they are less powerful than general transactions. Each client has enough information to decide (in the same way as all other clients) whether the transaction succeeds or fails. This has performance advantages, but imposes some limitations on transactions over subspaces that are known to one client but not another. [Subspaces](doc/subspace.md).
+Tupelo transactions do not require two-phase commit, because they are less powerful than general transactions. Each client has enough information to decide (in the same way as all other clients) whether the transaction succeeds or fails. This has performance advantages, but imposes some limitations on transactions over subspaces that are known to one client but not another. [Subspaces](doc/subspace.md). This tradeoff is discussed in http://dbmsmusings.blogspot.com/2012/05/if-all-these-new-dbms-technologies-are.html -- see "(2) Reduce transaction flexibility for scalability".
 
 
 Syntax
