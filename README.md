@@ -24,7 +24,7 @@ Documentation
 * [Tutorial](doc/tutorial.md)
 * [FAQ](doc/faq.md)
 * [Subspaces](doc/subspace.md)
-* (Examples)(example/)
+* [Examples](example/)
 
 * [Abstract](sfdc.md) and [slides](doc/sfdc.pdf) for San Francisco Distributed Systems meetup
 
