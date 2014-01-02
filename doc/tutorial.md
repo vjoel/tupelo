@@ -1,4 +1,5 @@
-== Tutorial
+Tutorial
+========
 
 3. Try running tup:
 
