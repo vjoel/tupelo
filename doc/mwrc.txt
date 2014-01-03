@@ -4,9 +4,9 @@ From Rinda to Tupelo: A distributed, transactional tuplespace for polyglot compu
 
 description
 
-Ruby's Rinda hides in an quiet corner of the stdlib, managing your concurrent processes. Rinda, like REST, understands lots of nouns (tuples) and a few verbs (read, write, take). But Rinda speaks in Marshal over a ruby-only RPC protocol. Rinda hoards your data.
+Ruby's Rinda hides in an quiet corner of the stdlib, managing your concurrent processes. Rinda, like REST, understands many nouns (tuples) and a few verbs (read, write, take). But Rinda speaks in Marshal over a ruby-only RPC protocol. And Rinda hoards your data.
 
-Let's ditch RPC, make Marshal optional, and decentralize storage, search, and notification. Keep the verbs and pessimistic locks. Add transactions, optimistic locks, and replication.
+Let's ditch RPC, make Marshal optional, and decentralize storage, search, and notification. Keep the nouns, verbs, and pessimistic locks. Add transactions, optimistic locks, and replication.
 
 We'll putter with Tupelo in irb and look at two longer examples: map-reduce and replicated polyglot storage using LevelDB and SQLite. Demo on portable ARM cluster.
 
@@ -19,6 +19,7 @@ After careers as a math professor, embedded database developer, transportation r
 
 justification
 
+Rinda is great for learning and prototyping distributed systems. In practice, however, it becomes frustrating: scale, latency, O(n) search, connecting to other langauges, etc.
 
 Ruby needs to connect to other languages for it to be used in distributed computing and in modern polyglot environments. Tuplespace isn't the only way to do this, but it is a very high-level way (compared to message queues, pubsub, etc.) with a long history (linda, 1980s) and with clear and expressive concurrency semantics.
 
