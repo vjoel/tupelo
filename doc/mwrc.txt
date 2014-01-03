@@ -1,0 +1,31 @@
+title
+
+From Rinda to Tupelo: A distributed, transactional tuplespace for polyglot computation and storage.
+
+description
+
+Ruby's Rinda hides in an quiet corner of the stdlib, managing your concurrent processes. Rinda, like REST, understands lots of nouns (tuples) and a few verbs (read, write, take). But Rinda speaks in Marshal over a ruby-only RPC protocol. Rinda hoards your data.
+
+Let's ditch RPC, make Marshal optional, and decentralize storage, search, and notification. Keep the verbs and pessimistic locks. Add transactions, optimistic locks, and replication.
+
+We'll putter with Tupelo in irb and look at two longer examples: map-reduce and replicated polyglot storage using LevelDB and SQLite. Demo on portable ARM cluster.
+
+
+
+biography
+
+After careers as a math professor, embedded database developer, transportation researcher, and mud-on-the-boots distributed systems hacker, Joel is trying to contribute something new to the ever-growing toolbox of open-source frameworks for distributed computing.
+
+
+justification
+
+
+Ruby needs to connect to other languages for it to be used in distributed computing and in modern polyglot environments. Tuplespace isn't the only way to do this, but it is a very high-level way (compared to message queues, pubsub, etc.) with a long history (linda, 1980s) and with clear and expressive concurrency semantics.
+
+Ruby has the potential to be a coordination language for networks of processes (and at large scale too), but it needs something like tupelo to do that.
+
+Many developers are using methods of coordinating their back-end computations (delayed job, resque, redis), which are relatively ad-hoc, or do not have the expressiveness of even the classic tuplespace operators (though they may provide a better choice of data structures than traditional tuplespaces), or tend more more towards centralization.
+
+Working rubyists should be thinking about distributed computing in a more explicit way, and playing with a tuplespace is an entertaining way to do that (through exercises like the dining philosophers, for example).
+
+https://github.com/vjoel/tupelo
