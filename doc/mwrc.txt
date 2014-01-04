@@ -19,7 +19,9 @@ After careers as a math professor, embedded database developer, transportation r
 
 justification
 
-Rinda is great for learning and prototyping distributed systems. In practice, however, it becomes frustrating: scale, latency, O(n) search, connecting to other langauges, etc.
+Rinda is great for learning and prototyping distributed systems. In practice, however, it quickly becomes frustrating: scale, latency, O(n) search, everything blocks everything else, fault tolerance, connecting to other languages, lack of persistence.
+
+Tuplespaces may be an old idea, but they are timed for a comeback, especially when combined with new ideas in distributed transactions on replicas (in this respect, Tupelo resembles Calvin, http://dbmsmusings.blogspot.com/2012/05/if-all-these-new-dbms-technologies-are.html).
 
 Ruby needs to connect to other languages for it to be used in distributed computing and in modern polyglot environments. Tuplespace isn't the only way to do this, but it is a very high-level way (compared to message queues, pubsub, etc.) with a long history (linda, 1980s) and with clear and expressive concurrency semantics.
 
@@ -30,3 +32,10 @@ Many developers are using methods of coordinating their back-end computations (d
 Working rubyists should be thinking about distributed computing in a more explicit way, and playing with a tuplespace is an entertaining way to do that (through exercises like the dining philosophers, for example).
 
 https://github.com/vjoel/tupelo
+
+
+previously
+
+http://www.meetup.com/San-Francisco-Distributed-Computing/events/153886592/
+
+Talk was 15 minutes. No video. Rated 5/5 stars (overall for event, which included 2 other talks).
