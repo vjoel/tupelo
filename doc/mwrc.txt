@@ -23,6 +23,8 @@ Rinda is great for learning and prototyping distributed systems. In practice, ho
 
 Tuplespaces may be an old idea, but they are timed for a comeback, especially when combined with new ideas in distributed transactions on replicas (in this respect, Tupelo resembles Calvin, http://dbmsmusings.blogspot.com/2012/05/if-all-these-new-dbms-technologies-are.html).
 
+Why is this more than a job queue? Fine grained coordination. Why better than redis? Concurrency and replication.
+
 Ruby needs to connect to other languages for it to be used in distributed computing and in modern polyglot environments. Tuplespace isn't the only way to do this, but it is a very high-level way (compared to message queues, pubsub, etc.) with a long history (linda, 1980s) and with clear and expressive concurrency semantics.
 
 Ruby has the potential to be a coordination language for networks of processes (and at large scale too), but it needs something like tupelo to do that.
