@@ -14,7 +14,13 @@ def show_bins circle
   circle.each_cons(2) do |(prev, _), (key, i_bin)|
     bin_size[i_bin] += key - prev
   end
-  p bin_size ## variance
+  p bin_size
+
+  mean = bin_size.inject(0.0) {|sum, x| sum + x} / N_BINS
+  variance =
+    bin_size.inject(0.0) {|sum_sqerr, x| sum_sqerr + (x - mean)**2} / (N_BINS-1)
+  printf "mean : %14d\n" % mean
+  printf "stdev: %14d\n" % Math.sqrt(variance)
 end
 
 Tupelo.application do
