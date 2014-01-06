@@ -3,7 +3,7 @@ require 'digest/md5'
 require 'rbtree'
 
 N_BINS = 5
-N_REPLS = 50 # of each bin, to make distibution more uniform
+N_REPLS = 30 # of each bin, to make distibution more uniform
 KEY_BITS = 30
 KEY_MAX = 2**KEY_BITS - 1
 
