@@ -10,14 +10,10 @@ KEY_MAX = 2**KEY_BITS - 1
 def show_bins circle
 #  p circle
   bin_size = Array.new(N_BINS, 0)
-  prev = 0
-  first = nil
-  circle.each do |key, i_bin|
-    first ||= i_bin
+  bin_size[circle.first[1]] = 2**30 - circle.last[0] + circle.first[0]
+  circle.each_cons(2) do |(prev, _), (key, i_bin)|
     bin_size[i_bin] += key - prev
-    prev = key
   end
-  bin_size[first] += 2**30 - prev
   p bin_size ## variance
 end
 
