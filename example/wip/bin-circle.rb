@@ -40,6 +40,10 @@ class BinCircle
     Set.new @tree.values
   end
   
+  def inspect
+    "#<#{self.class} bins=#{bins.to_a}>"
+  end
+
   # This hashing fn is applied to both bin ids and object identifiers (in
   # principle, these could be two different function with the same range of
   # outputs.
@@ -96,7 +100,7 @@ if __FILE__ == $0
     circle.add_bin id
   end
 
-  p circle.bins
+  p circle
   circle.show_bins
 
   p circle.find_bin "foo"
