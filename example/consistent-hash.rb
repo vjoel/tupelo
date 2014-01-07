@@ -1,5 +1,4 @@
 # TODO make more interesting by changing the set of workers over time.
-# TODO use subspaces
 
 require 'tupelo/app'
 require_relative 'lib/bin-circle'
@@ -9,6 +8,31 @@ N_REPS = 30 # of each bin, to make distribution more uniform
 N_ITER = 1000
 
 Tupelo.application do
+  local do
+    use_subspaces!
+
+    N_BINS.times do |id|
+      define_subspace(
+        tag:          id,
+        template:     [
+          {value: id},
+          {type:  "number"},
+          {type:  "number"}
+        ]
+      )
+    end
+
+    define_subspace(
+      tag:          "sum",
+      template:     [
+        {value: "sum"},
+        {type:  "number"},
+        {type:  "number"},
+        {type:  "number"}
+      ]
+    )
+  end
+
   circle = BinCircle.new
 
   N_BINS.times do |id|
@@ -16,7 +40,7 @@ Tupelo.application do
   end
 
   N_BINS.times do |id|
-    child passive: true do
+    child subscribe: [id], passive: true do
       # take things belonging to the process's bin
       count = 0
       at_exit {log "load: #{count}"}
@@ -28,7 +52,7 @@ Tupelo.application do
     end
   end
   
-  local do
+  local subscribe: ["sum"] do
     srand(12345)
 
     Thread.new do
