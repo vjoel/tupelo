@@ -1,5 +1,6 @@
+require 'rbtree' # gem install rbtree
+require 'set'
 require 'digest/md5'
-require 'rbtree'
 
 # Used to determine which bin a given object is
 # associated with. For example: use it to look up which distributed cache
@@ -32,6 +33,11 @@ class BinCircle
       @tree[key] = id
       rep_id.succ!
     end
+  end
+  
+  # Returns the set of bin ids now in the circle.
+  def bins
+    Set.new @tree.values
   end
   
   # This hashing fn is applied to both bin ids and object identifiers (in
@@ -90,6 +96,7 @@ if __FILE__ == $0
     circle.add_bin id
   end
 
+  p circle.bins
   circle.show_bins
 
   p circle.find_bin "foo"
