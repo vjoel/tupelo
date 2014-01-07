@@ -2,14 +2,13 @@ require 'rbtree' # gem install rbtree
 require 'set'
 require 'digest/md5'
 
-# Used to determine which bin a given object is
-# associated with. For example: use it to look up which distributed cache
-# the object is stored in. Does not store or cache any data.
-# The state of a BinCircle instance depends entirely on two things:
-# the replications number (either provided as default_reps in BinCircle#new
-# or set per bin in #add_bin), and the current set of bins, which is managed
-# with #add_bin and #delete_bin.
-# Note: like rbtree, not thread-safe (for #delete and #show_bins).
+# Used to determine which bin a given object is associated with. For example:
+# use it to look up which distributed cache the object is stored in. Does not
+# store or cache any data. The state of a BinCircle instance depends entirely on
+# two things: the replications number (either provided as default_reps in
+# BinCircle#new or set per bin in #add_bin), and the current set of bins, which
+# is managed with #add_bin and #delete_bin. Note: like rbtree, not thread-safe
+# (for #delete and #show_bins). See
 # https://en.wikipedia.org/wiki/Consistent_hashing
 class BinCircle
   KEY_BITS = 30
@@ -51,6 +50,7 @@ class BinCircle
     Digest::MD5.hexdigest(str).to_i(16) & KEY_MAX
   end
   
+  # Delete the bin specified by +id+ (same as argument to #add_bin).
   def delete_bin id
     @tree.delete_if {|k,v| v == id}
   end

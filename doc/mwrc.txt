@@ -29,6 +29,8 @@ Ruby needs to connect to other languages for it to be used in distributed comput
 
 Ruby has the potential to be a coordination language for networks of processes (and at large scale too), but it needs something like tupelo to do that.
 
+Who is this for? How will it help?
+
 Many developers are using methods of coordinating their back-end computations (delayed job, resque, redis), which are relatively ad-hoc, or do not have the expressiveness of even the classic tuplespace operators (though they may provide a better choice of data structures than traditional tuplespaces), or tend more more towards centralization.
 
 Working rubyists should be thinking about distributed computing in a more explicit way, and playing with a tuplespace is an entertaining way to do that (through exercises like the dining philosophers, for example).
@@ -40,4 +42,6 @@ previously
 
 http://www.meetup.com/San-Francisco-Distributed-Computing/events/153886592/
 
-Talk was 15 minutes. No video. Rated 5/5 stars (overall for event, which included 2 other talks).
+Talk was 15 minutes. No video. Rated 5/5 stars (overall for event, which included 2 other talks). No reindeer were harmed.
+
+[spoke at rubyconf 2009 and ruby sdforum 2006, but on unrelated topics]
