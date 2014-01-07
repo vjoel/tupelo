@@ -71,8 +71,11 @@ class Tupelo::Client
     def take template, timeout: nil
       transaction timeout: timeout do |t|
         tuple = t.take template
-        yield tuple if block_given?
-        tuple
+        if block_given?
+          yield tuple
+        else
+          tuple
+        end
       end
     end
 
