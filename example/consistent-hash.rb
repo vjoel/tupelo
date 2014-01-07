@@ -44,7 +44,7 @@ Tupelo.application do
       unless n1 + n2 == sum
         log.error "bad sum"
       end
-      q,r = (i+1).divmod (N_ITER/100)
+      q,r = (100*(i+1)).divmod N_ITER
       if r == 0
         printf "\r%3d%", q
       end
