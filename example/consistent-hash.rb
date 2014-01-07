@@ -2,7 +2,7 @@
 # TODO use subspaces
 
 require 'tupelo/app'
-require_relative 'bin-circle'
+require_relative 'lib/bin-circle'
 
 N_BINS = 5
 N_REPS = 30 # of each bin, to make distribution more uniform
