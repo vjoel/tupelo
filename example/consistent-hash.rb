@@ -44,10 +44,20 @@ Tupelo.application do
       # take things belonging to the process's bin
       count = 0
       at_exit {log "load: #{count}"}
+
       loop do
         _, n1, n2 = take [id, Numeric, Numeric]
+          # could use take {|| ...} to optimistically start long computation
         write ["sum", n1, n2, n1+n2]
         count += 1
+      end
+
+      # the following loop is faster, but not horiz. scalable
+      if false
+        read [id, Numeric, Numeric] do |_, n1, n2|
+          write ["sum", n1, n2, n1+n2]
+          count += 1
+        end
       end
     end
   end
