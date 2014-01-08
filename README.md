@@ -1,7 +1,7 @@
-tupelo
+Tupelo
 ==
 
-A tuplespace that is fast, scalable, and language agnostic. It is designed for distribution of both computation and storage, in a unified language that has both transactional and tuple-operation (read/write/take) semantics.
+A tuplespace that is fast, scalable, and language agnostic. It is designed for distribution of both computation and storage (disk and memory), in a unified language that has both transactional and tuple-operation (read/write/take) semantics.
 
 This is the reference implementation in ruby. It should be able to communicate with implementations in other languages.
 
@@ -42,6 +42,12 @@ Getting started
         => ["hello", "world"]
 
 4. Take a look at the [FAQ](doc/faq.md), [tutorial](doc/tutorial.md), and many (examples)(example/).
+
+
+Applications
+=======
+
+Tupelo is a flexible base layer for various distributed programming paradigms: job queues, dataflow, map-reduce, etc.
 
 
 

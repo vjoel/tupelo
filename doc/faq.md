@@ -111,7 +111,7 @@ These operations have a few variations (wait vs nowait) and options (timeouts).
 
 For more on operations, see also [Transactions](doc/transactions.md).
 
-Syntax: what's the diff between blocks with and without arguments
+Syntax: what's the diff between blocks with and without arguments?
 ------
 
 You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare [example/add-dsl.rb](example/add-dsl.rb) and [example/add.rb](example/add.rb).
@@ -284,7 +284,7 @@ Performance
 
 2. How can I reduce latency?
 
-  Use #write (same as #write_nowait) instead of #write_wait. The usual warnings for un-acked writes apply, but if some later write or other transaction succeeds, then the previous one did.
+  Use #write (same as #write_nowait) instead of #write_wait. The usual warnings for un-acked writes apply, but if some later write or other transaction succeeds, then all previous ones did.
 
   Optimistically use results of #take within a transaction. For example, rather than this:
 
