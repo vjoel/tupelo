@@ -1,7 +1,7 @@
 # TODO make more interesting by changing the set of workers over time.
 
 require 'tupelo/app'
-require_relative 'lib/bin-circle'
+require 'tupelo/util/bin-circle'
 
 N_BINS = 5
 N_REPS = 30 # of each bin, to make distribution more uniform
