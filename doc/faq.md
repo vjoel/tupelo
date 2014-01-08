@@ -1,6 +1,122 @@
 FAQ about tupelo
 ---
 
+Basic
+=====
+
+
+What is a tuplespace?
+---------------------
+
+A tuplespace is a service for coordination, configuration, and control of concurrent and distributed systems. The model it provides to processes is a shared space that they can use to communicate in a deterministic and sequential manner. (Deterministic in that all clients see the same, consistent view of the data.) The space contains tuples. The operations on the space are few, but powerful. It's not a database, but it might be a front-end for one or more databases.
+
+See https://en.wikipedia.org/wiki/Tuple_space for general information and history. This project is strongly influenced by Masatoshi Seki's Rinda implementation, part of the Ruby standard library. See http://pragprog.com/book/sidruby/the-druby-book for a good introduction to rinda and druby.
+
+See http://dbmsmusings.blogspot.com/2010/08/problems-with-acid-and-how-to-fix-them.html for an explanation of the importance of determinism in distributed transaction systems.
+
+What is a tuple?
+----------------
+
+A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuple does not have an identity other than the data it contains. A tuplespace can contain multiple copies of the same tuple. (In the ruby client, two tuples are considered the same when they are #==.)
+
+A tuple is either an array:
+
+    ["hello", 7]
+    [nil, true, false]
+    ["foo", 3.2, [6,5,4], {"bar" => 3}]
+
+... or a hash:
+ 
+    {name: "Myrtle", location: [100,200]}
+    { [1,2] => 3, [5,7] => 12 }
+
+In other words, a tuple is a fairly general object, though this depends on the serializer--see below. More or less, a tuple is anything that can be built out of:
+
+* strings
+
+* numbers
+
+* nil, true, false
+
+* arrays
+
+* hashes
+
+It's kind of like a "JSON object", except that, when using the json serializer, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
+
+The empty tuples `[]` and `{}` are allowed, but bare values such as `3.14` or `false` are not tuples by themselves.
+
+One other thing to keep in mind: in the array case, the order of the elements is significant. In the hash case, the order is not significant. So these are both true:
+
+    [1,2] != [2,1]
+    {a:1, b:2} == {b:2, a:1}
+
+
+What is a template?
+-------------------
+
+A template an object that matches (or does not match) tuples. It's used for querying a tuplespace. Typically, a template looks just like a tuple, but possibly with wildcards of some sort. The template:
+
+    [3..5, Integer, /foo/, nil]
+
+would match the tuple:
+
+    [4, 7, "foobar", "xyz"]
+
+but not these tuples:
+
+    [6, 7, "foobar", "xyz"]
+    [3, 7.2, "foobar", "xyz"]
+    [3, 7, "fobar", "xyz"]
+
+The nil wildcard matches anything. The Range, Regexp, and Class entries function as wildcards because of the way they define the #=== (match) method. See ruby docs for general information on "threequals" matching.
+
+Every tuple can also be used as a template. The template:
+
+    [4, 7, "foobar", "xyz"]
+
+matches itself.
+
+Here's a template for matching some hash tuples:
+
+    {name: String, location: "home"}
+
+This would match all tuples whose keys are "name" and "location" and whose values for those keys are any string and the string "home", respectively.
+
+A template doesn't have to be a tuple pattern with wildcards, though. It can be anything with a #=== method. For example:
+ 
+    read_all proc {|t| some_predicate(t)}
+    read_all Hash
+    read_all Array
+    read_all Object
+
+An optional library, `tupelo/util/boolean`, provides a #match_any method to construct the boolean `or` of other templates:
+
+    read_all match_any( [1,2,3], {foo: "bar"} )
+
+Unlike in some tuplespace implementations, templates are a client-side concept (except for subspace-defining templates), which is a source of efficiency and scalability. Matching operations (which can be computationally heavy) are performed on the client, rather than on the server, which would bottleneck the whole system.
+
+What are the operations on tuples?
+--------------------
+
+* read - search the space for matching tuples, waiting if none found
+
+* write - insert the tuple into the space
+
+* take - search the space for matching tuples, waiting if none found, removing the tuple if found
+
+* pulse - write and take the tuple; readers see it, but it cannot be taken by other client, and it cannot be read later (this is not a classical tuplespace operation, but is useful for publish-subscribe communication patterns)
+
+These operations have a few variations (wait vs nowait) and options (timeouts).
+
+For more on operations, see also [Transactions](doc/transactions.md).
+
+Syntax: what's the diff between blocks with and without arguments
+------
+
+You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare [example/add-dsl.rb](example/add-dsl.rb) and [example/add.rb](example/add.rb).
+
+
 Utility
 =======
 
