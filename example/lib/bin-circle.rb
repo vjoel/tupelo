@@ -2,14 +2,29 @@ require 'rbtree' # gem install rbtree
 require 'set'
 require 'digest/md5'
 
-# Used to determine which bin a given object is associated with. For example:
-# use it to look up which distributed cache the object is stored in. Does not
-# store or cache any data. The state of a BinCircle instance depends entirely on
-# two things: the replications number (either provided as default_reps in
+# An implementation of consistent hashing
+# (https://en.wikipedia.org/wiki/Consistent_hashing) using a circular structure
+# of bins.
+#
+# Synopsis:
+#
+#    circle = BinCircle.new reps: 20
+#
+#    100.times do |id|
+#      circle.add_bin id
+#    end
+#
+#    circle.find_bin "foo"
+#
+# The #find_bin method determines which bin a given object is associated with.
+# For example: use it to look up which distributed cache the object is stored
+# in.
+#
+# BinCircle Does not store or cache any data. The state of a BinCircle instance
+# depends entirely on two things: the replications number (either passed to
 # BinCircle#new or set per bin in #add_bin), and the current set of bins, which
 # is managed with #add_bin and #delete_bin. Note: like rbtree, not thread-safe
-# (for #delete and #show_bins). See
-# https://en.wikipedia.org/wiki/Consistent_hashing
+# (for #delete and #show_bins).
 class BinCircle
   KEY_BITS = 30
   KEY_MAX = 2**KEY_BITS - 1
