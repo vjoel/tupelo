@@ -4,11 +4,11 @@ From Rinda to Tupelo: A distributed, transactional tuplespace for polyglot compu
 
 description
 
-Ruby's Rinda hides in an quiet corner of the stdlib, managing your concurrent processes. Rinda, like REST, understands many nouns (tuples) and a few verbs (read, write, take). But Rinda speaks in Marshal over a Ruby-only RPC protocol. And Rinda hoards your data.
+Ruby's Rinda hides in an quiet corner of the stdlib, coordinating your processes. Rinda, like REST, understands many nouns (tuples) and a few verbs (read, write, take). But Rinda speaks in Marshal over a Ruby-only RPC protocol. And Rinda hoards your data in one host, in volatile memory.
 
-Let's ditch RPC, make Marshal optional, and decentralize storage, search, and notification. Keep the nouns, verbs, and pessimistic locks. Add transactions, optimistic locks, and replication.
+Let's ditch RPC, make Marshal optional, and decentralize storage, search, and notification. Keep the nouns, verbs, and pessimistic locks. Add push-updates and zero-latency reads; transactions and optimistic locks; replication and persistence.
 
-We'll play with Tupelo in irb and two longer examples: map-reduce and replicated polyglot storage using LevelDB and SQLite. Demo on portable ARM cluster.
+We'll play with Tupelo in irb and two longer examples: map-reduce and replicated polyglot storage using LevelDB and SQLite, exercising a portable ARM cluster.
 
 
 
@@ -19,19 +19,15 @@ After careers as a math professor, embedded database developer, transportation r
 
 justification
 
-Rinda is great for learning and prototyping distributed systems. In practice, however, it quickly becomes frustrating: scale, latency, O(n) search, everything blocks everything else, fault tolerance, connecting to other languages, lack of persistence.
+Rinda is great for learning and prototyping distributed systems. In practice, however, it quickly becomes frustrating: scale, latency, O(n) search, everything blocks everything else, fault intolerance, difficulty connecting to other languages, lack of persistence. And rinda forces the programmer to use locking (take t; do_domething; write t) when optimistic concurrency (transaction {read t; do_something} ) may be sufficient and more efficient.
 
 Tuplespaces may be an old idea, but they are timed for a comeback, especially when combined with new ideas in distributed transactions on replicas (in this respect, Tupelo resembles Calvin, http://dbmsmusings.blogspot.com/2012/05/if-all-these-new-dbms-technologies-are.html).
 
-Why is tupelo more than a job queue? Fine grained coordination. Why is tupelo better than redis? Concurrency and replication. Why is tupelo better for programmers? Simple concurrency model, based on data, rather than processes, thread, locks, etc.
+Why is tupelo better than a job queue? Fine grained coordination. Why is tupelo better than redis? Concurrency and replication. Compared to hadoop, tupelo is much easier to set up and much faster to start, so suitable for on-line request/response, plus no limit on distribution patterns and you can keep local state. Why is tupelo good for programmers? Simple concurrency model, based on app-defined data, rather than processes, threads, locks, queues, etc.
 
 Ruby needs to connect to other languages for it to be used in distributed computing and in modern polyglot environments. Tuplespace isn't the only way to do this, but it is a very high-level way (compared to message queues, pubsub, etc.) with a long history (linda, 1980s) and with clear and expressive concurrency semantics.
 
-Ruby has the potential to be a coordination language for networks of processes (and at large scale too), but it needs something like tupelo to do that.
-
-Who is this for? How will it help?
-
-Many developers are using methods of coordinating their back-end computations (delayed job, resque, redis), which are relatively ad-hoc, or do not have the expressiveness of even the classic tuplespace operators (though they may provide a better choice of data structures than traditional tuplespaces), or tend more more towards centralization.
+Ruby has the potential to be a coordination language for parallel and distributed processing (and at large scale too), but it needs something like tupelo to do that.
 
 Working rubyists should be thinking about distributed computing in a more explicit way, and playing with a tuplespace is an entertaining way to do that (through exercises like the dining philosophers, for example).
 
