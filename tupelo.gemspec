@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0")
   s.authors = ["Joel VanderWerf"]
   s.date = Time.now.strftime "%Y-%m-%d"
-  s.description = "Distributed tuplespace."
+  s.description = "A distributed, transactional tuplespace for polyglot computation and storage."
   s.email = "vjoel@users.sourceforge.net"
   s.extra_rdoc_files = ["README.md", "COPYING"]
   s.files = Dir[
