@@ -6,38 +6,35 @@ description
 
 Ruby's Rinda hides in an quiet corner of the stdlib, coordinating your processes. Rinda, like REST, understands many nouns (tuples) and a few verbs (read, write, take). But Rinda speaks in Marshal over a Ruby-only RPC protocol. And Rinda hoards your data in one host, in volatile memory.
 
-Let's ditch RPC, make Marshal optional, and decentralize storage, search, and notification. Keep the nouns, verbs, and pessimistic locks. Add push-updates and zero-latency reads; transactions and optimistic locks; replication and persistence.
+Let's ditch RPC, make Marshal optional, and decentralize storage, search, and notification. Keep the nouns, verbs, and pessimistic locks. Add transactions, optimistic locks, push updates, zero-latency reads, fast replication, pluggable persistence, and security.
 
-We'll play with Tupelo in irb and two longer examples: map-reduce and replicated polyglot storage using LevelDB and SQLite, exercising a portable ARM cluster.
-
+We'll play with Tupelo in irb and two longer examples: map-reduce and replicated polyglot storage using LevelDB and SQLite, exercising a portable ARM cluster. You'll learn One Weird Trick to maximize the value of many cores or hosts.
 
 
 biography
 
-After careers as a math professor, embedded database developer, transportation researcher, and mud-on-the-boots distributed systems hacker, Joel is trying to contribute something new to the ever-growing toolbox of open-source frameworks for distributed computing.
+After careers as a math professor, embedded database developer, transportation researcher, and mud-on-the-boots distributed systems hacker, Joel is trying to make something new for distributed computing. He has been using Ruby professionally since 2001 and spoke at RubyConf 2009 about code generation, C extensions, and simulation.
 
 
 justification
 
-Rinda is great for learning and prototyping distributed systems. In practice, however, it quickly becomes frustrating: scale, latency, O(n) search, everything blocks everything else, fault intolerance, difficulty connecting to other languages, lack of persistence. And rinda forces the programmer to use locking (take t; do_domething; write t) when optimistic concurrency (transaction {read t; do_something} ) may be sufficient and more efficient.
+Rinda is great for learning and prototyping distributed systems. In practice, however, it quickly becomes frustrating: latency, O(n) search, bad concurrency (everything blocks everything else), fault intolerance (lost tuples due to client or network failure), isolation from other languages, and lack of persistence. And rinda forces the programmer to use locking (take t; do_something; write t) when optimistic concurrency (transaction {read t; do_something}) is sometimes more appropriate.
 
-Tuplespaces may be an old idea, but they are timed for a comeback, especially when combined with new ideas in distributed transactions on replicas (in this respect, Tupelo resembles Calvin, http://dbmsmusings.blogspot.com/2012/05/if-all-these-new-dbms-technologies-are.html).
+Tuplespaces may be an old idea, but they are poised for a comeback, especially when combined with new ideas in replication and distributed transactions. In some respects, Tupelo resembles Calvin, http://dbmsmusings.blogspot.com/2012/05/if-all-these-new-dbms-technologies-are.html: both strengthen ACID with a global transaction ordering for deterministic execution, and both offer pluggable storage and cheap replication.
 
-Why is tupelo better than a job queue? Fine grained coordination. Why is tupelo better than redis? Concurrency and replication. Compared to hadoop, tupelo is much easier to set up and much faster to start, so suitable for on-line request/response, plus no limit on distribution patterns and you can keep local state. Why is tupelo good for programmers? Simple concurrency model, based on app-defined data, rather than processes, threads, locks, queues, etc.
+Why choose tupelo rather than a job queue? Because you need fine-grained coordination, expressed in terms of application data, rather than job schedules (think how awkward this gets in sidekiq, where accumulating results requires batch jobs with callbacks, and that's only available in sidekiq pro). Why choose tupelo rather than redis? To get better concurrency (viz. the O(n) op bottleneck in redis!), replication, and persistence. Compared to hadoop, tupelo is easier to set up, faster to start, and lighter in resource usage, and state can persist in memory between steps, so it is more suitable for on-line request/response. Plus tupelo has more flexible dataflow topologies, defined in terms of app data dependencies, rather than the rigid framework of mapper and reducer procedures. Why is tupelo good for programmers? It has a simple concurrency model, based on app-defined data and three basic operations, rather than the usual mess of processes, threads, locks, channels, queues, etc.
 
-Ruby needs to connect to other languages for it to be used in distributed computing and in modern polyglot environments. Tuplespace isn't the only way to do this, but it is a very high-level way (compared to message queues, pubsub, etc.) with a long history (linda, 1980s) and with clear and expressive concurrency semantics.
+Ruby needs to connect to other languages for it to be used in distributed computing and in modern polyglot environments. Tuplespace isn't the only way to do this, but it is a very high-level way (compared to message queues, pubsub, etc.) with a long history (linda, 1980s), with clear and expressive concurrency semantics, and now with transactional guarantees.
 
-Ruby has the potential to be a coordination language for parallel and distributed processing (and at large scale too), but it needs something like tupelo to do that.
+Ruby has the potential to be a coordination language for parallel and distributed processing (and at large scale, too), but it needs something like tupelo to do that.
 
-Working rubyists should be thinking about distributed computing in a more explicit way, and playing with a tuplespace is an entertaining way to do that (through exercises like the dining philosophers, for example).
+Working rubyists should be thinking more explicitly about concurrent and distributed computing, and playing with a tuplespace is an entertaining way to do that, for example, through exercises like the dining philosophers and google's pagerank algorithm (see the extensive tupelo/example/ dir).
 
 https://github.com/vjoel/tupelo
 
 
 previously
 
-http://www.meetup.com/San-Francisco-Distributed-Computing/events/153886592/
+http://www.meetup.com/San-Francisco-Distributed-Computing/events/153886592
 
 Talk was 15 minutes. No video. Rated 5/5 stars (overall for event, which included 2 other talks). No reindeer were harmed.
-
-[spoke at rubyconf 2009 and ruby sdforum 2006, but on unrelated topics]
