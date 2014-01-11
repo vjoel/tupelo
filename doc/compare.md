@@ -48,6 +48,8 @@ To compare
 
 * beanstalkd
 
+* celery for python
+
 * resque
 
 * zookeeper -- totally ordered updates; tupelo trades availability for lower latency (?)
