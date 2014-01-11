@@ -5,7 +5,7 @@
 #
 # Depends on the sinatra and http gems.
 
-PORTS = [9001, 9002 , 9003]
+PORTS = [9001, 9002, 9003]
 
 fork do
   require 'tupelo/app'

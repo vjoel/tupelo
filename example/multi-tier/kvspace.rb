@@ -4,7 +4,7 @@
 #
 # Unlike in a key-value store, a given key_string may occur more than once.
 # It is up to the application to decide whether to enforce key uniqueness or
-# not (for example, by taking (k,...) before writing (k,v).
+# not (for example, by taking [k,...] before writing [k,v]).
 #
 # This store should be used only by clients that subscribe to a subspace
 # that can be represented as pairs. (See memo2.rb.)
