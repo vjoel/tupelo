@@ -176,7 +176,7 @@ Tuplespace Operations and Transactions
 
 2. What kind of clocks does tupelo use?
 
-  Tupelo does not use wall clocks for any distributed coordination. The only use of wall clock time is purely client-side, to manage client-requested transaction timeouts. Transactions are linearly ordered by a "tick" counter in the message sequencer.
+  Tupelo does not use wall clocks for any distributed coordination: tupelo never compares timestamps generated on different systems. The only use of wall clock time is purely client-side, to manage client-requested transaction timeouts. Transactions are globally linearly ordered by a "tick" counter in the message sequencer.
 
 3. Are transactions concurrent? What's happening in parallel?
 
