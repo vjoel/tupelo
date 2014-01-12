@@ -10,7 +10,7 @@ Tutorial
         >> t [nil, nil]
         => ["hello", "world"]
 
-  If you run tup with the --info switch it will tell you the aliases to the tuple API (and also tell you much about what is happening in your transactions). Here's an overview of the API, including the short aliases avilable in tup:
+  The `help` command will print out some basic documentation, such as the aliases used above. Here's an overview of the API:
 
   Write one or more tuples (and wait for the transaction to be recorded in the local space):
 

@@ -49,7 +49,7 @@ if ARGV.delete("-h") or ARGV.delete("--help")
       
       --trace     enable trace output
 
-      --tunnel    remote clients use ssh tunnels by default (OpenSSH >= 6.0)
+      --tunnel    remote clients use ssh tunnels by default
       
       --pubsub    publish/subscribe mode; does not keep local tuple store:
       
@@ -118,6 +118,15 @@ Tupelo.application(
     alias tr transaction
     CMD_ALIASES = %w{ w pl t r ra tr }
     private *CMD_ALIASES
+
+    def help
+      puts "Command aliases:"
+      CMD_ALIASES.each do |m_name|
+        m = method(m_name)
+        printf "%8s -> %s\n", m.name, m.original_name
+      end
+      nil
+    end
   end
 
   client_opts = {}
@@ -134,7 +143,7 @@ Tupelo.application(
     use_subspaces! if use_subspaces
 
     log.info {"cpu time: %.2fs" % Process.times.inject {|s,x|s+x}}
-    log.info {"starting shell. Commands: #{TupClient::CMD_ALIASES.join(", ")}"}
+    log.info {"starting shell."}
 
     require 'tupelo/app/irb-shell'
     IRB.start_session(self)
