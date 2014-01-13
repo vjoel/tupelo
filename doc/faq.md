@@ -182,7 +182,7 @@ Tuplespace Operations and Transactions
 
   Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines whether the commit succeeds).
 
-  During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions and *locally* in the client process. There is no synchronization between two concurrent transactions in in this stage. For example:
+  During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions and *locally* in the client process. There is no synchronization between two concurrent transactions in in this stage (and this is true whether the two transactions are in two threads in the same process or in two processes in the same or different hosts). For example:
 
       $ tup
       >> t1 = transaction
