@@ -8,28 +8,73 @@ hosts = hosts.split(",")
 
 Tupelo.tcp_application do
   hosts.each_with_index do |host, hi|
-    remote host: host, passive: true, eval: %{
+    remote host: host, passive: true, log: true, eval: %{
       require 'prime' # ruby stdlib for prime factorization
       class M
-        def initialize nh, hi
+        def initialize nh, hi, excl = []
           @nh, @hi = nh, hi
+          @excl = excl
         end
         def === x
           Array === x and
             x[0] == "input" and
-            x[1] % @nh == @hi
+            x[1] % @nh == @hi and
+            not @excl.include? x[1]
+        end
+        def exclude *y
+          self.class.new @nh, @hi, @excl + y
         end
       end
       my_pref = M.new(#{hosts.size}, #{hi})
+
       loop do
-        _, input =
+        txn = transaction
+        begin
+          _, input = txn.take_nowait(my_pref)
+        rescue TransactionFailure => ex
+          next
+        end
+
+        if input
           begin
-            take(my_pref, timeout: 1.0) # fewer fails (5.0 -> none at all)
-          rescue TimeoutError
-            take(["input", Integer])
+            txn.commit
+            output = input.prime_division
+            Thread.new do
+              begin
+                txn.wait
+              rescue TransactionFailure
+                # someone else got it
+              else
+                write ["output", input, output]
+              end
+            end
+          rescue TransactionFailure
           end
+          my_pref = my_pref.exclude input
+          next
+        end
+
+        begin
+          txn.cancel
+        rescue TransactionFailure
+        end
+        break
+      end
+        
+      loop do
+        _, input = take(["input", Integer])
         write ["output", input, input.prime_division]
       end
+        
+
+#        _, input =
+#          begin
+#            take(my_pref, timeout: 1.0) # fewer fails (5.0 -> none at all)
+#          rescue TimeoutError
+#            take(["input", Integer])
+#          end
+#        write ["output", input, input.prime_division]
+#      end
     }
   end
 
