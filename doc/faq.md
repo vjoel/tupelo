@@ -126,6 +126,8 @@ Utility
 
   High availability, very large scale systems.
   
+  Tupelo is designed for coordination, rather than large data blobs. If you need to coordinate processing of large blobs, consider definine metadata (links, ids, whatever) and using tupelo to coordinate the metadata.
+  
   High volume stream data. For low volume stream data, see [chat](example/chat/chat.rb). For using tupelo to coordinate access to high volume data, see [socket-broker.rb](example/socket-broker.rb).
   
   Applications that cannot accept a SPoF (though in the future, "SPoF" may be reduced to simply a "bottleneck" by replicating the message sequencer).
