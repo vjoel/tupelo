@@ -351,12 +351,9 @@ class Tupelo::Client
         end
 
         take_tuples.each do |tuple|
-          ### abstract this out
-          if tuple.kind_of? Hash and tuple.key? "__tupelo__"
-            if tuple["__tupelo__"] == "subspace" # tuple is subspace metatdata
-              ## do some error checking
-              subspaces.delete_if {|sp| sp.tag == tuple["tag"]}
-            end
+          if is_meta_tuple? tuple
+            ## do some error checking
+            subspaces.delete_if {|sp| sp.tag == tuple["tag"]}
           end
         end
       end
@@ -435,13 +432,17 @@ class Tupelo::Client
       end
     end
 
+    # Returns true if tuple is subspace metadata.
+    def is_meta_tuple? tuple
+      tuple.kind_of? Hash and tuple.key? "__tupelo__" and
+        tuple["__tupelo__"] == "subspace"
+    end
+
     def sniff_meta_tuple tuple
-      if tuple.kind_of? Hash and tuple.key? "__tupelo__"
-        if tuple["__tupelo__"] == "subspace" # tuple is subspace metatdata
-          ## do some error checking
-          ## what if subspace already exists?
-          subspaces << Subspace.new(tuple, self)
-        end
+      if is_meta_tuple? tuple
+        ## do some error checking
+        ## what if subspace already exists?
+        subspaces << Subspace.new(tuple, self)
       end
     end
 
