@@ -1,8 +1,12 @@
 class Tupelo::Client
   module Api
-    def define_subspace metatuple
-      defaults = {__tupelo__: "subspace", addr: nil}
-      write_wait defaults.merge!(metatuple)
+    def define_subspace tag = nil, template = nil, **metatuple
+      metatuple = {__tupelo__: "subspace", addr: nil}.merge!(metatuple)
+      metatuple[:tag] = tag if tag
+      if template
+        metatuple[:template] = PortableObjectTemplate.spec_from template
+      end
+      write_wait metatuple
     end
 
     # call this just once at start of first client (it's optional to
