@@ -1,11 +1,12 @@
 class Tupelo::Client
   module Api
-    def define_subspace tag = nil, template = nil, **metatuple
-      metatuple = {__tupelo__: "subspace", addr: nil}.merge!(metatuple)
-      metatuple[:tag] = tag if tag
-      if template
-        metatuple[:template] = PortableObjectTemplate.spec_from template
-      end
+    def define_subspace tag, template, addr: nil
+      metatuple = {
+        __tupelo__: "subspace",
+        tag:        tag,
+        template:   PortableObjectTemplate.spec_from(template),
+        addr:       addr
+      }
       write_wait metatuple
     end
 
@@ -13,15 +14,12 @@ class Tupelo::Client
     # preserve behavior of non-subspace-aware code)
     def use_subspaces!
       return if subspace(TUPELO_SUBSPACE_TAG)
-      define_subspace(
-        tag:          TUPELO_SUBSPACE_TAG,
-        template:     {
-          __tupelo__: {value: "subspace"},
-          tag:        nil,
-          addr:       nil,
-          template:   nil
-        }
-      )
+      define_subspace(TUPELO_SUBSPACE_TAG, {
+        __tupelo__: "subspace",
+        tag:        nil,
+        template:   nil,
+        addr:       nil
+      })
     end
 
     def subspace tag
