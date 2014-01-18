@@ -31,8 +31,8 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.summary = "Distributed tuplespace"
 
-  s.add_dependency 'atdo'
-  s.add_dependency 'easy-serve'
-  s.add_dependency 'funl'
-  s.add_dependency 'object-template'
+  s.add_runtime_dependency 'atdo', '~> 0'
+  s.add_runtime_dependency 'easy-serve', '~> 0'
+  s.add_runtime_dependency 'funl', '~> 0'
+  s.add_runtime_dependency 'object-template', '~> 0'
 end
