@@ -35,43 +35,34 @@ Tupelo.application do
     use_subspaces!
 
     # Subspace for tuples belonging to the addr book.
-    define_subspace(
-      tag:          ab_tag,
-      template:     [
-        {value: ab_tag},
-        {type:  "string"},  # name
-        nil                 # address; can be any object
-      ]
-    )
+    define_subspace(ab_tag, [
+      ab_tag,
+      String,   # name
+      nil       # address; can be any object
+    ])
     
     # Subspace for commands for fetch, delete, first, last, prev, next.
     # We can't use #read and #take for fetch and delete because then the
     # requesting client would have to subscribe to the ab_tag subspace.
-    define_subspace(
-      tag:          cmd_tag,
-      template:     [
-        {value: cmd_tag},
-        nil,                # request id, such as [client_id, uniq_id]
-        {type:  "string"},  # cmd name
-        {type:  "list"}     # arguments
-      ]
-    )
+    define_subspace(cmd_tag, [
+      cmd_tag,
+      nil,      # request id, such as [client_id, uniq_id]
+      String,   # cmd name
+      Array     # arguments
+    ])
 
     # Subspace for responses to commands. A response identifies the command
     # it is responding to in two ways: by copying it and by an id. The
     # former is so that another client can "spy" on one client's query
     # responses, perhaps saving effort. The latter is to distinguish between
     # iterations of the same command (first, first, ...).
-    define_subspace(
-      tag:          resp_tag,
-      template:     [
-        {value: resp_tag},
-        nil,                # in response to this request id
-        {type:  "string"},  # cmd name
-        {type:  "list"},    # arguments
-        nil,                # result of query -- type depends on command
-      ]
-    )
+    define_subspace(resp_tag, [
+      resp_tag,
+      nil,      # in response to this request id
+      String,   # cmd name
+      Array,    # arguments
+      nil,      # result of query -- type depends on command
+    ])
   end
 
   N_REPLICAS.times do |i|

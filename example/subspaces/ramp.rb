@@ -45,31 +45,24 @@ Tupelo.application do
   local do
     use_subspaces!
     
-    define_subspace(
-      tag:          "x",
-      template:     {
-        x:      {type:  "number"},    # data payload
-        id:     {type:  "list"},      # [client_id, local_id]
-        final:  {type:  "boolean"}    # false means pending
-      }
-    )
+    bool = PortableObjectTemplate::BOOLEAN
     
-    define_subspace(
-      tag:          "y",
-      template:     {
-        y:      {type:  "number"},    # data payload
-        id:     {type:  "list"},      # [client_id, local_id]
-        final:  {type:  "boolean"}    # false means pending
-      }
-    )
+    define_subspace("x", {
+      x:      Numeric,  # data payload
+      id:     Array,    # [client_id, local_id]
+      final:  bool      # false means pending
+    })
+    
+    define_subspace("y", {
+      y:      Numeric,  # data payload
+      id:     Array,    # [client_id, local_id]
+      final:  bool      # false means pending
+    })
 
-    define_subspace(
-      tag:          "ack", # could make this per-client
-      template:     {
-        ack:    {type:  "string"},    # state ack-ed: "pending"
-        id:     {type:  "list"}       # [client_id, local_id]
-      }
-    )
+    define_subspace("ack", { # could make this per-client
+      ack:    String,   # state ack-ed: "pending"
+      id:     Array     # [client_id, local_id]
+    })
   end
 
   X_REPLICATIONS.times do |xi|

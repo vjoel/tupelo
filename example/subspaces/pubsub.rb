@@ -19,22 +19,10 @@ Tupelo.application do
     use_subspaces!
 
     N_CHAN.times do |i|
-      define_subspace(
-        tag:          i,
-        template:     [
-          {value: i},
-          {type: "string"}
-        ]
-      )
+      define_subspace i, [i, String]
     end
 
-    define_subspace(
-      tag:          "control",
-      template:     [
-        {value: "control"},
-        nil
-      ]
-    )
+    define_subspace "control", ["control", nil]
   end
   
   N_PUBS.times do |pi|

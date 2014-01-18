@@ -68,7 +68,7 @@ The metadata for a subspace is packaged in a (map) tuple as in this example:
                       {type: "number", range: [0,100]} ] # %alc
     }
 
-Template syntax is explained in the following section.
+Template syntax is explained in the following section. Note the shortcut syntax.
 
 These metadata tuples themselves form a subspace, and the metadata tuple for
 that subspace is:
@@ -129,7 +129,7 @@ tuple.
 If `set` is present, then the associated value must include (as a list) the
 value in the tuple.
 
-If `type` is present, then the associated value must be `boolean`, `number`, `string`, `list`, or `map` and must equal the type of the value in the tuple.
+If `type` is present, then the associated value must be `boolean`, `number`, `integer`, `string`, `list`, or `map` and must equal the type of the value in the tuple.
 
 If `range` is present, then range defined by the associated pair must include
 the value in the tuple.
@@ -154,7 +154,7 @@ The tup client CLI by default runs a client that subscribes to the entire tuples
 In terminal 1:
 
     $ tup sv --use-subspaces
-    >> define_subspace tag: "foo", template: [{type: "number"}]
+    >> define_subspace "foo", [Numeric]
     >> w [1], ["hello"]
     >> ra Array
     => [[1], ["hello"]]

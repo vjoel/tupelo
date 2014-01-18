@@ -16,14 +16,11 @@ fork do
     local do
       use_subspaces!
 
-      define_subspace(
-        tag:          "memo",
-        template:     [
-          {value: "memo"},    # tag is encoded in each tuple, for recognizing
-          {type:  "string"},  # key in the cache, must be string
-          nil                 # value, can be any object (e.g. JSON object)
-        ]
-      )
+      define_subspace("memo", [
+        "memo",   # tag is encoded in each tuple, for recognizing
+        String,   # key in the cache, must be string
+        nil       # value, can be any object (e.g. JSON object)
+      ])
     end
 
     child tuplespace: [KVSpace, "memo"], subscribe: ["memo"] do |client|

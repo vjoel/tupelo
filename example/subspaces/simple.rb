@@ -9,15 +9,7 @@ Tupelo.application do
     log [subscribed_all, subscribed_tags]
 
     use_subspaces!
-
-    define_subspace(
-      tag:          "foo",
-      template:     [
-        {type: "number"}
-      ]
-    )
-
-    write_wait [0]
+    define_subspace "foo", [Numeric]
 
     log read_all(Object)
   end

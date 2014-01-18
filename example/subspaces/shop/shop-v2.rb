@@ -12,14 +12,11 @@ Tupelo.application do
   local do
     use_subspaces!
 
-    define_subspace(
-      tag:          "inventory",
-      template:     [
-        {value: "product"},
-        nil,                  # product_id
-        {type:  "number"}     # count
-      ]
-    )
+    define_subspace("inventory", [
+      "product",
+      nil,       # product_id
+      Integer    # count
+    ])
 
     PRODUCT_IDS.each do |product_id|
       count = 10

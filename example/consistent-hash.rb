@@ -12,25 +12,10 @@ Tupelo.application do
     use_subspaces!
 
     N_BINS.times do |id|
-      define_subspace(
-        tag:          id,
-        template:     [
-          {value: id},
-          {type:  "number"},
-          {type:  "number"}
-        ]
-      )
+      define_subspace id, [id, Numeric, Numeric]
     end
 
-    define_subspace(
-      tag:          "sum",
-      template:     [
-        {value: "sum"},
-        {type:  "number"},
-        {type:  "number"},
-        {type:  "number"}
-      ]
-    )
+    define_subspace "sum", ["sum", Numeric, Numeric, Numeric]
   end
 
   circle = BinCircle.new
