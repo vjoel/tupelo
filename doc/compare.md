@@ -44,6 +44,8 @@ However, tupelo is not a substitute for the caching functionality of redis and m
 To compare
 ----------
 
+* ETS in Erlang/OTP
+
 * calvin
 
 * beanstalkd

@@ -317,6 +317,7 @@ Performance
 
   Note that the #take value is used immediately (as soon as the value is available in local storage), before the transaction has even executed. If some other process concurrently takes that same tuple, then this transaction will roll back and attempt again to take a matching tuple.
   The latency of the transaction is less than that of the two operations separately: two hops rather than four hops. The more expensive the calculation, of course, the more (clock) time is spent inside the transaction, which increases the chance that there will be contention for that tuple. You can run a tspy process to see the sequence of messages.
+  (For another example of optimistically taking tuples, see the next section.)
   Another advantage of the transaction is that it is atomic, so a network failure or hardware failure in the client between the #take and the #write will not cause the tuple to be lost, as it would in the first case.
 
 3. What's the load-balancing story? How do I do that in tupelo?
@@ -374,7 +375,7 @@ Networking: Security, Firewalls, Hostnames
         ControlPath ~/tmp/.ssh/%r@%h:%p
         ControlPersist yes
 
-  Note that the dir `~/tmp/.ssh` must exist, so if ~/tmp is periodically cleaned, you might want to create it in your .profile / .bashrc / .zshrc file. You can  also install public ssh keys to avoid typing your password on first connection.
+  Note that the dir `~/tmp/.ssh` must exist, so if ~/tmp is periodically cleaned, you might want to create it in your .profile / .bashrc / .zshrc file. You can also install public ssh keys to avoid typing your password on first connection.
 
 
 Debugging
