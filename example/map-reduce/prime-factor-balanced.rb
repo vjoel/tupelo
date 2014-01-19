@@ -1,7 +1,10 @@
 # Modified prime-factor.rb attempts to balance load better. Improvement
 # varies--typically around 50% faster with 12 remote hosts.
+# The key to balancing load in this case is that all tuples can be
+# read in each worker, so the worker doesn't have to guess so much.
 
 require 'tupelo/app/remote'
+require 'set'
 
 hosts = ARGV.shift or abort "usage: #$0 <ssh-hostname>,<ssh-hostname>,..."
 hosts = hosts.split(",")
@@ -13,7 +16,7 @@ Tupelo.tcp_application do
       class M
         def initialize nh, hi, excl = []
           @nh, @hi = nh, hi
-          @excl = excl
+          @excl = Set.new(excl)
         end
         def === x
           Array === x and
@@ -65,22 +68,12 @@ Tupelo.tcp_application do
         _, input = take(["input", Integer])
         write ["output", input, input.prime_division]
       end
-        
-
-#        _, input =
-#          begin
-#            take(my_pref, timeout: 1.0) # fewer fails (5.0 -> none at all)
-#          rescue TimeoutError
-#            take(["input", Integer])
-#          end
-#        write ["output", input, input.prime_division]
-#      end
     }
   end
 
   local do
     t0 = Time.now
-    inputs = 1_000_000_000_000 .. 1_000_000_000_050
+    inputs = 1_000_000_000_000 .. 1_000_000_000_200
 
     inputs.each do |input|
       write ["input", input]

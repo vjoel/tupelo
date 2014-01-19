@@ -20,7 +20,7 @@ Tupelo.tcp_application do
 
   local do
     t0 = Time.now
-    inputs = 1_000_000_000_000 .. 1_000_000_000_050
+    inputs = 1_000_000_000_000 .. 1_000_000_000_200
 
     inputs.each do |input|
       write ["input", input]
