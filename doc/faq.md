@@ -319,6 +319,9 @@ Performance
   The latency of the transaction is less than that of the two operations separately: two hops rather than four hops. The more expensive the calculation, of course, the more (clock) time is spent inside the transaction, which increases the chance that there will be contention for that tuple. You can run a tspy process to see the sequence of messages.
   Another advantage of the transaction is that it is atomic, so a network failure or hardware failure in the client between the #take and the #write will not cause the tuple to be lost, as it would in the first case.
 
+3. What's the load-balancing story? How do I do that in tupelo?
+
+  Tupelo processes have the advantage that new tuples get pushed to the local replica of the tuplespace, where they can be read with no network latency. This means that each process has nearly complete information about all the work items that are available. Of course, coordination between these processes still takes time (using write and take). If you take advantage of this, you can sometimes reduce contention and increase throughput. For example, see [naive](example/map-reduce/prime-factor.rb) and [optimized](example/map-reduce/prime-factor-balanced.rb) implementations of load-balanced distributed prime factoring. In that case, there is about a 50% improvement in throughput.
 
 Apps, Tools, Command-line Interface
 ===================================

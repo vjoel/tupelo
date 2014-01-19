@@ -40,7 +40,7 @@ Tupelo.tcp_application do
 
         if input
           begin
-            txn.commit
+            txn.commit # but don't wait yet. Optimistically start working...
             output = input.prime_division
             Thread.new do
               begin
@@ -54,6 +54,9 @@ Tupelo.tcp_application do
           rescue TransactionFailure
           end
           my_pref = my_pref.exclude input
+            # Some other worker is optimistically working on this item
+            # (stolen from this worker), so don't try to take it again.
+            # Reduces contention.
           next
         end
 
@@ -63,7 +66,8 @@ Tupelo.tcp_application do
         end
         break
       end
-        
+
+      # No more preferred items, so fall back to dumb (and contentious) algo.
       loop do
         _, input = take(["input", Integer])
         write ["output", input, input.prime_division]
