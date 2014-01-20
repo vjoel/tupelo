@@ -162,8 +162,8 @@ Utility
   All of these are old ideas, but putting the three together is possibly new.
 
 
-Tuplespace Operations and Transactions
-======================================
+Tuplespace Operations
+=====================
 
 1. Why no update operation?
 
@@ -176,11 +176,18 @@ Tuplespace Operations and Transactions
 
   Some storage providers may detect this take-write and perform a more efficient update instead.
 
-2. What kind of clocks does tupelo use?
+2. With only three basic operations, how is it possible to perform more general database queries?
+
+  A querying client can write a tuple that represents a query, and a responding client can take that tuple, perform the query, and write a response. See [example/subspaces/addr-book.rb](example/subspaces/addr-book.rb).
+
+Transactions
+============
+
+1. What kind of clocks does tupelo use?
 
   Tupelo does not use wall clocks for any distributed coordination: tupelo never compares timestamps generated on different systems. The only use of wall clock time is purely client-side, to manage client-requested transaction timeouts. Transactions are globally linearly ordered by a "tick" counter in the message sequencer.
 
-3. Are transactions concurrent? What's happening in parallel?
+2. Are transactions concurrent? What's happening in parallel?
 
   Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines whether the commit succeeds).
 
@@ -219,7 +226,7 @@ Tuplespace Operations and Transactions
 
   The lack of many points of synchronization means that client threads run mostly in parallel, if the language/hardware permit, and separate client processes are completely parallel except for waiting for template matches.
 
-4. How do transactions fail?
+3. How do transactions fail?
 
   Let's consider for the moment only failures due to concurrency, and exclude external causes such as host or network problems. Then transactions have two failure modes.
 
