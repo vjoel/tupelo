@@ -48,6 +48,8 @@ To compare
 
 * calvin
 
+* MPI collective ops: http://www.osl.iu.edu/research/mpi.net/documentation/tutorial/collectives.php
+
 * beanstalkd
 
 * celery for python
