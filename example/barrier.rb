@@ -1,7 +1,7 @@
 # Unlike MPI barriers, does not use token ring. This is better for loosely
 # coupled systems -- a failed process doesn't break the ring, the state is in
 # the distributed tuplespace rather than just one process, and a replacement
-# process can be swapped in. Run with --trace to see what;s happening..
+# process can be swapped in. Run with --trace to see what's happening.
 
 require 'tupelo/app'
 
