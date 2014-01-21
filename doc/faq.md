@@ -124,7 +124,11 @@ Utility
 
   The first question about any new distributed system should be this one. Tupelo chooses low latency over the (relative) partition tolerance of zookeeper. Tupelo chooses consistency over availability. Tupelo has a bottleneck process which all communication passes through; this does increase latency and limit throughput, but it means that all operations occur on the same timeline, and transactions execute deterministically in each replica without the need for two-phase commit.
 
-1. What is tupelo not good for?
+2. How does tupelo work?
+
+  The central concept is the global timeline of events (the 'tick' counter incremented by the message sequencer as it multicasts messages to subscribers). This guarantees the following consistency property: if a tupelo client has seen all events (i.e. transactions) up to tick n, then the local state at that cilent agrees with all other clients who have seen the same ticks. This makes local reads possible, as well as locally prepared transactions.
+
+3. What is tupelo not good for?
 
   Some uses that tupelo is not good for:
 
@@ -136,7 +140,7 @@ Utility
   
   Applications that cannot accept a SPoF (though in the future, "SPoF" may be reduced to simply a "bottleneck" by replicating the message sequencer).
 
-2. What is tupelo good for? What are the "use cases"?
+4. What is tupelo good for? What are the "use cases"?
 
   Read scaling out (redundant array of sqlite example)
   
@@ -144,16 +148,16 @@ Utility
   
   Lightweight coordination: when you need task queues or other mechanisms and you don't want to run a standalone queue server.
 
-3. Is tupelo a database?
+5. Is tupelo a database?
 
   No. It's really more of a middleware. Tupelo doesn't have its own disk storage, indexing, queries, etc. It depends on other programs to provide these. That's actually a strength, since you can use different storage backends for different cases (subspaces, for example). Furthermore, those backends are not just storage, but unlimited processing in potentially any language that can talk the msgpack-based tupelo protocol.
 
-4. Is tupelo a web framework or application?
+6. Is tupelo a web framework or application?
 
   No. But see the [web examples](example/multi-tier).
   Also, tuple space has some similarities to REST: the emphasis on objects with few verbs, and constraints on the meaning of those verbs.
 
-5. What's really new about tupelo?
+7. What's really new about tupelo?
 
   Tupelo combines these ideas:
 
