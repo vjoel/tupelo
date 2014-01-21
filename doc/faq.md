@@ -120,6 +120,12 @@ You can use tupelo with a simplified syntax, like a "domain-specific language". 
 Utility
 =======
 
+1. What tradeoffs does tupelo make?
+
+  The first question about any new distributed system should be this one. Tupelo chooses low latency over the (relative) partition tolerance of zookeeper. Tupelo chooses consistency over availability. 
+  
+  Loose coupling -- not msg passing, addressible processes, etc.
+
 1. What is tupelo not good for?
 
   Some uses that tupelo is not good for:
