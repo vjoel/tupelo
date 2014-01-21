@@ -41,7 +41,7 @@ Getting started
         >> t [nil, nil]
         => ["hello", "world"]
 
-4. Take a look at the [FAQ](doc/faq.md), [tutorial](doc/tutorial.md), and many (examples)(example/).
+4. Take a look at the [FAQ](doc/faq.md), [tutorial](doc/tutorial.md), and many [examples](example/).
 
 
 Applications
