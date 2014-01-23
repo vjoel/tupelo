@@ -12,6 +12,7 @@ Documentation
 * [FAQ](doc/faq.md)
 * [Comparisons](doc/compare.md)
 * [Transactions](doc/transactions.md)
+* [Replication](doc/replication.md)
 * [Subspaces](doc/subspace.md)
 * [Examples](example/)
 
