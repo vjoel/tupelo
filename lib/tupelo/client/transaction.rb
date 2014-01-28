@@ -213,6 +213,9 @@ class Tupelo::Client
 
     def check_open
       if failed?
+        # checking this here is mostly a courtesy to client code; it is possible
+        # (a benign race condition) for the failure flag to be set later,
+        # even while a #write or #take method still has not returned.
         raise exception
       elsif not open?
         raise TransactionStateError, "not open: #{inspect}"
