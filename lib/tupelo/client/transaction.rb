@@ -212,6 +212,7 @@ class Tupelo::Client
     end
 
     def write *tuples
+      raise exception if failed?
       raise TransactionStateError, "not open: #{inspect}" unless open? or
         failed?
       check_tuples tuples
