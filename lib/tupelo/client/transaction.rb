@@ -211,10 +211,16 @@ class Tupelo::Client
       end
     end
 
+    def check_open
+      if failed?
+        raise exception
+      elsif not open?
+        raise TransactionStateError, "not open: #{inspect}"
+      end
+    end
+
     def write *tuples
-      raise exception if failed?
-      raise TransactionStateError, "not open: #{inspect}" unless open? or
-        failed?
+      check_open
       check_tuples tuples
       blobber = worker.blobber
       @writes.concat tuples.map {|t| blobber.load(blobber.dump(t))}
@@ -224,9 +230,7 @@ class Tupelo::Client
     end
     
     def pulse *tuples
-      raise exception if failed?
-      raise TransactionStateError, "not open: #{inspect}" unless open? or
-        failed?
+      check_open
       check_tuples tuples
       blobber = worker.blobber
       @pulses.concat tuples.map {|t| blobber.load(blobber.dump(t))}
@@ -235,9 +239,7 @@ class Tupelo::Client
     
     # raises TransactionFailure
     def take template_spec
-      raise exception if failed?
-      raise TransactionStateError, "not open: #{inspect}" unless open? or
-        failed?
+      check_open
       template = worker.make_template(template_spec)
       @take_templates << template
       log.debug {"asking worker to take #{template_spec.inspect}"}
@@ -247,9 +249,7 @@ class Tupelo::Client
     end
     
     def take_nowait template_spec
-      raise exception if failed?
-      raise TransactionStateError, "not open: #{inspect}" unless open? or
-        failed?
+      check_open
       template = worker.make_template(template_spec)
       @_take_nowait ||= {}
       i = @take_templates.size
@@ -263,9 +263,7 @@ class Tupelo::Client
     
     # transaction applies only if template has a match
     def read template_spec
-      raise exception if failed?
-      raise TransactionStateError, "not open: #{inspect}" unless open? or
-        failed?
+      check_open
       template = worker.make_template(template_spec)
       @read_templates << template
       log.debug {"asking worker to read #{template_spec.inspect}"}
@@ -275,9 +273,7 @@ class Tupelo::Client
     end
 
     def read_nowait template_spec
-      raise exception if failed?
-      raise TransactionStateError, "not open: #{inspect}" unless open? or
-        failed?
+      check_open
       template = worker.make_template(template_spec)
       @_read_nowait ||= {}
       i = @read_templates.size
