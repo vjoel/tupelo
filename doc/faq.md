@@ -122,7 +122,7 @@ Utility
 
 1. What tradeoffs does tupelo make?
 
-  The first question about any new distributed system should be this one. Tupelo chooses low latency over the (relative) partition tolerance of zookeeper. Tupelo chooses consistency over availability. Tupelo has a bottleneck process which all communication passes through; this does increase latency and limit throughput, but it means that all operations occur on the same timeline, and transactions execute deterministically in each replica without the need for two-phase commit. Tupelo eagerly pushes (subscribed) data to clients, rather than waiting for requests; this costs something in terms of network usage, but buys you lower latency for reads.
+  The first question about any new distributed system should be this one. Tupelo chooses low latency over the (relative) partition tolerance of zookeeper. Tupelo chooses consistency over availability. Tupelo has a bottleneck process which all communication passes through; this does increase latency and limit throughput, but it means that all operations occur on the same timeline, and transactions execute deterministically in each replica without the need for two-phase commit. Tupelo eagerly pushes (subscribed) data to clients, rather than waiting for requests; this costs something in terms of network usage, but buys you lower latency for reads (also, it makes it possible to prepare and execute transactions on the tupelo clients without extra coordination, and to keep replicas consistent).
 
 2. How does tupelo work?
 
