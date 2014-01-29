@@ -188,6 +188,10 @@ Tuplespace Operations
 
   A querying client can write a tuple that represents a query, and a responding client can take that tuple, perform the query, and write a response. See [example/subspaces/addr-book.rb](example/subspaces/addr-book.rb).
 
+3. Do I have to worry about retrying operations? What about idempotence to ensure that retried operations have no ill effects?
+
+  If a transaction in the block form (or a `take` or a `write_wait`) returns to the calling code, then it has (or will have) executed exactly once on all clients connected to the tupelo message sequencer. If you use `transaction` without a block, then you will need to rescue TransactionFailure and retry the transaction, which will execute at most once.
+
 Transactions
 ============
 
