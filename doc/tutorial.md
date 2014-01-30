@@ -30,7 +30,7 @@ Write and then wait, under user control:
 
       write(...).wait
 
-Pulse a tuple or several (write but immediately delete it, like pubsub):
+**Pulse** a tuple or several (write but immediately delete it, like pubsub):
 
       pl <tuple>,...
       pulse_wait ...
@@ -39,7 +39,7 @@ Pulse without waiting:
 
       pulse_nowait <tuple>,...
 
-Read tuple matching a template, waiting for a match to exist:
+**Read** tuple matching a template, waiting for a match to exist:
 
       r <template>
       read <template>
@@ -74,7 +74,7 @@ Read tuples in a stream, both existing and as they arrive:
       read <template> do |tuple| ... end
       read do |tuple| ... end             # match any tuple
 
-Take a tuple matching a template:
+**Take** a tuple matching a template:
 
       t <template>
       take <template>
@@ -97,7 +97,7 @@ Take a tuple matching a template, but only if a local match exists (otherwise re
 
 Note that a local match is still not a guarantee of `x_final == x_optimistic`. Another process may take `x_optimistic` first, and the take will be re-executed. (Think of #take_nowait as a way of saying "take a match, but don't bother trying if there is no match known at this time.") Similarly, #take_nowait returning nil is not a guarantee that a match does not exist: another process could have written a match later than the time of the local search.
 
-Perform a general transaction:
+Each of the operations we have seen runs as a single operation in its own transaction. You can also perform a general **transaction**, involving several operations:
 
       result =
         transaction do |t|
@@ -166,7 +166,7 @@ To do this on two hosts, copy the sv file and, if necessary, edit its connect_ho
 The Example directory
 ---------------------
 
-Look at the examples. If you installed tupelo as a gem, you may need to dig a bit to find the gem installation. For example:
+The examples cover many standard concepts from concurrent and distributed programming. If you installed tupelo as a gem, you may need to dig a bit to find the gem installation. On a typical linux system you might find it like this:
 
       ls -d /usr/local/lib/ruby/gems/*/gems/tupelo*
 
@@ -175,7 +175,7 @@ Note that all bin and example programs accept blob type (e.g., --msgpack, --json
 Tracing and debugging
 ---------------------
 
-In addition to the --info switch on all bin and example programs, bin/tspy is also really useful; it shows all tuplespace events in sequence that they occur. For example, run
+In addition to the --info switch on all bin and example programs, bin/tspy is also useful; it shows all tuplespace events in sequence that they occur. For example, run
 
       $ tspy sv
 
