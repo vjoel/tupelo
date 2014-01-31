@@ -11,7 +11,8 @@ module Tupelo
     attr_reader :worker
     attr_reader :tuplespace
 
-    TUPELO_SUBSPACE_TAG = "tupelo subspace"
+    TUPELO_SUBSPACE_TAG = "tupelo subspace".freeze
+    TUPELO_META_KEY = "__tupelo__".freeze
 
     def initialize(tuplespace: SimpleTuplespace, subscribe: :all, **opts)
       super **opts

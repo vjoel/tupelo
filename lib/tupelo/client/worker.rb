@@ -434,8 +434,8 @@ class Tupelo::Client
 
     # Returns true if tuple is subspace metadata.
     def is_meta_tuple? tuple
-      tuple.kind_of? Hash and tuple.key? "__tupelo__" and
-        tuple["__tupelo__"] == "subspace"
+      tuple.kind_of? Hash and tuple.key? TUPELO_META_KEY and
+        tuple[TUPELO_META_KEY] == "subspace"
     end
 
     def sniff_meta_tuple tuple
