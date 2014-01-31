@@ -249,9 +249,9 @@ class Tupelo::Client
 
       begin
         tuplespace.clear
-          ## in some cases, we can keep some of it, but the current
-          ## archiver is not smart enough to send exactly the delta
-          ### abort all current transactions???
+          ## In some cases, we can keep some of it, but the current
+          ## archiver is not smart enough to send exactly the delta.
+          ## Also, might need to abort some current transactions.
 
         arc_tick = arc.read[0]
         log.info "arc says global_tick = #{arc_tick}"
