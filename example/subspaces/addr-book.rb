@@ -119,7 +119,7 @@ Tupelo.application do
     name = "Daisy"
     write [cmd_tag, rqid, "fetch", [name]]
     addr = take( [resp_tag, rqid, nil, nil, nil] ).last
-    log "found: #{name} => #{addr}"
+    log "Looked up #{name} and found: #{name} => #{addr}"
     
     rqid = next_rqid.call
     write [cmd_tag, rqid, "first", []]
