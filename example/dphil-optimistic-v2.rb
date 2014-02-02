@@ -15,7 +15,8 @@ Tupelo.application do
 
       N_ITER.times do
         transaction do
-          # lock the resource (in transaction, so optimistically):
+          # lock the resource (in transaction, so optimistically)
+          # this is really just an assertion of facts:
           read ["chopstick", i]
           read ["chopstick", (i+1)%N_PHIL]
 
