@@ -1,7 +1,7 @@
 Tupelo
 ==
 
-A tuplespace that is fast, scalable, and language agnostic. It is designed for distribution of both computation and storage (disk and memory), in a unified language that has both transactional and tuple-operation (read/write/take) semantics.
+A tuplespace that is fast, scalable, and language agnostic. Tupelo is designed for distribution of both computation and storage (disk and memory), in a unified language that has both transactional and tuple-operation (read/write/take) semantics.
 
 This is the reference implementation in ruby. It should be able to communicate with implementations in other languages.
 
@@ -149,6 +149,6 @@ Joel VanderWerf, vjoel@users.sourceforge.net, @JoelVanderWerf.
 License and Copyright
 ========
 
-Copyright (c) 2013, Joel VanderWerf
+Copyright (c) 2013-2014, Joel VanderWerf
 
 License for this project is BSD. See the COPYING file for the standard BSD license. The supporting gems developed for this project are similarly licensed.
