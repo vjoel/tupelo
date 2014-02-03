@@ -122,7 +122,7 @@ Utility
 
 1. What tradeoffs does tupelo make?
 
-  The first question about any new distributed system should be this one. Tupelo chooses low latency over the (relative) partition tolerance of zookeeper. Tupelo chooses consistency over availability. Tupelo has a bottleneck process which all communication passes through; this does increase latency and limit throughput, but it means that all operations occur on the same timeline, and transactions execute deterministically in each replica without the need for two-phase commit. Tupelo eagerly pushes (subscribed) data to clients, rather than waiting for requests; this costs something in terms of network usage, but buys you lower latency for reads (also, it makes it possible to prepare and execute transactions on the tupelo clients without extra coordination, and to keep replicas consistent).
+  The first question about any new distributed system should be this one. Tupelo chooses low latency over the (relative) partition tolerance of zookeeper. Tupelo chooses consistency over availability. Tupelo has a bottleneck process which all communication passes through; this does increase latency and limit throughput, but it means that all operations occur on the same timeline, and transactions execute deterministically in each replica without the need for two-phase commit. Tupelo eagerly pushes (subscribed) data to clients, rather than waiting for requests; this costs something in terms of network usage, but buys you lower latency for reads (also, it makes it possible to prepare and execute transactions on the tupelo clients without extra coordination, and to keep replicas consistent). Transactions in tupelo also make a severe tradeoff: they cannot cross subspace boundaries, but they execute deterministically without any coordination or locking.
 
 2. How does tupelo work?
 
@@ -191,6 +191,10 @@ Tuplespace Operations
 3. Do I have to worry about retrying operations? What about idempotence to ensure that retried operations have no ill effects?
 
   If a transaction in the block form (or a `take` or a `write_wait`) returns to the calling code, then it has (or will have) executed exactly once on all clients connected to the tupelo message sequencer. If you use `transaction` without a block, then you will need to rescue TransactionFailure and retry the transaction, which will execute at most once.
+
+4. If reads are local, then why are reads included in the transaction as it is sent to remote processes?
+
+In a transaction, a read acts as an assertion that a certain tuple exists. If that tuple has disappeared after the #commit call and before the execution of the transaction, then the "assertion" fails and so does the transaction.
 
 Transactions
 ============

@@ -33,7 +33,7 @@ success of a transaction without further coordination -- no two-phase commit is
 needed. This rule has no effect on transactions that contain only writes (and
 which always succeed anyway).
 
-More precisely, we check a transaction as follows. For a tuple `t`, define `S_t` to be the set of subspaces that include `t`. A transaction `T` must satisfiy these two conditions:
+More precisely, we check a transaction as follows. For a tuple `t`, define `S_t` to be the set of subspaces that include `t`. A transaction `T` must satisfy these two conditions:
 
 1. All `S_t` must be equal for all `t` appearing in a take or read operation of `T`. Denote this set as `S_T`.
 
