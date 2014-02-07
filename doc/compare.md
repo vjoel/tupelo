@@ -81,3 +81,6 @@ To compare
 * tibco and gigaspace
 
 * gridgain
+
+* ActorDB
+
