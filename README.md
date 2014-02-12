@@ -42,14 +42,13 @@ Getting started
         >> t [nil, nil]
         => ["hello", "world"]
 
-4. Take a look at the [FAQ](doc/faq.md), [tutorial](doc/tutorial.md), and many [examples](example/).
+4. Take a look at the [FAQ](doc/faq.md), [tutorial](doc/tutorial.md), and the many [examples](example/).
 
 
 Applications
 =======
 
-Tupelo is a flexible base layer for various distributed programming paradigms: job queues, dataflow, map-reduce, etc.
-
+Tupelo is a flexible base layer for various distributed programming paradigms: job queues, dataflow, map-reduce, etc. Using subspaces, it's also a transactional, replicated datastore with pluggable storage providers.
 
 
 Advantages
