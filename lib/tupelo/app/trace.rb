@@ -17,6 +17,12 @@ class Tupelo::Client
     end
   end
 
+  def tracing?
+    !!@trace_thread
+  end
+
+  private
+
   # Turn on tracing in this client (performed by a thread).
   def start_trace
     @trace_thread ||= Thread.new do
@@ -30,7 +36,10 @@ class Tupelo::Client
 
   # Turn off tracing in this client.
   def stop_trace
-    @trace_thread && @trace_thread.kill
+    if @trace_thread
+      @trace_thread.kill
+      @trace_thread = nil
+    end
   end
 end
 

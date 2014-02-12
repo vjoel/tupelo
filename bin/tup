@@ -119,12 +119,27 @@ Tupelo.application(
     CMD_ALIASES = %w{ w pl t r ra tr }
     private *CMD_ALIASES
 
+    def trace *args
+      require 'tupelo/app/trace'
+      if args.empty?
+        if tracing? then stop_trace else start_trace end
+      elsif args.first
+        start_trace
+      else
+        stop_trace
+      end
+    end
+
     def help
       puts "Command aliases:"
       CMD_ALIASES.each do |m_name|
         m = method(m_name)
         printf "%8s -> %s\n", m.name, m.original_name
       end
+      puts
+      puts "Extra commands:"
+      puts "  trace [true|false]  # turn on or off tracing"
+      puts "  trace               # toggle tracing"
       nil
     end
   end
