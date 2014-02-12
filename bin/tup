@@ -128,6 +128,7 @@ Tupelo.application(
       else
         stop_trace
       end
+      tracing?
     end
 
     def help
