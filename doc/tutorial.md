@@ -190,3 +190,4 @@ There is also the similar --trace switch that is available to all bin and exampl
 
 The `Tupelo.application` command, provided by `tupelo/app`, is the source of all these options and is available to your programs. It's a kind of lightweight process deployment and control framework; however `Tupelo.application` is not necessary to use tupelo.
 
+Tracing is also available from within the tup shell with the trace command; type help at the command prompt for details.
