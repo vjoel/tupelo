@@ -14,6 +14,8 @@ Documentation
 * [Transactions](doc/transactions.md)
 * [Replication](doc/replication.md)
 * [Subspaces](doc/subspace.md)
+* [Causality](doc/causality.md)
+* [Concurrency](doc/concurrency.md)
 * [Examples](example/)
 
 Internals
