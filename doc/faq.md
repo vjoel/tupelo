@@ -267,6 +267,12 @@ Transactions
   After the transaction has been sent through the sequencer (either by calling #commit or by reaching the end of the syntactic block), it can fail for essentially the same reason: another transaction happened first, and a tuple is missing. This is harder to see using interactive tools, because the latency window between the #commit call and execution is too short. However, with higher load and contention for a small set of tuples, you can see this failure quite easily using the --trace switch. For example, [example/lock-mgr.rb](example/lock-mgr.rb) and  [example/map-reduce/prime-factor.rb](example/map-reduce/prime-factor.rb).
 
 
+4. Do transactions nest?
+
+  No. Not really. It's ok to syntactically enclose one transaction block in another, but they aren't truly nested in the sense that aborting the outer transaction also rolls back the inner one. The two transactions are just concurrent, independent transactions.
+  Do not let a nested transaction use tuples from an enclosing transaction that has not yet executed. See [example/nest.rb](example/nest.rb).
+
+
 Distributing
 ============
 
