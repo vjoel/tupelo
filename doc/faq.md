@@ -10,14 +10,16 @@ What is a tuplespace?
 
 A tuplespace is a service for coordination, configuration, and control of concurrent and distributed systems. The model it provides to processes is a shared space that they can use to communicate in a deterministic and sequential manner. (Deterministic in that all clients see the same, consistent view of the data.) The space contains tuples. The operations on the space are few, but powerful. It's not a database, but it might be a front-end for one or more databases.
 
-See https://en.wikipedia.org/wiki/Tuple_space for general information and history. This project is strongly influenced by Masatoshi Seki's Rinda implementation, part of the Ruby standard library. See http://pragprog.com/book/sidruby/the-druby-book for a good introduction to rinda and druby.
+See https://en.wikipedia.org/wiki/Tuple_space for general information and history. This project is strongly influenced by Masatoshi Seki's Rinda implementation, part of the Ruby standard library, though the implementation is quite different. See http://pragprog.com/book/sidruby/the-druby-book for a good introduction to rinda and druby.
+
+A tuplespace is a kind of virtual shared memory: http://lindaspaces.com/products/vsm.html. Note particularly that VSM is different from message passing. Note that, since the sharing is virtual, there need not be any single process which stores all of the data.
 
 See http://dbmsmusings.blogspot.com/2010/08/problems-with-acid-and-how-to-fix-them.html for an explanation of the importance of determinism in distributed transaction systems.
 
 What is a tuple?
 ----------------
 
-A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuple does not have an identity other than the data it contains. A tuplespace can contain multiple copies of the same tuple. (In the ruby client, two tuples are considered the same when they are #==.)
+A tuple is the unit of information in a tuplespace. It is immutable in the context of the tuplespace -- you can write a tuple into the space and you can read or take one from the space, but you cannot update a tuple within a space. A tuple does not have an identity other than the data it contains (this is also known as associative or content-addressable storage). A tuplespace can contain multiple copies of the same tuple. (In the ruby client, two tuples are considered the same when they are #==.)
 
 A tuple is either an array:
 
