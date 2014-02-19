@@ -36,7 +36,7 @@ Optimistic concurrency has a significant disadvantage, however, when *contention
       end
     end
 
-If you run this with the `--trace` switch, you'll see many failed transactions. This is because several processes are trying to take the same tuple, and only the first of these (the first to pass through the message sequencer) will succeed; the others will repeat the transaction preparation (running the code block again).
+If you run this with the `--trace` switch, you'll see many failed transactions. This is because several processes are trying to take the same tuple, and only the first of these (the first to pass through the message sequencer) will succeed; the others will repeat the transaction preparation (running the code block again). These failures do not make the program run incorrectly, just inefficiently. The cost of a failed transaction has two parts: the computational cost of having to repeat the transaction block (including datastructure lookups) and the latency cost of the round trip to and from the sequencer.
 
 Transactions used for optimistic concurrency have another significant disadvantage compared to using take/write to lock/unlock tuples: a transaction can protect only resources that are represented in the tuplespace, whereas a lock can protect anything: a file, a device, a service, etc. This is because a transaction begins and ends within a single instant of logical (tuplespace) time, whereas a lock tuple can be taken out for an arbitrary duration of real (and logical) time. Furthermore, the instant of logical time in which a transaction takes effect may occur at different wall-clock times on different processes, even on the same host.
 
@@ -49,7 +49,7 @@ Another advantage of tranactions is that it is possible to guarantee continuous 
       write step: step + 1
     end
 
-Any client which reads the `{step: Numeric}` template will find a (unique) match without blocking.
+Any client which reads the `{step: Numeric}` template will find a (unique) match without blocking. Since reads are always local, this means that every client has fast local access to the current state of the activity (the "step" in this case).
 
 Another use of transactions: forcing a retry when something changes:
 
