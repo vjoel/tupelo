@@ -13,18 +13,43 @@ If you prefer classical tuplespace locking, you can simply use certain tuples as
 
 If an optimistic transaction fails (for example, it is trying to take a tuple, but the tuple has just been taken by another transaction), then the transaction block is re-executed, possibly waiting for new matches to the templates. Application code must be aware of the possible re-execution of the block. This is better explained in the examples...
 
-Transactions have a significant disadvantage compared to using take/write to lock/unlock tuples: a transaction can protect only resources that are represented in the tuplespace, whereas a lock can protect anything: a file, a device, a service, etc. This is because a transaction begins and ends within a single instant of logical (tuplespace) time, whereas a lock tuple can be taken out for an arbitrary duration of real (and logical) time. Furthermore, the instant of logical time in which a transaction takes effect may occur at different wall-clock times on different processes, even on the same host.
+Optimistic concurrency has a significant disadvantage, however, when *contention* is high: that is, many processes are trying to use the same tuples. (See also the FAQ section on how transactions fail.) For example, 
+
+    require 'tupelo/app'
+
+    N = 5
+
+    Tupelo.application do
+      N.times do |i|
+        child do
+          transaction do
+            n, _ = take [Integer]
+            write [n + 1]
+          end
+        end
+      end
+
+      child do
+        write [0]
+        n, _ = take [N]
+        puts "result is #{n}"
+      end
+    end
+
+If you run this with the `--trace` switch, you'll see many failed transactions. This is because several processes are trying to take the same tuple, and only the first of these (the first to pass through the message sequencer) will succeed; the others will repeat the transaction preparation (running the code block again).
+
+Transactions used for optimistic concurrency have another significant disadvantage compared to using take/write to lock/unlock tuples: a transaction can protect only resources that are represented in the tuplespace, whereas a lock can protect anything: a file, a device, a service, etc. This is because a transaction begins and ends within a single instant of logical (tuplespace) time, whereas a lock tuple can be taken out for an arbitrary duration of real (and logical) time. Furthermore, the instant of logical time in which a transaction takes effect may occur at different wall-clock times on different processes, even on the same host.
 
 Transactions do have an advantage over using take/write to lock/unlock tuples: there is no possibility of deadlock. See [example/deadlock.rb](example/deadlock.rb) and [example/parallel.rb](example/parallel.rb).
 
-Another advantage of tranactions is that it is possible to guarantee continuous existence of a time-series of tuples. For example, suppose that tuples matching `{step: Numeric}` indicate the progress of some activity. With transactions, you can guarantee that there is exactly one matching tuple at any time, and that no client ever sees in intermediate or inconsistent state of the counter:
+Another advantage of tranactions is that it is possible to guarantee continuous existence of a time-series of tuples. For example, suppose that tuples matching `{step: Numeric}` indicate the progress of some activity. With transactions, you can guarantee that there is exactly one matching tuple at any time, and that no client ever sees an intermediate or inconsistent state of the counter or has to wait for the counter to be incremented:
 
     transaction do
       step = take(step: nil)["step"]
       write step: step + 1
     end
 
-Any client which reads this template will find a (unique) match without blocking.
+Any client which reads the `{step: Numeric}` template will find a (unique) match without blocking.
 
 Another use of transactions: forcing a retry when something changes:
 
