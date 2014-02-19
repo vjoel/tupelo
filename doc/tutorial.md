@@ -172,6 +172,8 @@ The examples cover many standard concepts from concurrent and distributed progra
 
 Note that all bin and example programs accept blob type (e.g., --msgpack, --json) on command line (it only needs to be specified for server -- the clients discover it). Also, all these programs accept log level on command line. The default is --warn. The --info level is a good way to get an idea of what is happening, without the verbosity of --debug.
 
+Note some of the examples require additional gem installations, such as sqlite3, rbtree, narray, sinatra.
+
 Tracing and debugging
 ---------------------
 
