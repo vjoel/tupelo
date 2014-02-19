@@ -264,9 +264,9 @@ Transactions
       >> txn
       => Tupelo::Client::Transaction failed take RubyObjectTemplate: [1] missing: [[1]]
 
-  After the transaction has been sent through the sequencer (either by calling #commit or by reaching the end of the syntactic block), it can fail for essentially the same reason: another transaction happened first, and a tuple is missing. This is harder to see using interactive tools, because the latency window between the #commit call and execution is too short. However, with higher load and contention for a small set of tuples, you can see this failure quite easily using the --trace switch. For example, [example/lock-mgr.rb](example/lock-mgr.rb) and  [example/map-reduce/prime-factor.rb](example/map-reduce/prime-factor.rb).
-
-To see both kinds of failure, both pre and post commit, this is useful:
+  After the transaction has been sent through the sequencer (either by calling #commit or by reaching the end of the syntactic block), it can fail for essentially the same reason: another transaction happened first, and a tuple is missing. This is harder to see using interactive tools, because the latency window between the #commit call and execution is too short. However, with higher load and contention for a small set of tuples, you can see this failure quite easily using the ``--trace`` switch. For example, [example/lock-mgr.rb](example/lock-mgr.rb) and  [example/map-reduce/prime-factor.rb](example/map-reduce/prime-factor.rb).
+  
+ Note that the ``--trace`` switch only indicates failures after commit. Failures can also occur during the preparation of a transaction when some other process takes a tuple; these failures are internal to a client process, and show up in the info logs. To see both kinds of failure, both pre and post commit, this is useful:
 
     ruby prog.rb --trace --info 2>&1 | grep -i fail
 
