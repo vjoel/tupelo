@@ -74,6 +74,9 @@ To compare
 
 * job queues: sidekiq, resque, delayedjob, http://queues.io, https://github.com/factual/skuld
 
+* message queues
+  http://www.rabbitmq.com/blog/2014/02/19/distributed-semaphores-with-rabbitmq
+
 * pubsubs: kafka
 
 * spark, storm
