@@ -32,6 +32,9 @@ Tupelo.application do
         counter = t.read count: Numeric
         log "entering new state: #{counter}"
         t.wait
+        # If you prefer to check for failure periodically, rather than
+        # blocking with #wait, then simply call t.failed? You can call
+        # t.missing to see which tuples caused the failure.
       rescue Tupelo::Client::TransactionFailure => ex
         log "leaving old state: #{counter}"
       end
