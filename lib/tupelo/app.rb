@@ -67,8 +67,12 @@ module Tupelo
     tunnel_default = !!opts[:tunnel]
     persist_dir = opts[:persist_dir]
 
+    if not services_file and argv[0] !~ /^-/ ## hacky
+      services_file = argv.shift
+    end
+
     ez_opts = {
-      services_file: services_file || argv.shift,
+      services_file: services_file,
       interactive: $stdin.isatty
     }
 
