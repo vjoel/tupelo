@@ -58,7 +58,7 @@ Another use of transactions: forcing a retry when something changes:
       take value: nil, step: step
     end
 
-This code waits on the existence of a value, but retries if the step changes while waiting. See example/pregel/distributed.rb for a use of this techinique.
+This code waits on the existence of a value, but retries if the step changes while waiting. See [example/pregel/distributed.rb](example/pregel/distributed.rb) for a use of this technique in an applied setting.
 
 Tupelo transactions are ACID in the following sense. They are Atomic and Isolated -- this is enforced by the transaction processing in each client. Consistency is enforced by the underlying message sequencer: each client's copy of the space is the deterministic result of the same sequence of operations. This is also known as [sequential consistency] (https://en.wikipedia.org/wiki/Sequential_consistency). Also see the Calvin database described in http://dbmsmusings.blogspot.com/2012/05/if-all-these-new-dbms-technologies-are.html, which uses this same technique. Like tupelo, Calvin avoids 2PC, and "is not a database system itself, but rather a transaction scheduling and replication coordination service", which can "integrate with any data storage layer, relational or otherwise", and in which "replicas perform the actual processing of transactions completely independently of one another, maintaining strong consistency without having to constantly synchronize transaction results between replicas".
 
