@@ -18,7 +18,7 @@ module Tupelo
       super **opts
       @tuplespace = tuplespace
       @worker = make_worker
-      @initial_subscriptions = subscribe
+      @initial_subscriptions = subscribe || []
     end
 
     def inspect
