@@ -367,6 +367,10 @@ Apps, Tools, Command-line Interface
   This would only make sense for write and pulse ops, not read or take. The
 reason is that #read and #take depend on the client being subscribed to the subspace to which the ops apply. Subscribing may involve significant data transfer, depending on the size of the subspace. It is not generally efficient to do this for a single operation. Use bin/tup instead.
 
+2. Can I use tupelo without the Application framework?
+
+  Yes. The Application class is useful for examples and tests. It is suitable for more complex applications if their source code fits the framework. But it may force you into certain decisions that make it difficult to integrate into other code. One example is [example/small.rb](example/small.rb). (It would be good to have an example that doesn't even use easy-serve...)
+
 Networking: Security, Firewalls, Hostnames
 ======================
 
