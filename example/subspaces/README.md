@@ -9,3 +9,4 @@ For other uses of subspaces, see also:
 
 * [consistent hashing example](../consistent-hash.rb)
 
+* [Riemann clone](../riemann)

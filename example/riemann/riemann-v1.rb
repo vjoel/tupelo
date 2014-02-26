@@ -1,10 +1,7 @@
-# A toy implementation of Riemann (http://riemann.io)
+# A toy implementation of Riemann (http://riemann.io).
 #
-# Also, this is an example of storing a subspace using different data
-# structures in different clients, depending on needs: some clients (generic
-# consumers) need to index by host and service, and others (expiration manager)
-# need to sort by expiration time,  and others (critical event alerter) don't
-# need to sort at all.
+# Version 1 uses the default tuplespace for all subspaces, which is inefficient
+# for searching.
 
 require 'tupelo/app'
 
@@ -73,7 +70,7 @@ Tupelo.application do
 
   N_CONSUMERS.times do |i|
     # stores events indexed by host, service
-    child subscribe: "event", passive: true do ### tuplespace: sqlite
+    child subscribe: "event", passive: true do
       log.progname = "consumer #{i}"
       read subspace("event") do |event|
         log event ### need filtering, actions, etc.
@@ -94,7 +91,7 @@ Tupelo.application do
   }
   
   # critical event alerter
-  child subscribe: "event", passive: true do ### tuplespace: bag?
+  child subscribe: "event", passive: true do
     log.progname = "alerter"
     read critical_event do |event|
       log.error event
@@ -104,6 +101,5 @@ Tupelo.application do
   # expirer: stores current events in expiration order
   child subscribe: "event", passive: true do
     log.progname = "expirer"
-    ### use rbtree
   end
 end
