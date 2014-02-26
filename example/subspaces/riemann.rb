@@ -3,7 +3,8 @@
 # Also, this is an example of storing a subspace using different data
 # structures in different clients, depending on needs: some clients (generic
 # consumers) need to index by host and service, and others (expiration manager)
-# need to sort by expiration time.
+# need to sort by expiration time,  and others (critical event alerter) don't
+# need to sort at all.
 
 require 'tupelo/app'
 
@@ -42,8 +43,9 @@ Tupelo.application do
     })
   end
 
-  N_PRODUCERS.times do
+  N_PRODUCERS.times do |i|
     child subscribe: [] do # N.b., no subscriptions
+      log.progname = "producer #{i}"
       event = {
         host:         `hostname`.chomp,
         service:      "service #{client_id}", # placeholder
@@ -69,9 +71,10 @@ Tupelo.application do
     end
   end
 
-  N_CONSUMERS.times do
+  N_CONSUMERS.times do |i|
     # stores events indexed by host, service
     child subscribe: "event", passive: true do ### tuplespace: sqlite
+      log.progname = "consumer #{i}"
       read subspace("event") do |event|
         log event ### need filtering, actions, etc.
       end
@@ -90,7 +93,9 @@ Tupelo.application do
     ttl:         nil
   }
   
-  child subscribe: "event", passive: true do
+  # critical event alerter
+  child subscribe: "event", passive: true do ### tuplespace: bag?
+    log.progname = "alerter"
     read critical_event do |event|
       log.error event
     end
@@ -98,6 +103,7 @@ Tupelo.application do
 
   # expirer: stores current events in expiration order
   child subscribe: "event", passive: true do
+    log.progname = "expirer"
     ### use rbtree
   end
 end
