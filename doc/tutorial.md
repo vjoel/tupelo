@@ -74,6 +74,8 @@ Read tuples in a stream, both existing and as they arrive:
       read <template> do |tuple| ... end
       read do |tuple| ... end             # match any tuple
 
+Note that this is not transactional: the sequence of tuples that are yielded to the block might not all exist at the same time.
+
 **Take** a tuple matching a template:
 
       t <template>
