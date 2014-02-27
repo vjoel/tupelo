@@ -173,7 +173,13 @@ Utility
 
 8. A tuplespace looks like a big global variable that is shared across processes. Isn't it a bad idea to have all that mutable global state?
 
-  Like a database? There are reasons to prefer global state. By contrast, state that is encapsulated within program objects is closely coupled with the implementation of those objects: the language, data structures, and algorithms used, etc. As argued [here](http://scattered-thoughts.net/blog/2014/02/17/local-state-is-harmful) and [here](http://awelonblue.wordpress.com/2012/10/21/local-state-is-poison), encapsulated state make programs harder to understand.
+  Like a database? There are reasons to prefer global state. By contrast, state that is encapsulated within program objects is closely coupled with the implementation of those objects: the language, data structures, and algorithms used, etc. As argued [here](http://scattered-thoughts.net/blog/2014/02/17/local-state-is-harmful) and [here](http://awelonblue.wordpress.com/2012/10/21/local-state-is-poison), encapsulated state makes programs harder to understand and harder to extend in certain ways. In the context of tupelo, here are some points to consider:
+  
+  * The history of global state is completely observable, and the history is the same for all observers. You can see this with the --trace switch to any tupelo app (or by using the tracing API).
+  
+  * Transitions from one state to another happen only as a result of a limited set of operations (write and take).
+  
+  * What this state consists of, and what changes as the state transitions to a new state, is independent of programs. It's just tuples, not data structures in some programming language.
 
 Also, it's not as bad as a truly global variable: subspaces can constrain the scope of some state to only those process that need to know about that part
 .
