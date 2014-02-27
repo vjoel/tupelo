@@ -23,9 +23,5 @@ module Tupelo
         end
       end
     end
-    
-    def make_scheduler **opts
-      AtDo.new self, **opts
-    end
   end
 end
