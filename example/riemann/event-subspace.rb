@@ -31,4 +31,30 @@ class Tupelo::Client
                               # tupelo does not permit wildcards in keys)
     })
   end
+
+  # This could be a subspace of the event subspace, but for now, we can just
+  # use it as a template to select critical events out of the event subspace.
+  CRITICAL_EVENT = {
+    host:         nil,
+    service:      nil,
+    state:        /\A(?:critical|fatal)\z/i,
+    time:         nil,
+    description:  nil,
+    tags:         nil,
+    metric:       nil,
+    ttl:          nil,
+    custom:       nil
+  }.freeze
+
+  EXPIRED_EVENT = {
+    host:         nil,
+    service:      nil,
+    state:        /\Aexpired\z/i,
+    time:         nil,
+    description:  nil,
+    tags:         nil,
+    metric:       nil,
+    ttl:          nil,
+    custom:       nil
+  }.freeze
 end

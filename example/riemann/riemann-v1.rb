@@ -5,6 +5,8 @@
 
 require 'tupelo/app'
 require_relative 'event-subspace'
+require_relative 'producer'
+require_relative 'expirer-v1'
 
 N_PRODUCERS = 3
 N_CONSUMERS = 2
@@ -19,34 +21,12 @@ Tupelo.application do
   N_PRODUCERS.times do |i|
     child subscribe: [] do # N.b., no subscriptions
       log.progname = "producer #{i}"
-      event = {
-        host:         `hostname`.chomp,
-        service:      "service #{client_id}", # placeholder
-        state:        "",
-        time:         0,
-        description:  "",
-        tags:         [],
-        metric:       0,
-        ttl:          0,
-        custom:       nil
-      }.freeze
-
-      e_ok = event.merge(
-        state:    "ok",
-        time:     Time.now.to_f,
-        ttl:      1.0
-      )
-
-      if e_ok[:ttl] == 0.0
-        pulse e_ok # no need to bother with expiration
-      else
-        write e_ok
-      end
+      run_producer i
     end
   end
 
   N_CONSUMERS.times do |i|
-    # stores events indexed by host, service
+    # stores events
     child subscribe: "event", passive: true do
       log.progname = "consumer #{i}"
       read subspace("event") do |event|
@@ -55,28 +35,27 @@ Tupelo.application do
     end
   end
   
-  # This could be a subspace of the event subspace.
-  critical_event = {
-    host:        nil,
-    service:     nil,
-    state:       /critical|fatal/i,
-    time:        nil,
-    description: nil,
-    tags:        nil,
-    metric:      nil,
-    ttl:         nil
-  }
-  
   # critical event alerter
   child subscribe: "event", passive: true do
     log.progname = "alerter"
-    read critical_event do |event|
+    read Tupelo::Client::CRITICAL_EVENT do |event|
       log.error event
     end
   end
 
-  # expirer: stores current events in expiration order
+  if argv.include?("--debug-expiration")
+    # expired event debugger
+    child subscribe: "event", passive: true do
+      log.progname = "expiration debugger"
+      read Tupelo::Client::EXPIRED_EVENT do |event|
+        log event
+      end
+    end
+  end
+
+  # expirer: stores current events and looks for events that can be expired.
   child subscribe: "event", passive: true do
     log.progname = "expirer"
+    run_expirer_v1
   end
 end
