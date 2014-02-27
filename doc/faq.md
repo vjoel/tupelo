@@ -171,6 +171,12 @@ Utility
 
   All of these are old ideas, but putting the three together is possibly new.
 
+8. A tuplespace looks like a big global variable that is shared across processes. Isn't it a bad idea to have all that mutable global state?
+
+  Like a database? There are reasons to prefer global state. By contrast, state that is encapsulated within program objects is closely coupled with the implementation of those objects: the language, data structures, and algorithms used, etc. As argued [here](http://scattered-thoughts.net/blog/2014/02/17/local-state-is-harmful) and [here](http://awelonblue.wordpress.com/2012/10/21/local-state-is-poison), encapsulated state make programs harder to understand.
+
+Also, it's not as bad as a truly global variable: subspaces can constrain the scope of some state to only those process that need to know about that part
+.
 
 Tuplespace Operations
 =====================
