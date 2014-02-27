@@ -1,8 +1,8 @@
 require 'thread'
 require 'tupelo/client/reader'
 require 'tupelo/client/transaction'
+require 'tupelo/client/scheduler'
 require 'object-template'
-require 'atdo'
 
 class Tupelo::Client
   class Worker
@@ -70,6 +70,7 @@ class Tupelo::Client
       @seq = nil
       @arc = nil
       @log = client.log
+      @scheduler = nil
 
       @client_id = nil
       @global_tick = nil
@@ -142,19 +143,19 @@ class Tupelo::Client
       cmd_queue << :stop
       worker_thread.join if worker_thread ## join(limit)?
       msg_reader_thread.kill if msg_reader_thread
-      @atdo.stop if @atdo
+      @scheduler.stop if @scheduler
     end
 
     # stop without any remote handshaking
     def stop!
       @msg_reader_thread.kill if msg_reader_thread
       @worker_thread.kill if worker_thread
-      @atdo.stop if @atdo
+      @scheduler.stop if @scheduler
     end
 
     def at time, &action
-      @atdo ||= AtDo.new
-      @atdo.at time do
+      @scheduler ||= client.make_scheduler
+      @scheduler.at time do
         cmd_queue << action
       end
     end

@@ -52,8 +52,6 @@ Tupelo.application do
   # one worker lives. This demonstrates how to recover from worker failure
   # and prevent "lost tuples".
   child passive: true do
-    require 'tupelo/util/scheduler'
-
     scheduler = make_scheduler
 
     alive_until = Hash.new(0)

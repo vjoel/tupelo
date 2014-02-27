@@ -1,8 +1,6 @@
 class Tupelo::Client
   # Expire old events.
   def run_expirer_v1
-    require 'tupelo/util/scheduler'
-
     scheduler = make_scheduler
     
     read subspace("event") do |event|
