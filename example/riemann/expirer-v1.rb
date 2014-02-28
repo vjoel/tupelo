@@ -12,12 +12,12 @@ class Tupelo::Client
           take event
           pulse event.merge("state" => "expired")
             # Not sure if this is riemann semantics. Using #pulse rather
-            # that #write means that the expired event exists in the
-            # space only while the transaction is executing, but that is
-            # enough to trigger any client that is waiting on a template
-            # that matches the event. Use the --debug-expiration switch
-            # to see this happening (and use -v to make log messages
-            # verbose, showing timestamps).
+            # than #write means that the expired event exists in the
+            # space only while the transaction is executing, but that
+            # momentary existence is enough to trigger any client that
+            # is waiting on a template that matches the event. Use the
+            # --debug-expiration switch to see this happening (and use
+            # -v to make log messages verbose, showing timestamps).
         end
       end
     end

@@ -1,9 +1,8 @@
 class Tupelo::Client
-  # Generate some events.
-  def run_producer i
-    event = {
+  def base_event
+    @base_event ||= {
       host:         `hostname`.chomp,
-      service:      "service #{i}",
+      service:      "process #$$",
       state:        "",
       time:         0,
       description:  "",
@@ -12,21 +11,40 @@ class Tupelo::Client
       ttl:          0,
       custom:       nil
     }.freeze
+  end
 
-    e_ok = event.merge(
+  def write_event event
+    if event[:ttl] == 0.0
+      pulse event # no need to bother with expiration
+    else
+      write event
+    end
+
+    log.info "created event #{event}"
+  end
+
+  # Generate some events.
+  def run_producer i
+    e_ok = base_event.merge(
+      service:  "service #{i}",
       state:    "ok",
       time:     Time.now.to_f,
       ttl:      0.2
     )
+    write_event e_ok
 
-    if e_ok[:ttl] == 0.0
-      pulse e_ok # no need to bother with expiration
-    else
-      write e_ok
-    end
-    
-    log "created event #{e_ok}"
-    
-    sleep 0.5 # Let it expire
+    e_cpu = base_event.merge(
+      service:  "service #{i}",
+      state:    "ok",
+      time:     Time.now.to_f,
+      ttl:      0.2,
+      tags:     ["cpu", "cumulative"],
+      metric:   Process.times.utime + Process.times.stime
+    )
+    write_event e_cpu
+
+    sleep 0.5
+      # Make sure whole set of processes stay alive long enough to see
+      # expiration happen.
   end
 end
