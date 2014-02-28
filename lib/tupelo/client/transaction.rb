@@ -266,6 +266,10 @@ class Tupelo::Client
     
     # transaction applies only if template has a match
     def read template_spec
+      if block_given?
+        raise ArgumentError,
+          "Transaction#read with block (streaming read) not allowed"
+      end
       check_open
       template = worker.make_template(template_spec)
       @read_templates << template
