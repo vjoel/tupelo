@@ -180,6 +180,8 @@ Utility
   * Transitions from one state to another happen only as a result of a limited set of operations (write and take).
   
   * What this state consists of, and what changes as the state transitions to a new state, is independent of programs. It's just tuples, not data structures in some programming language.
+  
+  * In tupelo, transactions, in the form that they are sent between processes, don't contain templates, only tuples. The evolution of global state can be specified and understood without reference to matching. Matching is a purely client-side concept (except when used to define subspaces).
 
 Also, it's not as bad as a truly global variable: subspaces can constrain the scope of some state to only those process that need to know about that part
 .
