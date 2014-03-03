@@ -260,7 +260,7 @@ Transactions
 
 3. How do transactions fail?
 
-  Let's consider for the moment only failures due to concurrency, and exclude external causes such as host or network problems. Then transactions have two failure modes.
+  Let's consider for the moment only failures due to concurrency, and exclude external causes such as host or network problems, or program-generated errors. Then transactions have two failure modes.
 
   During the prepare phase, transaction A can fail because some other transaction, B, successfully committed a take of a tuple that A has assumed to exist, by calling #read or #take. In this case, the transaction will roll back to its starting point and (if using the block syntax) automatically retry. You can see this in action, by running two transactions, interleaved as shown:
 
@@ -289,6 +289,25 @@ Transactions
 
   No. Not really. It's ok to syntactically enclose one transaction block in another, but they aren't truly nested in the sense that aborting the outer transaction also rolls back the inner one. The two transactions are just concurrent, independent transactions.
   Do not let a nested transaction use tuples from an enclosing transaction that has not yet executed. See [example/nest.rb](example/nest.rb).
+
+5. If reads are handled locally, then what's difference between a read inside and outside of a transaction?
+
+Read outside of a transaction:
+
+    read [1]
+
+Read inside of a transaction:
+
+    transaction do
+      read [1]
+      take [2]
+    end
+
+Differences:
+
+* Latency. The first case will have no network latency, unless it has to wait because [1] does not exist. In, the second case, the read call returns immediately if [1] is available, but the transaction as a whole always has a latency of one round-trip, or more if there was contention for those tuples (another process takes [2] after the transaction commits but before it executes).
+
+* Consistency. both cases have the same basic consistency guarantee: at the tick when it executes (that is, the tick observed locally--the most recent tick that the worker thread has heard), the tuple [1] exists. However, in the first case, the tick is just whatever tick it was when the tuple was found locally. In the second case, the tick is the tick at which *both* of those operations were successfully performed--so you have the additional guarantee that [1] and [2] existed **at that same time** and that [2] was removed at that time.
 
 
 Distributing

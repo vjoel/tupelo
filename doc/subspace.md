@@ -4,7 +4,11 @@ How subspaces work
 Introduction
 ------------
 
-Subspaces are the units of sharding a tuplespace.
+Subspaces are the units of sharding a tuplespace. Uses include:
+
+* Clients managing different subspaces (or even two clients managing the same subspace in different processes) may benefit by using different stores and algorithms.
+
+* Reduce the volume of tuples that a client needs to handle.
 
 A subspace is a subset of a tuplespace defined by a special kind of pattern,
 known as a "portable object template". These templates are less expressive than
@@ -93,6 +97,13 @@ to belong to the new subspace. Since these updates happen via the tuplespace,
 the ordering of these updates and other tuplespace transactions is consistent
 for all clients.
 
+To simplify subspace definitions, the client API can convert ordinary templates into these more verbose (but portable) definitions as shown above. For example, the "wine" subspace can be defined like this:
+
+    define_subspace "wine", ["wine", Set["red", "white"], Numeric, 0..100]
+
+Even though we have this useful shortcut, it's important to fully understand the more verbose portable object templates, and they are discussed in the next section.
+
+
 Portable Object Templates
 -------------------------
 
@@ -126,8 +137,8 @@ matching in each case is as follows.
 If `value` is present, then the associated value must equal the value in the
 tuple.
 
-If `set` is present, then the associated value must include (as a list) the
-value in the tuple.
+If `set` is present, then the associated value must include the value in the
+tuple.
 
 If `type` is present, then the associated value must be `boolean`, `number`, `integer`, `string`, `list`, or `map` and must equal the type of the value in the tuple.
 

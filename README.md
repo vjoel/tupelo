@@ -20,7 +20,8 @@ Documentation
 
 Internals
 ---------
-* [Architecture and protocol](doc/arch.md)
+* [Architecture](doc/arch.md)
+* [Protocols](doc/protocol.md)
 
 Talk
 ----
@@ -93,17 +94,13 @@ What other potential problems and how does tupelo solve them?
 Future
 ======
 
-- Subspaces. Redundancy, for read-heavy data stores (redundant array of in-memory sqlite, for example). Clients managing different subspaces may benefit by using different stores and algorithms.
-
 - More persistence options.
 
 - Fail-over. Robustness.
 
-- Investigate nio4r for faster networking, especially with many clients.
-
 - Interoperable client and server implementations in C, Python, Go, Elixir?
 
-- UDP multicast to further reduce the bottleneck in the message sequencer.
+- UDP multicast to further reduce the bottleneck in the message sequencer. Maybe use zeromq's multicast.
 
 - Tupelo as a service; specialized and replicated subspace managers as services.
 
@@ -140,7 +137,7 @@ Other gems:
 
 Optional gems for some of the examples:
 
-* sinatra, http, sequel, sqlite, rbtree, leveldb-native
+* sinatra, http, sequel, sqlite, rbtree, leveldb-native, lmdb
 
 Contact
 =======
