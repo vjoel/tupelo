@@ -1,5 +1,6 @@
 class Tupelo::Client
-  # Expire old events.
+  # Expire old events. Uses a scheduler (which is a thread plus an rbtree)
+  # to keep track of the expiration times and events.
   def run_expirer_v1
     scheduler = make_scheduler
     
@@ -9,7 +10,9 @@ class Tupelo::Client
       event_exp = event["time"] + event["ttl"]
       scheduler.at event_exp do
         transaction do
-          take event
+          take_nowait event or break
+            # Be cautious, in case of other expirer. If you can rule out
+            # this possibility, then `take event` is fine.
           pulse event.merge("state" => "expired")
             # Not sure if this is riemann semantics. Using #pulse rather
             # than #write means that the expired event exists in the
