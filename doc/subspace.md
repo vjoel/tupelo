@@ -103,6 +103,12 @@ To simplify subspace definitions, the client API can convert ordinary templates 
 
 Even though we have this useful shortcut, it's important to fully understand the more verbose portable object templates, and they are discussed in the next section.
 
+Another useful shortcut is the #subspace method, available in both Client and Transaction, which returns a template suitable for operating on the specified subspace:
+
+    read subspace "wine"
+
+This reads the first tuple in the subspace.
+
 
 Portable Object Templates
 -------------------------
@@ -175,6 +181,43 @@ In terminal 2:
     $ tup sv --subscribe foo
     >> ra Array
     => [[1]]
+
+Another example, using the "wine" subspace defined above:
+
+In terminal 1:
+
+    $ tup sv --use-subspaces
+    >> define_subspace "wine", ["wine", Set["red", "white"], Numeric, 0..100]
+    >> ra subspace "wine"
+    => []
+
+In terminal 2:
+
+    $ tup sv --subscribe wine
+    >> w ["wine", "red", 12.99, 14]
+
+And then in either terminal, you will see:
+
+    >> ra subspace "wine"
+    => [["wine", "red", 12.99, 14]]
+
+You can of course define subspaces in terms of hash templates, as well
+
+    >> define_subspace "place", name: String, lat: Numeric, lng: Numeric
+
+Keep in mind that a tuple belongs to a subspace if (and only if) it matches the template. The tag name ("wine", "place") is just a way to refer to the space. So if you define this as well
+
+    >> define_subspace "city", name: String, lat: Numeric, lng: Numeric
+
+then "city" and "place" will contain exactly the same tuples. This is a little different from defining a database table. A subspace is not a container, but rather a predicate.
+
+Practically, this difference is important when subspaces intersect. Consider:
+
+    >> define_subspace "wine", ["wine", Set["red", "white"], Numeric, 0..100]
+    >> define_subspace "cheap beverage", [String, String, 0..5, 0..100]
+
+The tuple `["wine", "red", 4.99, 13.5]` matches both predicates. If you write it, any client that subscribes to either "wine" or "cheap beverage" will receive it. Subscribing to both will not result in two copies of the tuple.
+
 
 Examples of Subspaces
 ---------------------

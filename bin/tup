@@ -71,6 +71,7 @@ if ARGV.delete("-h") or ARGV.delete("--help")
                     (only needs to be set on first tup invocation)
       --subscribe TAG,TAG,...
                   subscribe to specified subspaces; use "" for none
+                  by default, tup client subscribes to everything
 
   END
   exit
