@@ -124,6 +124,8 @@ Utility
 
 1. What tradeoffs does tupelo make?
 
+  See also the limitations section [here](../README.md).
+
   The first question about any new distributed system should be this one. Tupelo chooses low latency over the (relative) partition tolerance of zookeeper. Tupelo chooses consistency over availability. Tupelo has a bottleneck process which all communication passes through; this does increase latency and limit throughput, but it means that all operations occur on the same timeline, and transactions execute deterministically in each replica without the need for two-phase commit. Tupelo eagerly pushes (subscribed) data to clients, rather than waiting for requests; this costs something in terms of network usage, but buys you lower latency for reads (also, it makes it possible to prepare and execute transactions on the tupelo clients without extra coordination, and to keep replicas consistent). Transactions in tupelo also make a severe tradeoff: they cannot cross subspace boundaries, but they execute deterministically without any coordination or locking.
 
 2. How does tupelo work?
@@ -210,7 +212,25 @@ Tuplespace Operations
 
 4. If reads are local, then why are reads included in the transaction as it is sent to remote processes?
 
-In a transaction, a read acts as an assertion that a certain tuple exists. If that tuple has disappeared after the #commit call and before the execution of the transaction, then the "assertion" fails and so does the transaction.
+  In a transaction, a read acts as an assertion that a certain tuple exists. If that tuple has disappeared after the #commit call and before the execution of the transaction, then the "assertion" fails and so does the transaction.
+
+5. If a tranasction is all reads, does it go out to the network?
+
+  No, it reads locally. The read results are guaranteed to be globally consistent at the tick when the read executes.
+
+6. How do I read with a timeout?
+
+  The easiest way is to wrap the read(s) in a transaction with a timeout:
+
+    val =
+      begin
+        transaction timeout: 3.0 do
+          read ["something"]
+        end
+      rescue TimeoutError
+        nil
+      end
+
 
 Transactions
 ============
