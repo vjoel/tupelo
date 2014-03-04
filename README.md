@@ -79,16 +79,16 @@ Each client can have its own matching agorithms and api -- matching is not part 
 
 Data replication is easy--hard to avoid in fact.
 
+security -- ssh tunnels
+
 Limitations
 ===========
 
-Better for small messages, because they tend to propagate widely.
+The main limitation of tupelo is that all messages (transaction data transport) pass through a single process, the message sequencer. This process has minimal state and minimal computation: the state is just a counter and the network connections, and the computation is just counter increment and message dispatch. Nevertheless, this process is a bottleneck. All network communication passes through at least two hops, to and from the message sequencer. *Tupelo will always have this limitation.* By accepting this price, you get the benefit of strong consistency (all clients have the same view of the tuplespace at a given tick of the global clock) and deterministic transaction execution across processes. This leads to high concurrency (no interprocess locking or coordination), efficient distribution of transaction workload, client-side logic within transactions, zero-latency reads (depending on configuration), and relatively easy data replication.
 
-May stress network and local memory (but subspaces can help).
+The message sequencer is also a SPoF (single point of failure), but this is not inherently necessary. Some future version of tupelo will have options for failover of the message sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity.
 
-Worker thread has cpu cost (but subspaces can help).
-
-What other potential problems and how does tupelo solve them?
+Some apparent limitations of naive use of tupelo (high client memory use, high bandwidth use, high client cpu use) can be controlled with [subspaces](doc/subspace.md) and specialized data structures and data stores.
 
 
 Future
