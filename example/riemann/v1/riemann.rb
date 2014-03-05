@@ -12,7 +12,6 @@ N_PRODUCERS = 3
 N_CONSUMERS = 2
 
 Tupelo.application do
-
   local do
     use_subspaces!
     define_event_subspace
@@ -45,19 +44,10 @@ Tupelo.application do
 
   if argv.include?("--debug-expiration")
     # expired event debugger
+    require_relative '../expiration-dbg'
     child subscribe: "event", passive: true do
       log.progname = "expiration debugger"
-      read Tupelo::Client::EXPIRED_EVENT do |event|
-        event_exp = event["time"] + event["ttl"]
-        delta = Time.now.to_f - event_exp
-        if delta > 0.1
-          log.warn "expired late by %6.4f seconds: #{event}" % delta
-        elsif delta < 0
-          log.warn "expired too soon: #{event}"
-        else
-          log "expired on time: #{event}"
-        end
-      end
+      run_expiration_debugger
     end
   end
 

@@ -10,29 +10,16 @@
 #   * the critical event alerter doesn't need to sort at all.
 #
 # Run with --http to expose a web API and run a test web client.
+#
+# You will need to have the rbtree gem installed. For the --http case,
+# you'll also need to `gem install http json sinatra`.
 
 USE_HTTP = ARGV.delete("--http")
 
 if USE_HTTP
-  # Run a web client
-  fork do # No tupelo in this process.
-    require 'http'
-
-    url = 'http://localhost:4567'
-
-    print "trying server at #{url}"
-    begin
-      print "."
-      HTTP.get url
-    rescue Errno::ECONNREFUSED
-      sleep 0.2
-      retry
-    end
-
-    puts
-    puts HTTP.get "#{url}/read"
-    HTTP.get "#{url}/exit"
-  end
+  require_relative 'http-mode'
+  start_web_client
+  at_exit {Process.waitall}
 end
 
 require 'tupelo/app'
@@ -44,7 +31,6 @@ N_PRODUCERS = 3
 N_CONSUMERS = 2
 
 Tupelo.application do
-
   local do
     use_subspaces!
     define_event_subspace
@@ -53,34 +39,8 @@ Tupelo.application do
   if USE_HTTP
     # Web API using sinata to access the index of events.
     child subscribe: "event" do |client|
-      require 'sinatra/base'
-      require 'json'
-
-      Class.new(Sinatra::Base).class_eval do
-        get '/read' do
-          host = params["host"] # nil is ok -- matches all hosts
-          resp = client.read(
-            host:         host,
-            service:      nil,
-            state:        nil,
-            time:         nil,
-            description:  nil,
-            tags:         nil,
-            metric:       nil,
-            ttl:          nil,
-            custom:       nil
-          )
-          resp.to_json + "\n"
-        end
-        ## need way to query by existence of tag
-
-        get '/exit' do
-          Thread.new {sleep 1; exit}
-          "bye\n"
-        end
-
-        run!
-      end
+      log.progname = "web server"
+      run_web_server(client)
     end
   end
 
@@ -111,19 +71,10 @@ Tupelo.application do
 
   if argv.include?("--debug-expiration")
     # expired event debugger
+    require_relative '../expiration-dbg'
     child subscribe: "event", passive: true do
       log.progname = "expiration debugger"
-      read Tupelo::Client::EXPIRED_EVENT do |event|
-        event_exp = event["time"] + event["ttl"]
-        delta = Time.now.to_f - event_exp
-        if delta > 0.1
-          log.warn "expired late by %6.4f seconds: #{event}" % delta
-        elsif delta < 0
-          log.warn "expired too soon: #{event}"
-        else
-          log "expired on time: #{event}"
-        end
-      end
+      run_expiration_debugger
     end
   end
 
@@ -133,5 +84,3 @@ Tupelo.application do
     run_expirer_v2
   end
 end
-
-Process.waitall if USE_HTTP

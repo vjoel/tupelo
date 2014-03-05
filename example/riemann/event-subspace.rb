@@ -46,6 +46,8 @@ class Tupelo::Client
     custom:       nil
   }.freeze
 
+  # Also could be a subspace of the event subspace, but for now, we can just
+  # use it as a template to select expired events out of the event subspace.
   EXPIRED_EVENT = {
     host:         nil,
     service:      nil,

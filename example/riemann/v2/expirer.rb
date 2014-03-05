@@ -22,7 +22,7 @@ class Tupelo::Client
         end
       rescue TimeoutError
         transaction do
-          take_nowait event or break
+          take_nowait event or break # see note in v1/expirer.rb
           pulse event.merge("state" => "expired")
         end
       end
