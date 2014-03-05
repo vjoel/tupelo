@@ -84,7 +84,23 @@ security -- ssh tunnels
 Limitations
 ===========
 
-The main limitation of tupelo is that all messages (transaction data transport) pass through a single process, the message sequencer. This process has minimal state and minimal computation: the state is just a counter and the network connections, and the computation is just counter increment and message dispatch. Nevertheless, this process is a bottleneck. All network communication passes through at least two hops, to and from the message sequencer. *Tupelo will always have this limitation.* By accepting this price, you get the benefit of strong consistency (all clients have the same view of the tuplespace at a given tick of the global clock) and deterministic transaction execution across processes. This leads to high concurrency (no interprocess locking or coordination), efficient distribution of transaction workload, client-side logic within transactions, zero-latency reads (depending on configuration), and relatively easy data replication.
+The main limitation of tupelo is that all messages (transaction data transport) pass through a single process, the message sequencer. This process has minimal state and minimal computation: the state is just a counter and the network connections, and the computation is just counter increment and message dispatch. Nevertheless, this process is a bottleneck. All network communication passes through at least two hops, to and from the message sequencer. **Tupelo will always have this limitation.**
+
+By accepting this price, you get the benefit of:
+
+* strong consistency: all clients have the same view of the tuplespace at a given tick of the global clock
+
+* deterministic transaction execution across processes
+
+* high concurrency: no interprocess locking or coordination
+
+* efficient distribution of transaction workload off of the critical path
+
+* client-side logic within transactions
+
+* zero-latency reads (depending on configuration)
+
+* relatively easy data replication.
 
 The message sequencer is also a SPoF (single point of failure), but this is not inherently necessary. Some future version of tupelo will have options for failover of the message sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity.
 

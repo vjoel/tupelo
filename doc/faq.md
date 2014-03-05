@@ -171,7 +171,7 @@ Utility
 
   - Transactions
 
-  All of these are old ideas, but putting the three together is possibly new.
+All of these are old ideas, but putting the three together is possibly new.
 
 8. A tuplespace looks like a big global variable that is shared across processes. Isn't it a bad idea to have all that mutable global state?
 
@@ -222,14 +222,14 @@ Tuplespace Operations
 
   The easiest way is to wrap the read(s) in a transaction with a timeout:
 
-    val =
-      begin
-        transaction timeout: 3.0 do
-          read ["something"]
+      val =
+        begin
+          transaction timeout: 3.0 do
+            read ["something"]
+          end
+        rescue TimeoutError
+          nil
         end
-      rescue TimeoutError
-        nil
-      end
 
 
 Transactions
@@ -312,7 +312,7 @@ Transactions
 
 5. If reads are handled locally, then what's difference between a read inside and outside of a transaction?
 
-Read outside of a transaction:
+  Read outside of a transaction:
 
     read [1]
 
