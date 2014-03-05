@@ -16,7 +16,6 @@ USE_HTTP = ARGV.delete("--http")
 if USE_HTTP
   # Run a web client
   fork do # No tupelo in this process.
-    sleep 1.0 # let some data arrive
     require 'http'
 
     url = 'http://localhost:4567'
@@ -32,13 +31,14 @@ if USE_HTTP
 
     puts
     puts HTTP.get "#{url}/read"
+    HTTP.get "#{url}/exit"
   end
 end
 
 require 'tupelo/app'
-require_relative 'event-subspace'
-require_relative 'producer'
-require_relative 'expirer-v2'
+require_relative '../event-subspace'
+require_relative '../producer'
+require_relative 'expirer'
 
 N_PRODUCERS = 3
 N_CONSUMERS = 2
@@ -48,6 +48,40 @@ Tupelo.application do
   local do
     use_subspaces!
     define_event_subspace
+  end
+
+  if USE_HTTP
+    # Web API using sinata to access the index of events.
+    child subscribe: "event" do |client|
+      require 'sinatra/base'
+      require 'json'
+
+      Class.new(Sinatra::Base).class_eval do
+        get '/read' do
+          host = params["host"] # nil is ok -- matches all hosts
+          resp = client.read(
+            host:         host,
+            service:      nil,
+            state:        nil,
+            time:         nil,
+            description:  nil,
+            tags:         nil,
+            metric:       nil,
+            ttl:          nil,
+            custom:       nil
+          )
+          resp.to_json + "\n"
+        end
+        ## need way to query by existence of tag
+
+        get '/exit' do
+          Thread.new {sleep 1; exit}
+          "bye\n"
+        end
+
+        run!
+      end
+    end
   end
 
   N_PRODUCERS.times do |i|
@@ -62,7 +96,7 @@ Tupelo.application do
     child subscribe: "event", passive: true do ### tuplespace: sqlite
       log.progname = "consumer #{i}"
       read subspace("event") do |event|
-        ###log event ### need filtering, actions, etc.
+        log.info event ### need filtering, actions, etc.
       end
     end
   end
@@ -98,35 +132,6 @@ Tupelo.application do
     log.progname = "expirer"
     run_expirer_v2
   end
-
-  if USE_HTTP
-    # Web API using sinata to access the index of events.
-    child subscribe: "event", passive: true do |client|
-      require 'sinatra/base'
-
-      Class.new(Sinatra::Base).class_eval do
-        get '/read' do
-          host = params["host"] # nil is ok -- matches all hosts
-          resp = client.read(
-            host:         host,
-            service:      nil,
-            state:        nil,
-            time:         nil,
-            description:  nil,
-            tags:         nil,
-            metric:       nil,
-            ttl:          nil,
-            custom:       nil
-          )
-          resp.to_json + "\n"
-        end
-        ## need way to query by existence of tag
-
-        run!
-      end
-    end
-  end
 end
 
 Process.waitall if USE_HTTP
-

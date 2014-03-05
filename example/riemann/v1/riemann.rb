@@ -4,9 +4,9 @@
 # for searching.
 
 require 'tupelo/app'
-require_relative 'event-subspace'
-require_relative 'producer'
-require_relative 'expirer-v1'
+require_relative '../event-subspace'
+require_relative '../producer'
+require_relative 'expirer'
 
 N_PRODUCERS = 3
 N_CONSUMERS = 2

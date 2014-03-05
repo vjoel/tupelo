@@ -33,15 +33,18 @@ class Tupelo::Client
     )
     write_event e_ok
 
-    e_cpu = base_event.merge(
-      service:  "service #{i}",
-      state:    "ok",
-      time:     Time.now.to_f,
-      ttl:      0.2,
-      tags:     ["cpu", "cumulative"],
-      metric:   Process.times.utime + Process.times.stime
-    )
-    write_event e_cpu
+    30.times do
+      e_cpu = base_event.merge(
+        service:  "service #{i}",
+        state:    "ok",
+        time:     Time.now.to_f,
+        ttl:      0.2,
+        tags:     ["cpu", "cumulative"],
+        metric:   Process.times.utime + Process.times.stime
+      )
+      write_event e_cpu
+      sleep 0.2
+    end
 
     sleep 0.5
       # Make sure whole set of processes stay alive long enough to see
