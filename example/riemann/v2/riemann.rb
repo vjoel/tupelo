@@ -7,7 +7,8 @@
 #
 #   * the expiration manager need to sort by expiration time
 #
-#   * the critical event alerter doesn't need to sort at all.
+#   * the critical event alerter doesn't need to sort or search at all,
+#     it just needs efficient insert and delete. 
 #
 # Run with --http to expose a web API and run a test web client.
 #
@@ -62,7 +63,8 @@ Tupelo.application do
   end
   
   # critical event alerter
-  child subscribe: "event", passive: true do ### tuplespace: hash?
+  require_relative 'hash-store'
+  child tuplespace: HashStore, subscribe: "event", passive: true do
     log.progname = "alerter"
     read Tupelo::Client::CRITICAL_EVENT do |event|
       log.error event
