@@ -8,27 +8,31 @@
 #   * the expiration manager need to sort by expiration time
 #
 #   * the critical event alerter doesn't need to sort at all.
+#
+# Run with --http to expose a web API and run a test web client.
 
-abort "work in progress"
+USE_HTTP = ARGV.delete("--http")
 
-# Run a web client
-fork do # No tupelo in this process.
-  sleep 1.0 # let some data arrive
-  require 'http'
+if USE_HTTP
+  # Run a web client
+  fork do # No tupelo in this process.
+    sleep 1.0 # let some data arrive
+    require 'http'
 
-  url = 'http://localhost:4567'
+    url = 'http://localhost:4567'
 
-  print "trying server at #{url}"
-  begin
-    print "."
-    HTTP.get url
-  rescue Errno::ECONNREFUSED
-    sleep 0.2
-    retry
+    print "trying server at #{url}"
+    begin
+      print "."
+      HTTP.get url
+    rescue Errno::ECONNREFUSED
+      sleep 0.2
+      retry
+    end
+
+    puts
+    puts HTTP.get "#{url}/read"
   end
-
-  puts
-  puts HTTP.get "#{url}/read"
 end
 
 require 'tupelo/app'
@@ -58,7 +62,7 @@ Tupelo.application do
     child subscribe: "event", passive: true do ### tuplespace: sqlite
       log.progname = "consumer #{i}"
       read subspace("event") do |event|
-        log event ### need filtering, actions, etc.
+        ###log event ### need filtering, actions, etc.
       end
     end
   end
@@ -90,38 +94,39 @@ Tupelo.application do
   end
 
   # expirer: stores current events and looks for events that can be expired.
-  child subscribe: "event", passive: true do
+  child tuplespace: OrderedEventStore, subscribe: "event", passive: true do
     log.progname = "expirer"
     run_expirer_v2
-    ### use rbtree
   end
 
-  # Web API using sinata to access the index of events.
-  child subscribe: "event", passive: true do |client|
-    require 'sinatra/base'
+  if USE_HTTP
+    # Web API using sinata to access the index of events.
+    child subscribe: "event", passive: true do |client|
+      require 'sinatra/base'
 
-    Class.new(Sinatra::Base).class_eval do
-      get '/read' do
-        host = params["host"] # nil is ok -- matches all hosts
-        resp = client.read(
-          host:         host,
-          service:      nil,
-          state:        nil,
-          time:         nil,
-          description:  nil,
-          tags:         nil,
-          metric:       nil,
-          ttl:          nil,
-          custom:       nil
-        )
-        resp.to_json + "\n"
+      Class.new(Sinatra::Base).class_eval do
+        get '/read' do
+          host = params["host"] # nil is ok -- matches all hosts
+          resp = client.read(
+            host:         host,
+            service:      nil,
+            state:        nil,
+            time:         nil,
+            description:  nil,
+            tags:         nil,
+            metric:       nil,
+            ttl:          nil,
+            custom:       nil
+          )
+          resp.to_json + "\n"
+        end
+        ## need way to query by existence of tag
+
+        run!
       end
-      ## need way to query by existence of tag
-
-      run!
     end
   end
-  
 end
 
-Process.waitall
+Process.waitall if USE_HTTP
+

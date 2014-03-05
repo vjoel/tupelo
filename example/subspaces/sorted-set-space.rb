@@ -4,7 +4,12 @@ require 'rbtree'
 ##
 ## generalize SortedSetSpace to accept params that indicate which fields
 ##   are key and value
+##
+## unify with space used in ../riemann v2, generalize
 
+# This is a template class, but it doesn't just match tuples. It can
+# be used to find the *next* tuple after a given one, using the rbtree
+# ordering.
 class SortedSetTemplate
   class << self
     alias [] new
