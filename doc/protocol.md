@@ -8,7 +8,7 @@ Tuples, Operations, Transactions
 
 Nothing in the protocol specifies local searching or storage, or matching, or notification, or templating. That's all up to each client. (Typically, this will be handled mostly by a worker thread in the client process.) The protocol only contains tuples and operations on them (take, write, pulse, read), combined into transactions.
 
-There is really only one requirement on implementations of the tupelo client protocol. **A client process must be able to decide whether a transaction succeeds or fails, in agreement with all other clients.** (If the client only subscribes to a subspace, then it only needs to decide transactions on that subspace.) To do so, the process must retain enough tuple state to check whether each take or read operation succeeds. How that state is stored (memory or disk, database table or kv store, indexed or not) is up to the client. What access is exposed to the application layer is also undefined (what templates are supported etc.).
+There is really only one requirement on implementations of the tupelo client protocol. **A client process must be able to decide whether a transaction succeeds or fails, in agreement with all other clients.** (If the client only subscribes to a subspace, then it only needs to decide transactions on that subspace.) To do so, the process must retain enough tuple state to check whether each take or read operation succeeds. How that state is stored (memory or disk, database table or kv store, indexed or not) is up to the client. What access is exposed to the application layer is also undefined (what templates are supported etc.). By executing each transaction in the same way as other clients, we avoid having to coordinate between clients.
 
 Messages
 --------

@@ -84,9 +84,9 @@ security -- ssh tunnels
 Limitations
 ===========
 
-The main limitation of tupelo is that all messages (transaction data transport) pass through a single process, the message sequencer. This process has minimal state and minimal computation: the state is just a counter and the network connections, and the computation is just counter increment and message dispatch. Nevertheless, this process is a bottleneck. All network communication passes through at least two hops, to and from the message sequencer. **Tupelo will always have this limitation.**
+The main limitation of tupelo is that all messages (transaction data transport) pass through a single process, the message sequencer. This process has minimal state and minimal computation: the state is just a counter and the network connections, and the computation is just counter increment and message dispatch. Nevertheless, this process is a bottleneck. All network communication passes through two hops, to and from the message sequencer. Each tupelo client must be connected to the message sequencer to operate on tuples (aside from local reads).
 
-By accepting this price, you get the benefit of:
+**Tupelo will always have this limitation.** It is essential to the design of the system. By accepting this price, you get the benefit of:
 
 * strong consistency: all clients have the same view of the tuplespace at a given tick of the global clock
 
@@ -94,13 +94,13 @@ By accepting this price, you get the benefit of:
 
 * high concurrency: no interprocess locking or coordination
 
-* efficient distribution of transaction workload off of the critical path
+* efficient distribution of transaction workload off of the critical path: transaction preparation (finding matching tuples) is performed by a single client
 
-* client-side logic within transactions
+* client-side logic within transactions: any client state can be accessed while preparing a transaction
 
-* zero-latency reads (depending on configuration)
+* zero-latency reads (for subscribed tuples, which depends on configuration)
 
-* relatively easy data replication.
+* relatively easy data replication (all subscribers to a subspace replicate that subspace, possibly with different storage).
 
 The message sequencer is also a SPoF (single point of failure), but this is not inherently necessary. Some future version of tupelo will have options for failover of the message sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity.
 

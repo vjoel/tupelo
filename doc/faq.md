@@ -118,6 +118,10 @@ Syntax: what's the diff between blocks with and without arguments?
 
 You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare [example/add-dsl.rb](example/add-dsl.rb) and [example/add.rb](example/add.rb).
 
+What is a tupelo client?
+------------------------
+
+A client is a process (possibly with multiple threads, typically with a worker thread) that connects to the message sequencer and sends and receives transactions as messages. A client, as discussed in [protocol.md](protocol.md) must also store enough of the tuplespace state to be able to prepare and execute transactions consistently with other clients. So, it is a "client" from the point of view of the message sequencer, but a tupelo client may at the same time be serving data to other (non-tupelo) processes, such as http API clients that do not know about tupelo, as in [example/multitier](example/multitier).
 
 Utility
 =======

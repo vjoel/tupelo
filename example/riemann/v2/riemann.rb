@@ -12,8 +12,8 @@
 #
 # Run with --http to expose a web API and run a test web client.
 #
-# You will need to have the rbtree gem installed. For the --http case,
-# you'll also need to `gem install http json sinatra`.
+# You will need to `gem install rbtree sqlite3 sequel`.
+# For the --http option, you'll also need to `gem install http json sinatra`.
 
 USE_HTTP = ARGV.delete("--http")
 
@@ -48,7 +48,7 @@ Tupelo.application do
   N_PRODUCERS.times do |i|
     child subscribe: [] do # N.b., no subscriptions
       log.progname = "producer #{i}"
-      run_producer i ### V2: manual tagging
+      run_producer i
     end
   end
 
