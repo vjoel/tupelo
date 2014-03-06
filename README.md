@@ -1,7 +1,7 @@
 Tupelo
 ==
 
-Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory. Its programming model is semantically simple and transparent yet powerful, built in terms of tuples, a small set of operations on tuples (read, write, take), and transactions composed of these operations. This model, unlike RPC and message channels, decouples application endpoints from each other, in both space and time.
+Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory. Its programming model is semantically simple and transparent yet powerful: the interface is in terms of tuples, a small set of operations on tuples (read, write, take), and transactions composed of these operations. This model, unlike RPC and message channels, decouples application endpoints from each other, in both space and time.
 
 Tupelo is inspired by Masatoshi Seki's Rinda in the Ruby standard library, which in turn is based on Gelernter's Linda. The programming models are similar, except for the lack of transactions in Rinda. However, the implementations of the two are nearly opposite in architectural approach.
 
@@ -11,16 +11,22 @@ This repository contains the reference implementation in Ruby, with documentatio
 Documentation
 ============
 
+Introductions
+-------------
 * [Tutorial](doc/tutorial.md)
 * [Examples](example)
 * [FAQ](doc/faq.md)
 
+In Depth
+--------
 * [Transactions](doc/transactions.md)
 * [Replication](doc/replication.md)
 * [Subspaces](doc/subspace.md)
 * [Causality](doc/causality.md)
 * [Concurrency](doc/concurrency.md)
 
+The Bigger Picture
+------------------
 * [Comparisons](doc/compare.md)
 * [Planned future work](doc/future.md)
 
@@ -58,7 +64,7 @@ Getting started
 Applications
 =======
 
-Tupelo is a flexible base layer for various distributed programming patterns and techniques: job queues, shared config and state, load balancing, service discovery, in-memory data grids, dataflow, map-reduce, and both optimistic and lock/lease concurrency models (all of which are represented in the examples).
+Tupelo is a flexible base layer for various distributed programming patterns and techniques: job queues, shared config and state, load balancing, service discovery, in-memory data grids, dataflow, map-reduce, and both optimistic and lock/lease concurrency models . The examples explore these patterns in simple forms.
 
 Tupelo can be used to impose a unified transactional structure and distributed access model on a mixture of programs and languages (polyglot computation) and a mixture of data stores (polyglot persistence), with consistent replication.
 
@@ -72,7 +78,7 @@ Nevertheless, this process is a bottleneck. Each message traverses two hops, to 
 
 **Tupelo will always have this limitation.** It is essential to the design of the system. By accepting this cost, we get some benefits, discussed in the next section.
 
-The message sequencer is also a SPoF (single point of failure), but this is not inherent in the design. A future version of tupelo will have options for failover or clustering of the sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity.
+The message sequencer is also a SPoF (single point of failure), but this is not inherent in the design. A future version of tupelo will have options for failover or clustering of the sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity. (However, reduncancy and failover of *application* data and computation is supported by the current implementation.)
 
 There are some limitations that may result from naive application of tupelo: high client memory use, high bandwidth use, high client cpu use. These resource issues can often be controlled with [subspaces](doc/subspace.md) and specialized data structures and data stores. There are several examples addressing these problems.
 
@@ -96,7 +102,7 @@ As noted above, Tupelo assigns an incrementing sequence number, or *tick*, to ea
 
 * client-side logic within transactions: any client state can be accessed while preparing a transaction, and each client is free to use any template and search mechanism (deterministic or not), as suits the client's tuple storage;
 
-* zero-latency reads (for subscribed tuples, which depends on configuration);
+* zero-latency reads: clients store subscribed tuples locally;
 
 * relatively easy data replication: all subscribers to a subspace replicate that subspace, possibly with different storage implementations.
 
