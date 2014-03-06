@@ -26,6 +26,11 @@ Write without waiting:
 
       write <tuple>,...
 
+Pipelined writes (start the second write without waiting for the first to be acknowledged):
+
+      write <tuple>,...
+      write <tuple>,...
+
 Write and then wait, under user control:
 
       write(...).wait

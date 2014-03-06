@@ -44,9 +44,15 @@ In other words, a tuple is a fairly general object, though this depends on the s
 
 * hashes
 
-It's kind of like a "JSON object", except that, when using the json serializer, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects.
-
 The empty tuples `[]` and `{}` are allowed, but bare values such as `3.14` or `false` are not tuples by themselves.
+
+It's kind of like a "JSON object", except that, when using the json serializer, the hash keys can only be strings. In the msgpack case, keys have no special limitations. In the case of the marshal and yaml modes, tuples can contain many other kinds of objects. For example:
+
+    $ tup --marshal
+    >> w [1, 2, :three, 4..7, String, Time.now, Process.times]
+    => <Tupelo::Client::Transaction done at global_tick: 3 write [1, 2, :three, 4..7, String, 2014-03-05 22:15:19 -0800, #<struct Process::Tms utime=3.17, stime=0.46, cutime=0.0, cstime=0.0>]>
+    >> ra
+    => [[1, 2, :three, 4..7, String, 2014-03-05 22:15:19 -0800, #<struct Process::Tms utime=3.17, stime=0.46, cutime=0.0, cstime=0.0>]]
 
 One other thing to keep in mind: in the array case, the order of the elements is significant. In the hash case, the order is not significant. So these are both true:
 

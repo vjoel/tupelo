@@ -46,7 +46,7 @@ To compare
 
 * ETS in Erlang/OTP
 
-* calvin
+* calvin, h-store, voltdb
 
 * MPI collective ops: http://www.osl.iu.edu/research/mpi.net/documentation/tutorial/collectives.php
 
