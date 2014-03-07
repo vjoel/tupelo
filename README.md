@@ -1,7 +1,7 @@
 Tupelo
 ==
 
-Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory. Its programming model is semantically simple and transparent yet powerful: the interface is in terms of tuples, a small set of operations on tuples (read, write, take), and transactions composed of these operations. This model, unlike RPC and message channels, decouples application endpoints from each other, in both space and time.
+Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory. Its programming model is small and semantically transparent: tuples, a few operations on tuples (read, write, take), and transactions composed of these operations. This model, unlike RPC, pubsub, and message queues, decouples application endpoints from each other, in both space and time.
 
 Tupelo is inspired by Masatoshi Seki's Rinda in the Ruby standard library, which in turn is based on Gelernter's Linda. The programming models of Tupelo and  Rinda are similar, except for the lack of transactions in Rinda. However, the implementations of the two are nearly opposite in architectural approach.
 
@@ -64,7 +64,7 @@ Getting started
 Applications
 =======
 
-Tupelo is a flexible base layer for various distributed programming patterns and techniques: job queues, shared configuration and state, load balancing, service discovery, in-memory data grids, dataflow, map-reduce, and both optimistic and lock/lease concurrency models . The examples explore these patterns in simple forms.
+Tupelo is a flexible base layer for various distributed programming patterns and techniques, which are explored in the examples: job queues, shared configuration and state, load balancing, service discovery, in-memory data grids, message queues, publish/subscribe, dataflow, map-reduce, and both optimistic and pessimistic (lock/lease) concurrency control.
 
 Tupelo can be used to impose a unified transactional structure and distributed access model on a mixture of programs and languages (polyglot computation) and a mixture of data stores (polyglot persistence), with consistent replication.
 
@@ -72,7 +72,7 @@ Tupelo can be used to impose a unified transactional structure and distributed a
 Limitations
 ===========
 
-The main limitation of tupelo is that **all network communication passes through a single process**, the message sequencer. This process has minimal state and minimal computation. The state is just a counter and the network connections (no storage of tuples or other application data). The computation is just counter increment and message dispatch (no transaction execution or searches). The message sequencer is light and fast.
+The main limitation of tupelo is that **all network communication passes through a single process**, the message sequencer. This process has minimal state and minimal computation. The state is just a counter and the network connections (no storage of tuples or other application data). The computation is just counter increment and message dispatch (no transaction execution or searches). A transaction requires just one message (possibly with many recipients). The message sequencer is light and fast.
 
 Nevertheless, this process is a bottleneck. Each message traverses two hops, to and from the sequencer. Each tupelo client must be connected to the sequencer to transact on tuples (aside from local reads).
 
@@ -80,17 +80,17 @@ Nevertheless, this process is a bottleneck. Each message traverses two hops, to 
 
 The message sequencer is also a SPoF (single point of failure), but this is not inherent in the design. A future version of tupelo will have options for failover or clustering of the sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity. (However, redundancy and failover of *application* data and computation *is* supported by the current implementation; app data and computations are distributed among the client processes.)
 
-There are some limitations that may result from naive application of tupelo: high client memory use, high bandwidth use, high client cpu use. These resource issues can often be controlled with [subspaces](doc/subspace.md) and specialized data structures and data stores. There are several examples addressing these problems.
+There are some limitations that may result from naive application of tupelo: high client memory use, high bandwidth use, high client cpu use. These resource issues can often be controlled with [subspaces](doc/subspace.md) and specialized data structures and data stores. There are several examples addressing these problems. Also, see the discussion in [transactions](doc/transactions.md) on limitations of transactions across subspaces.
 
 This implementation is also limited in efficiency because of its use of Ruby.
 
 Finally, it must be understood that work on tupelo is still in early, experimental stages. **The tupelo software should not yet be relied on for applications where failure resistance and recovery are important.**
 
 
-Advantages
-==========
+Benefits
+========
 
-As noted above, Tupelo assigns an incrementing sequence number, or *tick*, to each transaction. This design choice leads to:
+As noted above, the sequencer assigns an incrementing sequence number, or *tick*, to each transaction and dispatches it to the clients, but performs no other computation or storage. This design choice leads to:
 
 * strong consistency: all clients have the same view of the tuplespace at a given tick of the global clock;
 
@@ -98,21 +98,25 @@ As noted above, Tupelo assigns an incrementing sequence number, or *tick*, to ea
 
 * high concurrency: no interprocess locking or coordination is needed to prepare or execute transactions;
 
-* efficient distribution of transaction workload off of the critical path: transaction preparation (finding matching tuples) is performed by just the one client initiating the transaction, and transaction execution is performed only by clients that subscribe to subspaces relevant to the transaction;
+* efficient distribution of transaction workload off of the critical path: transaction preparation (finding matching tuples) is performed by just the client initiating the transaction, and transaction execution is performed only by clients that subscribe to subspaces relevant to the transaction;
 
 * client-side logic within transactions: any client state can be accessed while preparing a transaction, and each client is free to use any template and search mechanism (deterministic or not), as suits the client's tuple storage;
 
-* zero-latency reads: clients store subscribed tuples locally;
+* zero-latency reads: clients store subscribed tuples locally, so searching and waiting for matching tuples are local operations;
 
-* relatively easy data replication: all subscribers to a subspace replicate that subspace, possibly with different storage implementations.
+* relatively easy data replication: all subscribers to a subspace replicate that subspace, possibly with different storage implementationsl;
 
-Additional advantages (not related to the message sequencing) include:
+* the evolution of system state over time is observable (and all apps support the --trace switch and trace api to do so).
 
-* a framework for starting and controlling child and remote processes connected to the tuplespace
+Additional benefits (not related to message sequencing) include:
 
-* options to tunnel connections over ssh and through firewalls, for running in public clouds and other insecure environments
+* a framework for starting and controlling child and remote processes connected to the tuplespace;
 
-(Process control and tunneling are available independently of tupelo using the easy-serve gem.)
+* options to tunnel connections over ssh and through firewalls, for running in public clouds and other insecure environments;
+
+* choice of object serialization method (msgpack, json, marshal, yaml);
+
+Process control and tunneling are available independently of tupelo using the easy-serve gem.
 
 
 Development
@@ -144,6 +148,8 @@ Other gems:
 * msgpack
 
 * yajl-ruby (only used to support --json option)
+
+* nio4r (optional dependency of funl)
 
 Optional gems for some of the examples:
 
