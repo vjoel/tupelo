@@ -11,9 +11,10 @@ class Tupelo::Client
     end
 
     # call this just once at start of first client (it's optional to
-    # preserve behavior of non-subspace-aware code)
+    # preserve behavior of non-subspace-aware code); this is done automatically
+    # in the app framework
     def use_subspaces!
-      return if subspace(TUPELO_SUBSPACE_TAG)
+      return if find_subspace_by_tag(TUPELO_SUBSPACE_TAG)
       define_subspace(TUPELO_SUBSPACE_TAG, {
         TUPELO_META_KEY => "subspace",
         tag:        nil,
@@ -24,16 +25,20 @@ class Tupelo::Client
 
     def subspace tag
       tag = tag.to_s
-      worker.subspaces.find {|sp| sp.tag == tag} or begin
+      find_subspace_by_tag(tag) or begin
         if subscribed_tags.include? tag
           read TUPELO_META_KEY => "subspace",
             tag:      tag,
             template: nil,
             addr:     nil
-          worker.subspaces.find {|sp| sp.tag == tag}
+          find_subspace_by_tag tag
         end
       end
       ## this impl will not be safe with dynamic subspaces
+    end
+
+    def find_subspace_by_tag tag
+      worker.subspaces.find {|sp| sp.tag == tag}
     end
   end
 end
