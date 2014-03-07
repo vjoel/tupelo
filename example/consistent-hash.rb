@@ -9,8 +9,6 @@ N_ITER = 1000
 
 Tupelo.application do
   local do
-    use_subspaces!
-
     N_BINS.times do |id|
       define_subspace id, [id, Numeric, Numeric]
     end

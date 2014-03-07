@@ -43,8 +43,6 @@ end
 Tupelo.application do
 
   local do
-    use_subspaces!
-    
     bool = PortableObjectTemplate::BOOLEAN
     
     define_subspace("x", {

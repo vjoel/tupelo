@@ -66,9 +66,6 @@ if ARGV.delete("-h") or ARGV.delete("--help")
                   load and save tuplespace to DIR
                     (only needs to be set on first tup invocation)
 
-      --use-subspaces
-                  enable subspaces for this tupelo service
-                    (only needs to be set on first tup invocation)
       --subscribe TAG,TAG,...
                   subscribe to specified subspaces; use "" for none
                   by default, tup client subscribes to everything
@@ -82,8 +79,6 @@ require 'tupelo/app'
 argv, tupelo_opts = Tupelo.parse_args(ARGV)
 
 pubsub = argv.delete("--pubsub") # not a standard tupelo opt
-
-use_subspaces = argv.delete("--use-subspaces") # not a standard tupelo opt
 
 if i=argv.index("--subscribe") # default is to subscribe to all
   argv.delete("--subscribe")
@@ -157,8 +152,6 @@ Tupelo.application(
   end
 
   local TupClient, **client_opts do
-    use_subspaces! if use_subspaces
-
     log.info {"cpu time: %.2fs" % Process.times.inject {|s,x|s+x}}
     log.info {"starting shell."}
 

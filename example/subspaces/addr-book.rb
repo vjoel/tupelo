@@ -32,8 +32,6 @@ resp_tag = "#{ab_tag} responses"
 
 Tupelo.application do
   local do
-    use_subspaces!
-
     # Subspace for tuples belonging to the addr book.
     define_subspace(ab_tag, [
       ab_tag,

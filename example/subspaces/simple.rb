@@ -8,7 +8,6 @@ Tupelo.application do
     log.progname = "before"
     log [subscribed_all, subscribed_tags]
 
-    use_subspaces!
     define_subspace "foo", [Numeric]
 
     log read_all(Object)

@@ -14,8 +14,6 @@ fork do
 
   Tupelo.application do
     local do
-      use_subspaces!
-
       define_subspace("memo", [
         "memo",   # tag is encoded in each tuple, for recognizing
         String,   # key in the cache, must be string

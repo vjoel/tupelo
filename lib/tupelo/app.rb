@@ -127,6 +127,14 @@ module Tupelo
         app.start_trace
       end
 
+      if owns_services
+        ## optimize this away -- need lightweight client
+        ## or (better) make subspaces a default even without using app
+        app.local subscribe: nil do
+          use_subspaces!
+        end
+      end
+
       if block
         if block.arity == 0
           app.instance_eval &block

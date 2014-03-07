@@ -10,8 +10,6 @@ CUSTOMER_IDS = 1..10
 
 Tupelo.application do
   local do
-    use_subspaces!
-
     define_subspace("inventory", [
       "product",
       nil,       # product_id

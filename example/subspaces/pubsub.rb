@@ -16,8 +16,6 @@ N_CHAN = 3
 
 Tupelo.application do
   local do
-    use_subspaces!
-
     N_CHAN.times do |i|
       define_subspace i, [i, String]
     end

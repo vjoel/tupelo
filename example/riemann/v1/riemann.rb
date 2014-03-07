@@ -13,7 +13,6 @@ N_CONSUMERS = 2
 
 Tupelo.application do
   local do
-    use_subspaces!
     define_event_subspace
   end
 
