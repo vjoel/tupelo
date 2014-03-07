@@ -37,7 +37,7 @@ Internals
 
 Talk
 ----
-* [Abstract](sfdc.md) and [slides](doc/sfdc.pdf) for San Francisco Distributed Computing meetup, November 2013.
+* [Abstract](sfdc.md) and [slides](doc/sfdc.pdf) for San Francisco Distributed Computing meetup, December 2013.
 
 
 Getting started
@@ -94,27 +94,31 @@ As noted above, the sequencer assigns an incrementing sequence number, or *tick*
 
 * strong consistency: all clients have the same view of the tuplespace at a given tick of the global clock;
 
-* deterministic transaction execution across processes (transactions reference concrete tuples, not templates or queries that require further searching);
+* deterministic transaction execution across processes: transactions complete in two network hops, and transactions reference concrete tuples, not templates or queries that require further searching;
 
 * high concurrency: no interprocess locking or coordination is needed to prepare or execute transactions;
 
 * efficient distribution of transaction workload off of the critical path: transaction preparation (finding matching tuples) is performed by just the client initiating the transaction, and transaction execution is performed only by clients that subscribe to subspaces relevant to the transaction;
 
-* client-side logic within transactions: any client state can be accessed while preparing a transaction, and each client is free to use any template and search mechanism (deterministic or not), as suits the client's tuple storage;
+* client-side logic within transactions: any client state can be accessed while preparing a transaction, and each client is free to use any template and search mechanism (deterministic or not), possibly taking advantage of the client's specialized tuple storage;
 
 * zero-latency reads: clients store subscribed tuples locally, so searching and waiting for matching tuples are local operations;
 
 * relatively easy data replication: all subscribers to a subspace replicate that subspace, possibly with different storage implementationsl;
 
-* the evolution of system state over time is observable (and all apps support the --trace switch and trace api to do so).
+* the evolution of system state over time is observable, and tupelo provides the tools to do so: the --trace switch, the trace api, and the `tspy` program.
 
 Additional benefits (not related to message sequencing) include:
+
+* the `tup` program for interactively working with a tuplespace;
 
 * a framework for starting and controlling child and remote processes connected to the tuplespace;
 
 * options to tunnel connections over ssh and through firewalls, for running in public clouds and other insecure environments;
 
 * choice of object serialization method (msgpack, json, marshal, yaml);
+
+* choice of UNIX or TCP sockets.
 
 Process control and tunneling are available independently of tupelo using the easy-serve gem.
 
