@@ -3,14 +3,16 @@ require 'tupelo/client/common'
 class Tupelo::Client
   # Include into class that defines #worker and #log.
   module Api
+    NOT_META = proc {|t| not defined? t.key? or not t.key? TUPELO_META_KEY}
+
     # If no block given, return one matching tuple, blocking if necessary.
     # If block given, yield each matching tuple that is found
     # locally and then yield each new match as it is written to the space.
     # Guaranteed not to miss tuples, even if they arrive and are immediately
     # taken. (Note that simply doing read(template) in a loop would not
     # have this guarantee.)
-    # The template defaults to Object, which matches any tuple.
-    def read_wait template = Object
+    # The template defaults to NOT_META, which matches any tuple except metas.
+    def read_wait template = NOT_META
       waiter = Waiter.new(worker.make_template(template), self, !block_given?)
       worker << waiter
       if block_given?
@@ -27,17 +29,17 @@ class Tupelo::Client
     end
     alias read read_wait
 
-    # The template defaults to Object, which matches any tuple.
-    def read_nowait template = Object
+    # The template defaults to NOT_META, which matches any tuple except metas.
+    def read_nowait template = NOT_META
       matcher = Matcher.new(worker.make_template(template), self)
       worker << matcher
       matcher.wait
     end
 
-    # Returns all matching tuples currently in the space. The template defaults
-    # to Object, which matches any tuple. Does not wait for more tuples to
-    # arrive.
-    def read_all template = Object
+    # Returns all matching tuples currently in the space. Does not wait for more
+    # tuples to arrive. The template defaults to NOT_META, which matches any
+    # tuple except metas.
+    def read_all template = NOT_META
       matcher = Matcher.new(worker.make_template(template), self, :all => true)
       worker << matcher
       a = []
