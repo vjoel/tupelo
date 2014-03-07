@@ -3,7 +3,7 @@ Tupelo
 
 Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory. Its programming model is semantically simple and transparent yet powerful: the interface is in terms of tuples, a small set of operations on tuples (read, write, take), and transactions composed of these operations. This model, unlike RPC and message channels, decouples application endpoints from each other, in both space and time.
 
-Tupelo is inspired by Masatoshi Seki's Rinda in the Ruby standard library, which in turn is based on Gelernter's Linda. The programming models are similar, except for the lack of transactions in Rinda. However, the implementations of the two are nearly opposite in architectural approach.
+Tupelo is inspired by Masatoshi Seki's Rinda in the Ruby standard library, which in turn is based on Gelernter's Linda. The programming models of Tupelo and  Rinda are similar, except for the lack of transactions in Rinda. However, the implementations of the two are nearly opposite in architectural approach.
 
 This repository contains the reference implementation in Ruby, with documentation, tests, benchmarks, and examples. Implementations in other languages must communicate with this one.
 
@@ -11,8 +11,8 @@ This repository contains the reference implementation in Ruby, with documentatio
 Documentation
 ============
 
-Introductions
--------------
+Introductory
+------------
 * [Tutorial](doc/tutorial.md)
 * [Examples](example)
 * [FAQ](doc/faq.md)
@@ -25,8 +25,8 @@ In Depth
 * [Causality](doc/causality.md)
 * [Concurrency](doc/concurrency.md)
 
-The Bigger Picture
-------------------
+Big Picture
+-----------
 * [Comparisons](doc/compare.md)
 * [Planned future work](doc/future.md)
 
@@ -64,7 +64,7 @@ Getting started
 Applications
 =======
 
-Tupelo is a flexible base layer for various distributed programming patterns and techniques: job queues, shared config and state, load balancing, service discovery, in-memory data grids, dataflow, map-reduce, and both optimistic and lock/lease concurrency models . The examples explore these patterns in simple forms.
+Tupelo is a flexible base layer for various distributed programming patterns and techniques: job queues, shared configuration and state, load balancing, service discovery, in-memory data grids, dataflow, map-reduce, and both optimistic and lock/lease concurrency models . The examples explore these patterns in simple forms.
 
 Tupelo can be used to impose a unified transactional structure and distributed access model on a mixture of programs and languages (polyglot computation) and a mixture of data stores (polyglot persistence), with consistent replication.
 
@@ -78,7 +78,7 @@ Nevertheless, this process is a bottleneck. Each message traverses two hops, to 
 
 **Tupelo will always have this limitation.** It is essential to the design of the system. By accepting this cost, we get some benefits, discussed in the next section.
 
-The message sequencer is also a SPoF (single point of failure), but this is not inherent in the design. A future version of tupelo will have options for failover or clustering of the sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity. (However, reduncancy and failover of *application* data and computation is supported by the current implementation.)
+The message sequencer is also a SPoF (single point of failure), but this is not inherent in the design. A future version of tupelo will have options for failover or clustering of the sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity. (However, redundancy and failover of *application* data and computation *is* supported by the current implementation; app data and computations are distributed among the client processes.)
 
 There are some limitations that may result from naive application of tupelo: high client memory use, high bandwidth use, high client cpu use. These resource issues can often be controlled with [subspaces](doc/subspace.md) and specialized data structures and data stores. There are several examples addressing these problems.
 
