@@ -129,6 +129,13 @@ What is a tupelo client?
 
 A client is a process (possibly with multiple threads, typically with a worker thread) that connects to the message sequencer and sends and receives transactions as messages. A client, as discussed in [protocol.md](protocol.md) must also store enough of the tuplespace state to be able to prepare and execute transactions consistently with other clients. So, it is a "client" from the point of view of the message sequencer, but a tupelo client may at the same time be serving data to other (non-tupelo) processes, such as http API clients that do not know about tupelo, as in [example/multitier](example/multitier).
 
+Is the tuplestore in a client a cache?
+--------------------------------------
+
+A client stores all the tuples in all the subspaces it subsscribes to. At a particular global clock tick (when observed in the client), the tuples that it stores must agree with the tuples stored in other clients at the same tick. So, in this sense, the client's local store is *authoritative*. This is not usually true of a cache. Code running in a client can call `read <template>` to use this local store as a cache, with the guarantee that, at the (currently observed) tick, these tuples are globally consistent.
+
+Note that writes and other transactions do not immediately affect the local store. Transactions containing writes or takes are sent through the message sequencer and then executed in the same sequence on the local store of each client that subscribes to the affected subspaces.
+
 Utility
 =======
 
