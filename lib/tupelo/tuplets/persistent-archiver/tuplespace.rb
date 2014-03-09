@@ -82,5 +82,10 @@ class Tupelo::PersistentArchiver
     def find_match_for tuple
       @counts[tuple] > 0 && tuple
     end
+
+###    def find_match_for tuple, distinct_from: []
+###      tuple && @tuple_rec[tuple].count > distinct_from.count(tuple)
+###      ## is 'tuple &&' necessary?
+###    end
   end
 end

@@ -69,8 +69,8 @@ class Tupelo::Archiver
       end
     end
 
-    def find_match_for tuple
-      @counts[tuple] > 0 && tuple
+    def find_match_for tuple, distinct_from: []
+      @counts[tuple] > distinct_from.count(tuple)
     end
   end
 end

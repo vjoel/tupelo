@@ -320,10 +320,10 @@ class Tupelo::Client
       @delta = 0
 
       record_history msg
-      execute_transaction_in_message msg
+      execute_transaction msg
     end
 
-    def execute_transaction_in_message msg
+    def execute_transaction msg
       op = msg.blob ? Operation.new(*blobber.load(msg.blob)) : Operation::NOOP
         ## op.freeze_deeply
       log.debug {"applying #{op} from client #{msg.client_id}"}
@@ -333,7 +333,8 @@ class Tupelo::Client
       end
 
       take_tuples = tuplespace.find_distinct_matches_for(op.takes)
-      read_tuples = op.reads.map {|t| tuplespace.find_match_for(t)}
+      read_tuples = op.reads.map {|t| tuplespace.find_match_for(t,
+        distinct_from: take_tuples)}
       succeeded = take_tuples.all? && read_tuples.all?
 
       if client.subscribed_all
@@ -617,6 +618,7 @@ class Tupelo::Client
         msg.blob = blobber.dump([writes, pulses, takes, reads])
         ## optimization: use bitfields to identify which ops are present
         ## (instead of nils), in one int
+        ## other optimization: remove trailing nil/[]
       rescue => ex
         raise ex, "cannot serialize #{transaction.inspect}: #{ex}"
       end

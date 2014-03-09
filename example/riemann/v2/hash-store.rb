@@ -8,18 +8,22 @@ class HashStore < Tupelo::Archiver::Tuplespace
     super
   end
 
-  # We're not going to use Client#take in this client, so there's no need
-  # to handle the distinct_from keyword argument.
-  def find_match_for template
+  def find_match_for template, distinct_from: []
     case template
     when Array, Hash # just a tuple
       super
+
     else
       # We added this case to Archiver::Tuplespace just so the read(..)
       # will work correctly on tuples that are already in the space
       # when this process starts up. After that point, incoming tuples
       # are matched directly against the CRITICAL_EVENT template without
-      # searhing the space.
+      # searching the space.
+
+      # We're not going to use Client#take in this client, so there's no need
+      # to handle the distinct_from keyword argument.
+      raise "internal error" unless distinct_from.empty?
+
       find do |tuple|
         template === tuple
       end
