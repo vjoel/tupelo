@@ -129,7 +129,7 @@ Finally, it must be understood that work on tupelo is still in early, experiment
 Benefits
 ========
 
-As noted above, the sequencer assigns an incrementing sequence number, or *tick*, to each transaction and dispatches it to the clients, but performs no other computation or storage. This design choice leads to:
+As noted above, the sequencer assigns an incrementing sequence number, or *tick*, to each transaction and dispatches it to the clients, who take on all the burden of tuple computation and storage. This design choice leads to:
 
 * strong consistency: all clients have the same view of the tuplespace at a given tick of the global clock;
 
@@ -149,7 +149,7 @@ As noted above, the sequencer assigns an incrementing sequence number, or *tick*
 
 Additional benefits (not related to message sequencing) include:
 
-* the `tup` program for interactively working with a tuplespace;
+* the `tup` program for interactively starting and connecting to tupelo instances;
 
 * a framework for starting and controlling child and remote processes connected to the tuplespace;
 
