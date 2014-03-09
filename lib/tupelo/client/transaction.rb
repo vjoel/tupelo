@@ -480,8 +480,9 @@ class Tupelo::Client
       
       ## convert cancelling write/take to pulse
       ## convert cancelling take/write to read
+      ## remove redundant pulse after read
       ## remove redundant read before take
-      ## remove redundant after write
+      ## remove redundant read after write
       
       if take_tuples_for_local.all? and read_tuples_for_local.all?
         @queue << true
