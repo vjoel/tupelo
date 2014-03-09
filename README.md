@@ -68,6 +68,43 @@ Tupelo is a flexible base layer for various distributed programming patterns and
 
 Tupelo can be used to impose a unified transactional structure and distributed access model on a mixture of programs and languages (polyglot computation) and a mixture of data stores (polyglot persistence), with consistent replication.
 
+Here's one example, a program which counts prime numbers in an interval by distributing the problem to a set of hosts:
+
+    require 'tupelo/app/remote'
+
+    hosts = %w{itchy scratchy lisa bart} # ssh hosts with key-based auth
+
+    Tupelo.tcp_application do
+      hosts.each do |host|
+        remote host: host, passive: true, eval: %{
+          require 'prime' # ruby stdlib for prime factorization
+          loop do
+            _, input = take(["input", Integer])
+            write ["output", input, input.prime_division]
+          end
+        }
+      end
+
+      local do
+        inputs = 1_000_000_000_000 .. 1_000_000_000_200
+
+        inputs.each do |input|
+          write ["input", input]
+        end
+
+        count = 0
+        inputs.size.times do |i|
+          _, input, factors = take ["output", Integer, nil]
+          count += 1 if factors.size == 1 and factors[0][1] == 1
+          print "\rChecked #{i}"
+        end
+
+        puts "\nThere are #{count} primes in #{inputs}"
+      end
+    end
+
+Ssh is used to set up the remote processes. Additionally, with the `--tunnel` command line argument, all tuple communication is tunneled over ssh. More examples like this are in [example/map-reduce](example/map-reduce).
+
 
 Limitations
 ===========
