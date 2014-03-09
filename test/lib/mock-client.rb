@@ -2,6 +2,7 @@ require 'fiber'
 
 require 'tupelo/client/reader'
 require 'tupelo/client/transaction'
+require 'tupelo/client/subspace'
 
 require 'mock-queue.rb'
 

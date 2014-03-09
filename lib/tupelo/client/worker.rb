@@ -437,10 +437,23 @@ class Tupelo::Client
       end
     end
 
+    def find_subspace_by_tag tag
+      subspaces.find {|sp| sp.tag == tag}
+    end
+
+    def meta_subspace
+      @meta_subspace ||= find_subspace_by_tag(Api::TUPELO_SUBSPACE_TAG)
+    end
+
     # Returns true if tuple is subspace metadata.
     def is_meta_tuple? tuple
-      tuple.kind_of? Hash and tuple.key? TUPELO_META_KEY and
-        tuple[TUPELO_META_KEY] == "subspace"
+      if meta_subspace
+        meta_subspace === tuple
+      else
+        # meta_subspace hasn't arrived yet, so use approximation
+        tuple.kind_of? Hash and tuple.key? Api::TUPELO_META_KEY and
+          tuple[Api::TUPELO_META_KEY] == "subspace"
+      end
     end
 
     def sniff_meta_tuple tuple

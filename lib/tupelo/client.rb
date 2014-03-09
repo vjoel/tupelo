@@ -2,17 +2,15 @@ require 'funl/client'
 
 module Tupelo
   class Client < Funl::Client
-    require 'tupelo/client/worker'
-    require 'tupelo/client/tuplespace'
     require 'tupelo/client/subspace'
 
     include Api
 
+    require 'tupelo/client/worker'
+    require 'tupelo/client/tuplespace'
+
     attr_reader :worker
     attr_reader :tuplespace
-
-    TUPELO_SUBSPACE_TAG = "tupelo subspace".freeze
-    TUPELO_META_KEY = "__tupelo__".freeze
 
     def initialize(tuplespace: SimpleTuplespace, subscribe: :all, **opts)
       super **opts

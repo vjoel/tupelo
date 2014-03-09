@@ -1,5 +1,8 @@
 class Tupelo::Client
   module Api
+    TUPELO_SUBSPACE_TAG = "tupelo subspace".freeze
+    TUPELO_META_KEY = "__tupelo__".freeze
+
     def define_subspace tag, template, addr: nil
       metatuple = {
         TUPELO_META_KEY => "subspace",
@@ -38,7 +41,7 @@ class Tupelo::Client
     end
 
     def find_subspace_by_tag tag
-      worker.subspaces.find {|sp| sp.tag == tag}
+      worker.find_subspace_by_tag tag
     end
   end
 end
