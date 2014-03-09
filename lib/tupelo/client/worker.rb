@@ -320,6 +320,10 @@ class Tupelo::Client
       @delta = 0
 
       record_history msg
+      execute_transaction_in_message msg
+    end
+
+    def execute_transaction_in_message msg
       op = msg.blob ? Operation.new(*blobber.load(msg.blob)) : Operation::NOOP
         ## op.freeze_deeply
       log.debug {"applying #{op} from client #{msg.client_id}"}
