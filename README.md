@@ -80,7 +80,9 @@ Nevertheless, this process is a bottleneck. Each message traverses two hops, to 
 
 The message sequencer is also a SPoF (single point of failure), but this is not inherent in the design. A future version of tupelo will have options for failover or clustering of the sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity. (However, redundancy and failover of *application* data and computation *is* supported by the current implementation; app data and computations are distributed among the client processes.)
 
-There are some limitations that may result from naive application of tupelo: high client memory use, high bandwidth use, high client cpu use. These resource issues can often be controlled with [subspaces](doc/subspace.md) and specialized data structures and data stores. There are several examples addressing these problems. Also, see the discussion in [transactions](doc/transactions.md) on limitations of transactions across subspaces.
+There are some limitations that may result from naive application of tupelo: high client memory use, high bandwidth use, high client cpu use. These resource issues can often be controlled with [subspaces](doc/subspace.md) and specialized data structures and data stores. There are several examples addressing these problems. Another approach is to use the tuplespace for low volume references to high volume data.
+
+Also, see the discussion in [transactions](doc/transactions.md) on limitations of transactions across subspaces.
 
 This implementation is also limited in efficiency because of its use of Ruby.
 
