@@ -441,6 +441,41 @@ reason is that #read and #take depend on the client being subscribed to the subs
 
   Yes. The Application class is useful for examples and tests. It is suitable for more complex applications if their source code fits the framework. But it may force you into certain decisions that make it difficult to integrate into other code. One example is [example/small.rb](example/small.rb). (It would be good to have an example that doesn't even use easy-serve...)
 
+3. Why do you need `local {}` clauses in applications? Why can't you just do
+
+    Tupelo.application do
+      write ...
+      take ...
+
+      child do
+        ...
+      end
+    end
+
+  This is so that the main process (the one executing code inside the application block, but not inside the child block) does not have to subscribe to any subspaces, which would add a subscriber, with its corresponding network and datastore requirements. This subscriber may never get used, for example, if all your code is in child or remote clauses. So the main process doesn't create a client (with its local store and worker thread) unless *explicitly* requested to do so. The normal pattern is to do this instead:
+
+    Tupelo.application do
+      local do
+        write ...
+      end
+
+      child do
+        ...
+      end
+    end
+
+You can also put the local clause after the child clause, and then the child will start with a little less garbage to collect. Also, in that position the local clause doesn't block the child from spawning. Alternately, you can use a thread (or several) in the local clause so that the child clients can spawn while the local clause is running:
+
+    Tupelo.application do
+      local do
+        Thread.new {write ...}
+      end
+
+      child do
+        ...
+      end
+    end
+
 Networking: Security, Firewalls, Hostnames
 ======================
 
