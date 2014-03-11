@@ -72,8 +72,9 @@ class PoiStore
       float         :lng, null: false
       text          :desc
 
-###      create_index  :lat ## todo: use spatial index
-###      create_index  :lng
+      ## spatial_index [:lat, :lng] # by default sqlite doesn't support this
+      index         :lat
+      index         :lng
     end
 
     @table = @db[:poi]
