@@ -175,6 +175,10 @@ class Tupelo::Client
       end
     end
 
+    def read_only?
+      @writes.empty? && @pulses.empty? && @take_templates.empty?
+    end
+
     def inspect
       stat_extra =
         case
@@ -527,7 +531,8 @@ class Tupelo::Client
     end
     
     def done global_tick, granted_tuples
-      raise TransactionStateError, "must be pending" unless pending?
+      raise TransactionStateError, "must be pending or read_only" unless
+        pending? or (closed? and read_only?)
       raise unless in_worker_thread?
       raise if @global_tick or @exception
 
