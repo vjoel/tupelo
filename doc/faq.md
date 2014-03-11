@@ -229,11 +229,26 @@ Tuplespace Operations
 
 4. If reads are local, then why are reads included in the transaction as it is sent to remote processes?
 
-  In a transaction, a read acts as an assertion that a certain tuple exists. If that tuple has disappeared after the #commit call and before the execution of the transaction, then the "assertion" fails and so does the transaction.
+  In a transaction, a read acts as an assertion that a certain tuple exists. If that tuple has disappeared after the #commit call and before the execution of the transaction, then the "assertion" fails and so does the transaction. For example:
+  
+      transaction do
+        read [1]
+        write [2]
+      end
+
+  This says that, when executing, write the tuple `[2]` only if the tuple `[1]` exists at the same time. Another process may have taken `[1]` while the transaction was in flight. If the read was not included in the remote exection, it would not be possible to check this.
 
 5. If a tranasction is all reads, does it go out to the network?
 
-  No, it reads locally. The read results are guaranteed to be globally consistent at the tick when the read executes.
+  No, it reads locally. The read results are guaranteed to be globally consistent at the tick when the read executes. It also guarantees that the values read are simultaneous. This can be useful to check for the existence of two tuples that signify some application-defined condition. For example:
+  
+      transaction do
+        read signal: "red"
+        read signal: "green"
+      end
+      log.error "signal was red and green at the same time!"
+
+  The effect of this transaction is to wait (locally, with no outgoing messages) until, at some tick, the tuplespace contains both of these tuples. When that happens, the transaction completes (without any network access, which you can verify using #trace), and the application logs the error.
 
 6. How do I read with a timeout?
 
@@ -260,7 +275,7 @@ Transactions
 
   Let's break this into two cases: _preparing_ transactions (before attempting to commit) and _executing_ transactions (which determines whether the commit succeeds).
 
-  During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions and *locally* in the client process. There is no synchronization between two concurrent transactions in in this stage (and this is true whether the two transactions are in two threads in the same process or in two processes in the same or different hosts). For example:
+  During the _prepare_ phase, each transaction is a separate sequence of events (calls to #read, #write, #take et al) that executes concurrently with other transactions and *locally* in the client process. There is no synchronization between two concurrent transactions in this stage (and this is true whether the two transactions are in two threads in the same process or in two processes in the same or different hosts). For example:
 
       $ tup
       >> t1 = transaction
@@ -284,7 +299,7 @@ Transactions
 
   Before the `t1.commit`, there is no synchronization. So both t1 axnd t2 were able to take the tuple [3], but only in the context of preparing the transactions.
 
-  Typically, there is one transaction at a time per thread, unlike in the above example. Tupelo supports multiple client threads per process. The client threads interact with a single worker thread that manages the local subspaces and the communication with the message sequencer.
+  Typically, there is one transaction at a time per thread, unlike in the above example. Tupelo supports multiple client threads per process. The client threads interact (via queues) with a single worker thread that manages the local subspaces and the communication with the message sequencer.
 
   After #commit, the transaction executes on all clients that subscribe to the affected subspaces, resulting (deterministically, the same for all clients) in either success or failure. These executions are performed by the worker thread in each client in (deterministic) linear order based on the tick. In this phase, there is no synchronization among proceses or threads, except that, within a process, a client thread that is waiting for a template match (#read or #take) will be notified by the worker thread when the match arrives (or immediately if the match already exists). For example:
 
@@ -315,9 +330,9 @@ Transactions
       >> txn
       => Tupelo::Client::Transaction failed take RubyObjectTemplate: [1] missing: [[1]]
 
-  After the transaction has been sent through the sequencer (either by calling #commit or by reaching the end of the syntactic block), it can fail for essentially the same reason: another transaction happened first, and a tuple is missing. This is harder to see using interactive tools, because the latency window between the #commit call and execution is too short. However, with higher load and contention for a small set of tuples, you can see this failure quite easily using the ``--trace`` switch. For example, [example/lock-mgr.rb](example/lock-mgr.rb) and  [example/map-reduce/prime-factor.rb](example/map-reduce/prime-factor.rb).
+  After the transaction has been sent through the sequencer (either by calling #commit or by reaching the end of the syntactic block), it can fail for essentially the same reason: another transaction happened first, and a tuple is missing. This is harder to see using interactive tools, because the latency window between the #commit call and execution is too short and it happens hidden away from application code. However, with higher load and contention for a small set of tuples, you can see this failure quite easily using the `--trace` switch. For example, [example/lock-mgr.rb](example/lock-mgr.rb) and  [example/map-reduce/prime-factor.rb](example/map-reduce/prime-factor.rb).
   
- Note that the ``--trace`` switch only indicates failures after commit. Failures can also occur during the preparation of a transaction when some other process takes a tuple; these failures are internal to a client process, and show up in the info logs. To see both kinds of failure, both pre and post commit, this is useful:
+  Note that the `--trace` switch only indicates failures after commit. As discussed above, failures can also occur during the preparation of a transaction when some other process takes a tuple; these failures are internal to a client process, and show up in the info logs. To see both kinds of failure, both pre and post commit, this is useful:
 
     ruby prog.rb --trace --info 2>&1 | grep -i fail
 
@@ -342,9 +357,27 @@ Read inside of a transaction:
 
 Differences:
 
-* Latency. The first case will have no network latency, unless it has to wait because [1] does not exist. In, the second case, the read call returns immediately if [1] is available, but the transaction as a whole always has a latency of one round-trip, or more if there was contention for those tuples (another process takes [2] after the transaction commits but before it executes).
+* Latency. The first case will have no network latency, unless it has to wait because [1] does not exist. In the second case, the read call returns immediately if [1] is available, but the transaction as a whole always has a latency of one round-trip, which might have to be repeated if there was contention for those tuples (another process takes [2] after the transaction commits but before it executes).
 
 * Consistency. both cases have the same basic consistency guarantee: at the tick when it executes (that is, the tick observed locally--the most recent tick that the worker thread has heard), the tuple [1] exists. However, in the first case, the tick is just whatever tick it was when the tuple was found locally. In the second case, the tick is the tick at which *both* of those operations were successfully performed--so you have the additional guarantee that [1] and [2] existed **at that same time** and that [2] was removed at that time.
+
+6. Can you use the return values of `read` and `take` inside a transaction?
+
+  Yes, but until the transaction completes successfully, they might not be the final, globally agreed upon values.
+
+    write [1]
+    x = nil
+    transaction do
+      x = take [nil]  # may return [1], but...
+      sleep 1         # if another process takes that tuple and writes [2]
+    end
+    puts x            # this will print "[2]"
+
+These "optimistic" values are obtained without any network latency, so they can be useful if you want to start some work that takes some time, while waiting for the transaction to commit. Just make sure you can back out of this work if the transaction fails and retries. There is a shortcut for using take optimistically:
+
+    take template do |val|
+      # use val here
+    end
 
 
 Distributing

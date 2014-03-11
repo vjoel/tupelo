@@ -12,6 +12,8 @@ class Tupelo::Client
     # taken. (Note that simply doing read(template) in a loop would not
     # have this guarantee.)
     # The template defaults to NOT_META, which matches any tuple except metas.
+    # The first phase of this method, reading existing tuples, is essentially
+    # the same as read_all, and subject to the same warnings.
     def read_wait template = NOT_META
       waiter = Waiter.new(worker.make_template(template), self, !block_given?)
       worker << waiter
@@ -38,7 +40,13 @@ class Tupelo::Client
 
     # Returns all matching tuples currently in the space. Does not wait for more
     # tuples to arrive. The template defaults to NOT_META, which matches any
-    # tuple except metas.
+    # tuple except metas. To read all matches of more than one template, use
+    # the #or method from util/boolean.rb.
+    # Matches are guaranteed to exist at the same tick (even if they no longer
+    # exist after that tick). To take a snapshot like this, the worker is
+    # blocked from all other activity for some time, so be careful about
+    # using read_all when large numbers of tuples match. If a block is given,
+    # it runs after the worker has unblocked.
     def read_all template = NOT_META
       matcher = Matcher.new(worker.make_template(template), self, :all => true)
       worker << matcher
