@@ -7,7 +7,7 @@ class PoiTemplate
 
   # lat and lng can be intervals or single values or nil to match any value
   def initialize lat: nil, lng: nil, poispace: nil
-    @lat = lag
+    @lat = lat
     @lng = lng
     @poispace = poispace
   end
