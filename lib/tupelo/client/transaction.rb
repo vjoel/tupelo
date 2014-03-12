@@ -108,6 +108,7 @@ class Tupelo::Client
     attr_reader :granted_tuples
     attr_reader :missing
     attr_reader :tags
+    attr_reader :read_only
     
     STATES = [
       OPEN      = :open,    # initial state
@@ -149,6 +150,7 @@ class Tupelo::Client
       @tags = nil
       @_take_nowait = nil
       @_read_nowait = nil
+      @read_only = false
       
       if deadline
         worker.at deadline do
@@ -173,10 +175,6 @@ class Tupelo::Client
       else
         @log.unknown *args
       end
-    end
-
-    def read_only?
-      @writes.empty? && @pulses.empty? && @take_templates.empty?
     end
 
     def inspect
@@ -312,17 +310,11 @@ class Tupelo::Client
     # idempotent
     def commit
       if open?
-        if @writes.empty? and @pulses.empty? and
-           @take_tuples_for_remote.all? {|t| t.nil?} and
-           @read_tuples_for_remote.all? {|t| t.nil?}
-          @global_tick = worker.global_tick ## ok?
-          done!
-          log.info {"not committing empty transaction"}
-        else
-          closed!
-          log.info {"committing #{inspect}"}
-          worker_push self
-        end
+        closed!
+        @read_only = @writes.empty? && @pulses.empty? &&
+           @take_tuples_for_remote.all? {|t| t.nil?}
+        log.info {"committing #{inspect}"}
+        worker_push self
       else
         raise exception if failed?
       end
@@ -531,8 +523,9 @@ class Tupelo::Client
     end
     
     def done global_tick, granted_tuples
-      raise TransactionStateError, "must be pending or read_only" unless
-        pending? or (closed? and read_only?)
+      unless pending? or (closed? and read_only)
+        raise TransactionStateError, "must be pending or closed+read_only"
+      end
       raise unless in_worker_thread?
       raise if @global_tick or @exception
 

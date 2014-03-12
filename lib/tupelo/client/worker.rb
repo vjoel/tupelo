@@ -507,7 +507,7 @@ class Tupelo::Client
         t.prepare
         prep_waiters << t unless prep_waiters.include? t
       when t.closed?
-        if t.read_only?
+        if t.read_only
           t.done global_tick, nil
         else
           t.submit
