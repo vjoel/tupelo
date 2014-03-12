@@ -1,9 +1,9 @@
 Tupelo
 ==
 
-Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory. Its programming model is small and semantically transparent: tuples, a few operations on tuples (read, write, take), and transactions composed of these operations. This model, unlike RPC, pubsub, and message queues, decouples application endpoints from each other, in both space and time.
+Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory, with pluggable storage adapters. Its programming model is small and semantically transparent: there are tuples (built from arrays, hashes, and scalars), a few operations on tuples (read, write, take), and transactions composed of these operations. This data-centric model, unlike RPC and most forms of messaging, decouples application endpoints from each other, not only in space and time, but also in referential structure: processes refer to data rather than to other processes.
 
-Tupelo is inspired by Masatoshi Seki's Rinda in the Ruby standard library, which in turn is based on Gelernter's Linda. The programming models of Tupelo and  Rinda are similar, except for the lack of transactions in Rinda. However, the implementations of the two are nearly opposite in architectural approach.
+Tupelo is inspired by Masatoshi Seki's Rinda in the Ruby standard library, which in turn is based on David Gelernter's Linda. The programming models of Tupelo and Rinda are similar, except for the lack of transactions in Rinda. However, the implementations of the two are nearly opposite in architectural approach.
 
 This repository contains the reference implementation in Ruby, with documentation, tests, benchmarks, and examples. Implementations in other languages must communicate with this one.
 
@@ -43,7 +43,7 @@ Talk
 Getting started
 ==========
 
-1. Install ruby 2.0 or 2.1 (not 1.9) from http://ruby-lang.org. Examples and tests will not work on windows (they use fork and unix sockets) or jruby, though probably the underying libs will (using tcp sockets).
+1. Install ruby 2.0 or 2.1 (not 1.9) from http://ruby-lang.org. Examples and tests will not work on Windows (they use fork and unix sockets) or JRuby, though probably the underying libs will (using tcp sockets on Windows).
 
 2. Install the gem and its dependencies (you may need to `sudo` this):
 
@@ -58,7 +58,7 @@ Getting started
         >> t [nil, nil]
         => ["hello", "world"]
 
-4. Take a look at the [FAQ](doc/faq.md), [tutorial](doc/tutorial.md), and the many [examples](example).
+4. Take a look at the [FAQ](doc/faq.md), the [tutorial](doc/tutorial.md), and the many [examples](example).
 
 
 Applications
@@ -68,7 +68,11 @@ Tupelo is a flexible base layer for various distributed programming patterns and
 
 Tupelo can be used to impose a unified transactional structure and distributed access model on a mixture of programs and languages (polyglot computation) and a mixture of data stores (polyglot persistence), with consistent replication.
 
-Here's one example, a program which counts prime numbers in an interval by distributing the problem to a set of hosts:
+
+Example
+-------
+
+This program counts prime numbers in an interval by distributing the problem to a set of hosts:
 
     require 'tupelo/app/remote'
 
@@ -109,7 +113,7 @@ Ssh is used to set up the remote processes. Additionally, with the `--tunnel` co
 Limitations
 ===========
 
-The main limitation of tupelo is that **all network communication passes through a single process**, the message sequencer. This process has minimal state and minimal computation. The state is just a counter and the network connections (no storage of tuples or other application data). The computation is just counter increment and message dispatch (no transaction execution or searches). A transaction requires just one message (possibly with many recipients). The message sequencer is light and fast.
+The main limitation of tupelo is that **all network communication passes through a single process**, the message sequencer. This process has minimal state and minimal computation. The state is just a counter and the network connections (no storage of tuples or other application data). The computation is just counter increment and message dispatch (no transaction execution or searches). A transaction requires just one message (possibly with many recipients) to pass through the sequencer. The message sequencer can be light and fast.
 
 Nevertheless, this process is a bottleneck. Each message traverses two hops, to and from the sequencer. Each tupelo client must be connected to the sequencer to transact on tuples (aside from local reads).
 
@@ -123,7 +127,7 @@ Also, see the discussion in [transactions](doc/transactions.md) on limitations o
 
 This implementation is also limited in efficiency because of its use of Ruby.
 
-Finally, it must be understood that work on tupelo is still in early, experimental stages. **The tupelo software should not yet be relied on for applications where failure resistance and recovery are important.**
+Finally, it must be understood that work on tupelo is still in early, experimental stages. **The tupelo software should not yet be relied on for applications where failure resistance and recovery are important.** The current version is suited for things like batch processing (especially complex dataflow topologies), which can be restarted after failure, or other distributed systems that have short lifespans or are disposable.
 
 
 Benefits
@@ -143,9 +147,11 @@ As noted above, the sequencer assigns an incrementing sequence number, or *tick*
 
 * zero-latency reads: clients store subscribed tuples locally, so searching and waiting for matching tuples are local operations;
 
-* relatively easy data replication: all subscribers to a subspace replicate that subspace, possibly with different storage implementationsl;
+* relatively easy data replication: all subscribers to a subspace replicate that subspace, possibly with different storage implementations;
 
-* the evolution of system state over time is observable, and tupelo provides the tools to do so: the --trace switch, the trace api, and the `tspy` program.
+* the current state of the tuplespace can be computed from a earlier state by replaying the transactions in sequence;
+
+* the evolution of system state over time is observable, and tupelo provides the tools to do so: the `--trace` switch, the `#trace` api, and the `tspy` program.
 
 Additional benefits (not related to message sequencing) include:
 
