@@ -152,13 +152,13 @@ class Tupelo::Client
       @_read_nowait = nil
       @read_only = false
       
+      open!
+
       if deadline
         worker.at deadline do
           cancel(TimeoutError) if open?
         end
       end
-      
-      open!
     end
     
     def client_id
@@ -302,7 +302,7 @@ class Tupelo::Client
     # this causes transaction to be re-executed.
     def fail!
       raise if in_worker_thread?
-      raise unless open?
+      check_open
       failed!
       raise TransactionFailure
     end
@@ -361,7 +361,7 @@ class Tupelo::Client
 
     def async &block
       raise ArgumentError, "must provide block" unless block
-      TransactionThread.new(self) do ## Fiber?
+      TransactionThread.new(self) do
         begin
           val =
             if block.arity == 0
