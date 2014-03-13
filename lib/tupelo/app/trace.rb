@@ -18,7 +18,7 @@ class Tupelo::Client
   end
 
   def tracing?
-    !!@trace_thread
+    defined?(@trace_thread) && !!@trace_thread
   end
 
   private
