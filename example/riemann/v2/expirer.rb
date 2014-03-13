@@ -15,6 +15,9 @@ class Tupelo::Client
   def run_expirer_v2
     loop do
       event = read subspace("event") # event with lowest time+ttl
+        # This just happens to be true, but alternately we could define
+        # OrderedEventTemplate.frist() to pass in a template that explicitly
+        # finds the lowest key.
       dt_next_expiration = event["time"] + event["ttl"] - Time.now.to_f
       begin
         transaction timeout: dt_next_expiration do
