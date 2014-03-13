@@ -504,7 +504,7 @@ class Tupelo::Client
     def handle_transaction t
       case
       when t.open?
-        t.prepare
+        t.prepare_ops
         prep_waiters << t unless prep_waiters.include? t
       when t.closed?
         if t.read_only

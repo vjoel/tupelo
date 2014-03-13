@@ -386,100 +386,112 @@ class Tupelo::Client
       worker.in_thread?
     end
 
-    def prepare new_tuple = nil
-      return false if closed? or failed? # might change during this method
+    # Further prepare this open transaction after the arrival of a new tuple.
+    def prepare new_tuple
+      return false if closed? or failed?
       raise unless in_worker_thread?
 
-      if new_tuple
-        return true if take_tuples_for_local.all? and read_tuples_for_local.all?
+      return true if take_tuples_for_local.all? and read_tuples_for_local.all?
 
-        take_tuples_for_local.each_with_index do |tuple, i|
-          if not tuple and take_templates[i] === new_tuple
-            take_tuples_for_local[i] = new_tuple
-            take_tuples_for_remote[i] = new_tuple
-            log.debug {"prepared #{inspect} with #{new_tuple}"}
-            break
-          end
-        end
-
-        read_tuples_for_local.each_with_index do |tuple, i|
-          if not tuple and read_templates[i] === new_tuple
-            read_tuples_for_local[i] = new_tuple
-            read_tuples_for_remote[i] = new_tuple
-            log.debug {"prepared #{inspect} with #{new_tuple}"}
-          end
-        end
-
-      else
-        ## optimization: use tuple cache
-        skip = nil
-        (take_tuples_for_local.size...take_templates.size).each do |i|
-          template = take_templates[i]
-          
-          if wt = @writes.find {|tuple| template === tuple}
-            take_tuples_for_remote[i] = nil
-            take_tuples_for_local[i] = wt.dup
-            @writes.delete wt
-            next
-          end
-
-          take_tuples_for_local[i] = take_tuples_for_remote[i] =
-            worker.tuplespace.find_match_for(template,
-              distinct_from: take_tuples_for_local)
-          
-          if take_tuples_for_local[i]
-            log.debug {"prepared #{inspect} with #{take_tuples_for_local[i]}"}
-          else
-            if @_take_nowait and @_take_nowait[i]
-              (skip ||= []) << i
-            end
-          end
-        end
-
-        skip and skip.reverse_each do |i|
-          take_tuples_for_local.delete_at i
-          take_tuples_for_remote.delete_at i
-          take_templates.delete_at i
-          @_take_nowait.delete i
-        end
-        
-        skip = nil
-        (read_tuples_for_local.size...read_templates.size).each do |i|
-          template = read_templates[i]
-
-          if wt = @writes.find {|tuple| template === tuple}
-            read_tuples_for_remote[i] = nil
-            read_tuples_for_local[i] = wt.dup
-            next
-          end
-
-          read_tuples_for_local[i] = read_tuples_for_remote[i] =
-            worker.tuplespace.find_match_for(template,
-              distinct_from: take_tuples_for_local)
-          
-          if read_tuples_for_local[i]
-            log.debug {"prepared #{inspect} with #{read_tuples_for_local[i]}"}
-          else
-            if @_read_nowait and @_read_nowait[i]
-              (skip ||= []) << i
-            end
-          end
-        end
-
-        skip and skip.reverse_each do |i|
-          read_tuples_for_local.delete_at i
-          read_tuples_for_remote.delete_at i
-          read_templates.delete_at i
-          @_read_nowait.delete i
+      take_tuples_for_local.each_with_index do |tuple, i|
+        if not tuple and take_templates[i] === new_tuple
+          take_tuples_for_local[i] = new_tuple
+          take_tuples_for_remote[i] = new_tuple
+          log.debug {"prepared #{inspect} with #{new_tuple}"}
+          break
         end
       end
-      
+
+      read_tuples_for_local.each_with_index do |tuple, i|
+        if not tuple and read_templates[i] === new_tuple
+          read_tuples_for_local[i] = new_tuple
+          read_tuples_for_remote[i] = new_tuple
+          log.debug {"prepared #{inspect} with #{new_tuple}"}
+        end
+      end
+
+      wake_client_if_ready
+      return true
+    end
+
+    # Further prepare this open transaction after new operations are added.
+    def prepare_ops
+      return false if closed? or failed?
+      raise unless in_worker_thread?
+
+      ## optimization: use tuple cache
+      skip = nil
+      (take_tuples_for_local.size...take_templates.size).each do |i|
+        template = take_templates[i]
+
+        if wt = @writes.find {|tuple| template === tuple}
+          take_tuples_for_remote[i] = nil
+          take_tuples_for_local[i] = wt.dup
+          @writes.delete wt
+          next
+        end
+
+        take_tuples_for_local[i] = take_tuples_for_remote[i] =
+          worker.tuplespace.find_match_for(template,
+            distinct_from: take_tuples_for_local)
+
+        if take_tuples_for_local[i]
+          log.debug {"prepared #{inspect} with #{take_tuples_for_local[i]}"}
+        else
+          if @_take_nowait and @_take_nowait[i]
+            (skip ||= []) << i
+          end
+        end
+      end
+
+      skip and skip.reverse_each do |i|
+        take_tuples_for_local.delete_at i
+        take_tuples_for_remote.delete_at i
+        take_templates.delete_at i
+        @_take_nowait.delete i
+      end
+
+      skip = nil
+      (read_tuples_for_local.size...read_templates.size).each do |i|
+        template = read_templates[i]
+
+        if wt = @writes.find {|tuple| template === tuple}
+          read_tuples_for_remote[i] = nil
+          read_tuples_for_local[i] = wt.dup
+          next
+        end
+
+        read_tuples_for_local[i] = read_tuples_for_remote[i] =
+          worker.tuplespace.find_match_for(template,
+            distinct_from: take_tuples_for_local)
+
+        if read_tuples_for_local[i]
+          log.debug {"prepared #{inspect} with #{read_tuples_for_local[i]}"}
+        else
+          if @_read_nowait and @_read_nowait[i]
+            (skip ||= []) << i
+          end
+        end
+      end
+
+      skip and skip.reverse_each do |i|
+        read_tuples_for_local.delete_at i
+        read_tuples_for_remote.delete_at i
+        read_templates.delete_at i
+        @_read_nowait.delete i
+      end
+
       ## convert cancelling write/take to pulse
       ## convert cancelling take/write to read
       ## remove redundant pulse after read
       ## remove redundant read before take
       ## remove redundant read after write
-      
+
+      wake_client_if_ready
+      return true
+    end
+
+    def wake_client_if_ready
       if take_tuples_for_local.all? and read_tuples_for_local.all?
         @queue << true
         log.debug {
@@ -487,8 +499,6 @@ class Tupelo::Client
           "take tuples: #{take_tuples_for_local}, " +
           "read tuples: #{read_tuples_for_local}"}
       end
-      
-      return true
     end
 
     def unprepare missing_tuple
