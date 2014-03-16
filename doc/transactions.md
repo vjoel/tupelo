@@ -1,7 +1,20 @@
 Transactions and optimistic concurrency
 ===================
 
-Transactions combine operations into a group that take effect at the same instant in (logical) time, isolated from other transactions. Either all the operations take effect or none do.
+Transactions combine operations into a group that take effect at the same instant in (logical, not wall-clock) time, isolated from other transactions. Either all the operations take effect or none do. To illustrate:
+
+    tx = transaction
+    tx.read [1]
+    tx.take [2]
+    tx.write [3]
+    tx.commit.wait
+
+If the transaction succeeds, the value of the last expression is something like this:
+
+    <Tupelo::Client::Transaction done at global_tick: 42 write [3]; take <RubyObjectTemplate: [2]>; read <RubyObjectTemplate: [1]>>
+
+This result is a consistency guarantee. To understand it, let's suppose some other client process, C2, is connected to the same tupelo instance. That client is observing a sequence of transactions, one per tick: 1, 2, 3.... If C2 stays connected, it will at some point observe that the global tick is 42, and that this transaction has just executed successfully. At this moment, we are certain that: [1] exists, [2] did exist at tick 41, and [3] exists. Of course, that all may change by the time C2 gets a chance to execute a transasction of its own.
+
 
 The transaction stages
 ----------------------
