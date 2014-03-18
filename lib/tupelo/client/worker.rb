@@ -54,9 +54,10 @@ class Tupelo::Client
       
       def initialize metatuple, worker
         @metatuple = metatuple
-        @tag = metatuple["tag"]
+        @tag = metatuple["tag"] || metatuple[:tag]
 
-        spec = Marshal.load(Marshal.dump(metatuple["template"]))
+        template = metatuple["template"] || metatuple[:template]
+        spec = Marshal.load(Marshal.dump(template))
         @pot = worker.pot_for(spec).optimize!
       end
       
@@ -359,7 +360,8 @@ class Tupelo::Client
         take_tuples.each do |tuple|
           if is_meta_tuple? tuple
             ## do some error checking
-            subspaces.delete_if {|sp| sp.tag == tuple["tag"]}
+            tag = tuple["tag"] || tuple[:tag]
+            subspaces.delete_if {|sp| sp.tag == tag}
           end
         end
       end
@@ -452,8 +454,8 @@ class Tupelo::Client
         meta_subspace === tuple
       else
         # meta_subspace hasn't arrived yet, so use approximation
-        tuple.kind_of? Hash and tuple.key? Api::TUPELO_META_KEY and
-          tuple[Api::TUPELO_META_KEY] == "subspace"
+        tuple.kind_of? Hash and tuple.key? client.tupelo_meta_key and
+          tuple[client.tupelo_meta_key] == "subspace"
       end
     end
 

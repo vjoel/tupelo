@@ -1,11 +1,19 @@
 class Tupelo::Client
   module Api
     TUPELO_SUBSPACE_TAG = "tupelo subspace".freeze
-    TUPELO_META_KEY = "__tupelo__".freeze
+
+    def tupelo_subspace_tag
+      @tupelo_subspace_tag ||=
+        symbolize_keys ? TUPELO_SUBSPACE_TAG.to_sym : TUPELO_SUBSPACE_TAG
+    end
+
+    def tupelo_meta_key
+      @tupelo_meta_key ||= symbolize_keys ? :__tupelo__ : "__tupelo__".freeze
+    end
 
     def define_subspace tag, template, addr: nil
       metatuple = {
-        TUPELO_META_KEY => "subspace",
+        tupelo_meta_key => "subspace",
         tag:        tag,
         template:   PortableObjectTemplate.spec_from(template),
         addr:       addr
@@ -19,7 +27,7 @@ class Tupelo::Client
     def use_subspaces!
       return if find_subspace_by_tag(TUPELO_SUBSPACE_TAG)
       define_subspace(TUPELO_SUBSPACE_TAG, {
-        TUPELO_META_KEY => "subspace",
+        tupelo_meta_key => "subspace",
         tag:        nil,
         template:   nil,
         addr:       nil
@@ -30,7 +38,7 @@ class Tupelo::Client
       tag = tag.to_s
       find_subspace_by_tag(tag) or begin
         if subscribed_tags.include? tag
-          read TUPELO_META_KEY => "subspace",
+          read tupelo_meta_key => "subspace",
             tag:      tag,
             template: nil,
             addr:     nil
