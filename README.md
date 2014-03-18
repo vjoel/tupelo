@@ -113,17 +113,27 @@ Ssh is used to set up the remote processes. Additionally, with the `--tunnel` co
 Limitations
 ===========
 
-The main limitation of tupelo is that **all network communication passes through a single process**, the message sequencer. This process has minimal state and minimal computation. The state is just a counter and the network connections (no storage of tuples or other application data). The computation is just counter increment and message dispatch (no transaction execution or searches). A transaction requires just one message (possibly with many recipients) to pass through the sequencer. The message sequencer can be light and fast.
+Bottleneck
+----------
+
+The main limitation of tupelo is that, except for read-only operations, **all tuple operations pass through a single process**, the message sequencer.
+
+The sequencer has minimal state and minimal computation. The state is just a counter and the network connections (no storage of tuples or other application data). The computation is just counter increment and message dispatch (no transaction execution or searches). A transaction requires just one message (possibly with many recipients) to pass through the sequencer. The message sequencer can be light and fast.
 
 Nevertheless, this process is a bottleneck. Each message traverses two hops, to and from the sequencer. Each tupelo client must be connected to the sequencer to transact on tuples (aside from local reads).
 
 **Tupelo will always have this limitation.** It is essential to the design of the system. By accepting this cost, we get some benefits, discussed in the next section.
 
+Clients may communicate other data over side channels that do not go through the sequencer. For [example](example/socket-broker.rb), they can use the tuplespace to coordinate task assignments, data locations (perhaps external to the tuplespace), TCP hosts and ports, and other metadata, and then use direct connections for the data. The archiver, which is a special client that brings newly connected clients up to date, is another example of direct client-to-client connections.
+
+Other limitations
+-----------------
+
 The message sequencer is also a SPoF (single point of failure), but this is not inherent in the design. A future version of tupelo will have options for failover or clustering of the sequencer, perhaps based on [raft](http://raftconsensus.github.io), with a cost of increased latency and complexity. (However, redundancy and failover of *application* data and computation *is* supported by the current implementation; app data and computations are distributed among the client processes.)
 
 There are some limitations that may result from naive application of tupelo: high client memory use, high bandwidth use, high client cpu use. These resource issues can often be controlled with [subspaces](doc/subspace.md) and specialized data structures and data stores. There are several examples addressing these problems. Another approach is to use the tuplespace for low volume references to high volume data.
 
-Also, see the discussion in [transactions](doc/transactions.md) on limitations of transactions across subspaces.
+Also, see the discussion in [transactions](doc/transactions.md) on limitations of transactions across subspaces. It's likely that these limitations will soon be lifted, at the cost of increased latency (only for cross-subspace transactions).
 
 This implementation is also limited in efficiency because of its use of Ruby.
 
@@ -149,7 +159,9 @@ As noted above, the sequencer assigns an incrementing sequence number, or *tick*
 
 * relatively easy data replication: all subscribers to a subspace replicate that subspace, possibly with different storage implementations;
 
-* the current state of the tuplespace can be computed from a earlier state by replaying the transactions in sequence;
+* even though storage is distributed, the client programming model is that all tuples are in the same place at the same time; there is no need to reason about multiple clocks or clock skew;
+
+* the current state of the tuplespace can be computed from an earlier state by replaying the transactions in sequence;
 
 * the evolution of system state over time is observable, and tupelo provides the tools to do so: the `--trace` switch, the `#trace` api, and the `tspy` program.
 
