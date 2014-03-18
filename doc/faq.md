@@ -154,7 +154,7 @@ Syntax:
 
   * `symbolize_keys` is very convenient when passing tuples to and from libraries that expect symbol keys, such as the sequel gem (see [example/sqlite](example/sqlite) and [example/riemann](example/riemann)).
 
-  * **Warning:** ruby does not garbage collect symbols, as of ruby 2.1, but this may change with 2.2. So the `symbolize_keys` feature can lead to unbounded memory use as new, different symbols keep arriving. Only use it if (a) the set of symbols is bounded (and small), or (b) the program has a short lifespan, or (c) you can monitor the program's memory use and restart it as needed.
+  * **Warning:** ruby does not garbage collect symbols, as of ruby 2.1, but this may [change with 2.2](https://bugs.ruby-lang.org/issues/9634). So the `symbolize_keys` feature can lead to unbounded memory use as new, different symbols keep arriving. Only use it if (a) the set of symbols is bounded (and small), or (b) the program has a short lifespan, or (c) you can monitor the program's memory use and restart it as needed.
 
 What is a tupelo client?
 ------------------------
