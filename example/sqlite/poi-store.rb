@@ -16,8 +16,8 @@ class PoiTemplate
   # locally using this template, i.e. read(template) or take(template)
   def === tuple
     @poispace === tuple and
-    !@lat || @lat === tuple["lat"] and
-    !@lng || @lng === tuple["lng"]
+    !@lat || @lat === tuple[:lat] and
+    !@lng || @lng === tuple[:lng]
   end
 
   def find_in table, distinct_from: []
@@ -82,8 +82,8 @@ class PoiStore
   end
 
   def each
-    table.each do |row|
-      yield "lat" => row[:lat], "lng" => row[:lng], "desc" => row[:desc]
+    table.select(:lat, :lng, :desc).each do |row|
+      yield row
     end
     metas.each do |tuple|
       yield tuple
@@ -102,11 +102,9 @@ class PoiStore
   def delete_once tuple
     case tuple
     when poispace
-      id = table.select(:id).where(
-        lat:  tuple["lat"],
-        lng:  tuple["lng"],
-        desc: tuple["desc"]
-      ).limit(1)
+      id = table.select(:id).
+        where(tuple).
+        limit(1)
       count = table.where(id: id).delete
 
       if count == 0

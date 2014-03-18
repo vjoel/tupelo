@@ -21,7 +21,8 @@ Tupelo.application do
     POISPACE = PoiStore.define_poispace(self)
   end
 
-  child tuplespace: [PoiStore, POISPACE], subscribe: "poi", passive: true do
+  child tuplespace: [PoiStore, POISPACE], subscribe: "poi",
+        symbolize_keys: true, passive: true do
     log.progname = "poi-store"
     # handle custom queries here, using poi template
     read do

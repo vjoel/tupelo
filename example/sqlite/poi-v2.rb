@@ -24,22 +24,23 @@ Tupelo.application do
     POISPACE = PoiStore.define_poispace(self)
     define_subspace("cmd", {id: nil, cmd: String, arg: nil})
     define_subspace("rsp", {id: nil, result: nil})
+      # Note: this id is request id, not related to sqlite table id.
   end
 
-  child tuplespace: [PoiStore, POISPACE],
-        subscribe: ["poi", "cmd"], passive: true do
+  child tuplespace: [PoiStore, POISPACE], subscribe: ["poi", "cmd"],
+        symbolize_keys: true, passive: true do
     log.progname = "poi-store #{client_id}"
 
     # handle custom queries here, using poi template
     loop do
       req = take subspace("cmd")
-      case req["cmd"]
+      case req[:cmd]
       when "find box"
-        arg = req["arg"] ## validate this
-        lat = arg["lat"]; lng = arg["lng"]
+        arg = req[:arg] ## validate this
+        lat = arg[:lat]; lng = arg[:lng]
         template = PoiTemplate.new(poispace: subspace("poi"),
           lat: lat[0]..lat[1], lng: lng[0]..lng[1])
-        write id: req["id"], result: read_all(template)
+        write id: req[:id], result: read_all(template)
       end
     end
   end
