@@ -25,6 +25,8 @@ module Tupelo
     def initialize server,
         tuplespace: Tupelo::Archiver::Tuplespace,
         persist_dir: nil, **opts
+        ## when ruby does GC symbols, add this:
+        ## symbolize_keys: true
       @server = server
       @persist_dir = persist_dir
       super arc: nil, tuplespace: tuplespace, **opts

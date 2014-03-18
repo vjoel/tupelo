@@ -61,6 +61,11 @@ if ARGV.delete("-h") or ARGV.delete("--help")
       --yaml
       --json
       --msgpack   <-- default
+
+      --symbol-keys
+      --string-keys
+                  for json and msgpack, represent hash keys as symbols
+                  or strings (see doc/faq for more details)
       
       --persist-dir DIR
                   load and save tuplespace to DIR
@@ -78,7 +83,10 @@ require 'tupelo/app'
 
 argv, tupelo_opts = Tupelo.parse_args(ARGV)
 
-pubsub = argv.delete("--pubsub") # not a standard tupelo opt
+# non-standard tupelo opts:
+pubsub = argv.delete("--pubsub")
+symbol_keys = argv.delete("--symbol-keys")
+string_keys = argv.delete("--string-keys")
 
 if i=argv.index("--subscribe") # default is to subscribe to all
   argv.delete("--subscribe")
@@ -142,6 +150,15 @@ Tupelo.application(
   end
 
   client_opts = {}
+
+  if string_keys
+    client_opts[:symbolize_keys] = false
+  end
+
+  if symbol_keys
+    client_opts[:symbolize_keys] = true
+  end
+
   if pubsub
     client_opts[:arc] = nil
     client_opts[:tuplespace] = TupClient::NullTuplespace
