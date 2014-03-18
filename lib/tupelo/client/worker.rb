@@ -59,6 +59,7 @@ class Tupelo::Client
         template = metatuple["template"] || metatuple[:template]
         spec = Marshal.load(Marshal.dump(template))
         @pot = worker.pot_for(spec).optimize!
+        @pot.freeze
       end
       
       def === tuple
