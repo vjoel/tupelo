@@ -119,10 +119,42 @@ These operations have a few variations (wait vs nowait) and options (timeouts).
 
 For more on operations, see also [Transactions](doc/transactions.md).
 
-Syntax: what's the diff between blocks with and without arguments?
+Syntax:
 ------
 
-You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare [example/add-dsl.rb](example/add-dsl.rb) and [example/add.rb](example/add.rb).
+1. What's the diff between blocks with and without arguments?
+
+  You can use tupelo with a simplified syntax, like a "domain-specific language". Each construct with a block can be used in either of two forms, with an explicit block param or without. Compare [example/add-dsl.rb](example/add-dsl.rb) and [example/add.rb](example/add.rb).
+
+2. Hash keys: symbols or strings?
+
+  Some points to be aware of:
+  
+  * If you're using Marshal or Yaml (the --marshal or --yaml command line switches, for example) to serialize objects, then you can use either, and even mix and match within one tuple. The difference is significant and preserved.
+  
+  * If you're using MessagePack (the default and recommended serializer) or JSON, then you have to choose, using the `symbolize_keys` option when creating a client. The default is currently `false`: keys in hash tuples returned to the program by tupleo are strings. The reason for this is the warning below.
+
+  * You can choose on a per-client basis. In the serialized blob, it's all strings anyway. The choice is purely client side. Different instances of Client in the same process can choose this setting differently.
+  
+  * In any case, when you *write* tuples, you can mix and match symbols and strings as hash keys: they will get normalized to strings in the msgpack-ed blob. Other clients will unpack them as they prefer.
+  
+  * In any case, *templates* can be expressed using any mix of symbols and strings. They are normalized to match against tuples in the local representation.
+  
+  * In the msgpack and json cases, the only real effect on code is when you access values in a hash tuple:
+  
+      h = take foo: nil, bar: nil
+      # one of these will get the value correctly:
+      h[:foo]   # if symbolize_keys: true
+      h["foo"]  # if symbolize_keys: false
+
+  * Nested hashes are treated the same way:
+  
+      h[some_key][:sub_key]  # if symbolize_keys: true
+      h[some_key]["sub_key"] # if symbolize_keys: false
+
+  * `symbolize_keys` is very convenient when passing tuples to and from libraries that expect symbol keys, such as the sequel gem (see [example/sqlite](example/sqlite) and [example/riemann](example/riemann)).
+
+  * **Warning:** ruby does not garbage collect symbols, as of ruby 2.1, but this may change with 2.2. So the `symbolize_keys` feature can lead to unbounded memory use as new, different symbols keep arriving. Only use it if (a) the set of symbols is bounded (and small), or (b) the program has a short lifespan, or (c) you can monitor the program's memory use and restart it as needed.
 
 What is a tupelo client?
 ------------------------
