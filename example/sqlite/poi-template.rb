@@ -1,19 +1,22 @@
 # Hard-coded to work with tuples belonging to the "poi" subspace
 # and with the PoiStore table.
 class PoiTemplate
-  attr_reader :lat, :lng, :template
+  attr_reader :lat, :lng
+  
+  # Template for matching all POI tuples.
+  attr_reader :poi_template
 
   # lat and lng can be intervals or single values or nil to match any value
-  def initialize lat: nil, lng: nil, template: nil
+  def initialize lat: nil, lng: nil, poi_template: nil
     @lat = lat
     @lng = lng
-    @template = template
+    @poi_template = poi_template
   end
 
   # we only need to define this method if we plan to wait for poi tuples
   # locally using this template, i.e. read(template) or take(template)
   def === tuple
-    @template === tuple and
+    @poi_template === tuple and
     !@lat || @lat === tuple[:lat] and
     !@lng || @lng === tuple[:lng]
   end

@@ -7,7 +7,10 @@ require_relative 'poi-template'
 class PoiStore
   include Enumerable
 
-  attr_reader :table, :metas, :template
+  attr_reader :table, :metas
+  
+  # Template for matching all POI tuples.
+  attr_reader :poi_template
 
   def self.define_poispace client
     client.define_subspace("poi",
@@ -23,7 +26,7 @@ class PoiStore
   end
 
   def initialize spec, client: nil
-    @template = client.worker.pot_for(spec)
+    @poi_template = client.worker.pot_for(spec)
       # calling #pot_for in client means that resulting template
       # will have keys converted as needed (in the case of this client,
       # to symbols).
@@ -63,7 +66,7 @@ class PoiStore
 
   def insert tuple
     case tuple
-    when template
+    when poi_template
       table << tuple
     else
       metas << tuple
@@ -72,7 +75,7 @@ class PoiStore
 
   def delete_once tuple
     case tuple
-    when template
+    when poi_template
       id = table.select(:id).
         where(tuple).
         limit(1)
