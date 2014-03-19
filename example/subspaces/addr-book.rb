@@ -20,7 +20,7 @@
 # clients can each use their own data structure for these tuples.
 
 require 'tupelo/app'
-require_relative 'sorted-set-space'
+require_relative 'sorted-set-store'
 
 SHOW_HANDLERS = ARGV.delete("--show-handlers")
 
@@ -66,7 +66,7 @@ Tupelo.application do
   N_REPLICAS.times do |i|
     # Inserts are just writes, which are handled by Worker and SortedSetSpace,
     # so this child's app loop only needs to handle the special commands.
-    child tuplespace: [SortedSetSpace, ab_tag],
+    child tuplestore: [SortedSetStore, ab_tag],
           subscribe: [ab_tag, cmd_tag], passive: true do
 
       log.progname = "replica ##{i}"

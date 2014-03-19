@@ -7,14 +7,14 @@ module Tupelo
     include Api
 
     require 'tupelo/client/worker'
-    require 'tupelo/client/tuplespace'
+    require 'tupelo/client/tuplestore'
 
     attr_reader :worker
-    attr_reader :tuplespace
+    attr_reader :tuplestore
 
-    def initialize(tuplespace: SimpleTuplespace, subscribe: :all, **opts)
+    def initialize(tuplestore: SimpleTupleStore, subscribe: :all, **opts)
       super **opts
-      @tuplespace = tuplespace
+      @tuplestore = tuplestore
       @worker = make_worker
       @initial_subscriptions = subscribe || []
     end

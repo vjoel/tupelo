@@ -1,5 +1,5 @@
 class Tupelo::Archiver
-  class PersistentTuplespace
+  class PersistentTupleStore
     include Enumerable
     
     attr_reader :zero_tolerance

@@ -1,17 +1,17 @@
-# Benchmark the default tuplespace (which is not intended to be fast).
+# Benchmark the default tuplestore (which is not intended to be fast).
 
 module Tupelo
   class Client; end
 end
 
-require 'tupelo/client/tuplespace'
+require 'tupelo/client/tuplestore'
 require 'benchmark'
 
 N_TUPLES = 100_000
 N_DELETES = 10_000
 
 Benchmark.bm(20) do |b|
-  ts = Tupelo::Client::SimpleTuplespace.new
+  ts = Tupelo::Client::SimpleTupleStore.new
 
   b.report('insert') do
     N_TUPLES.times do |i|

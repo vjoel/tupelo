@@ -432,7 +432,7 @@ class Tupelo::Client
         end
 
         take_tuples_for_local[i] = take_tuples_for_remote[i] =
-          worker.tuplespace.find_match_for(template,
+          worker.tuplestore.find_match_for(template,
             distinct_from: take_tuples_for_local)
 
         if take_tuples_for_local[i]
@@ -462,7 +462,7 @@ class Tupelo::Client
         end
 
         read_tuples_for_local[i] = read_tuples_for_remote[i] =
-          worker.tuplespace.find_match_for(template,
+          worker.tuplestore.find_match_for(template,
             distinct_from: take_tuples_for_local)
 
         if read_tuples_for_local[i]

@@ -17,7 +17,7 @@ class Tupelo::Client
     attr_reader :msg_reader_thread
     attr_reader :worker_thread
     attr_reader :cmd_queue
-    attr_reader :tuplespace
+    attr_reader :tuplestore
     attr_reader :message_class
     attr_reader :blobber
     attr_reader :read_waiters
@@ -26,7 +26,7 @@ class Tupelo::Client
     attr_reader :notify_waiters
     attr_reader :subspaces
 
-    GET_TUPLESPACE = "get tuplespace"
+    GET_TUPLESTORE = "get tuplestore"
 
     class Operation
       attr_reader :writes, :pulses, :takes, :reads
@@ -81,7 +81,7 @@ class Tupelo::Client
       @delta = 0
 
       @cmd_queue = client.make_queue
-      @tuplespace = nil
+      @tuplestore = nil
       @message_class = client.message_class
       @blobber = nil
 
@@ -101,15 +101,15 @@ class Tupelo::Client
       end
     end
     
-    def tuplespace
-      @tuplespace ||= begin
-        if client.tuplespace.respond_to? :new
-          client.tuplespace.new
-        elsif client.tuplespace.class == Array # but not subclass of Array
-          tsclass, *args = client.tuplespace
+    def tuplestore
+      @tuplestore ||= begin
+        if client.tuplestore.respond_to? :new
+          client.tuplestore.new
+        elsif client.tuplestore.class == Array # but not subclass of Array
+          tsclass, *args = client.tuplestore
           tsclass.new(*args)
         else
-          client.tuplespace
+          client.tuplestore
         end
       end
     end
@@ -241,17 +241,17 @@ class Tupelo::Client
         return
       end
 
-      log.info "requesting tuplespace from arc"
+      log.info "requesting tuplestore from arc"
       subscription_delta = {
         request_all: all,
         request_tags: tags,
         subscribed_all: client.subscribed_all,
         subscribed_tags: client.subscribed_tags
       }
-      arc << [GET_TUPLESPACE, subscription_delta, tick]
+      arc << [GET_TUPLESTORE, subscription_delta, tick]
 
       begin
-        tuplespace.clear
+        tuplestore.clear
           ## In some cases, we can keep some of it, but the current
           ## archiver is not smart enough to send exactly the delta.
           ## Also, might need to abort some current transactions.
@@ -267,15 +267,15 @@ class Tupelo::Client
           else
             raise "bad object stream from archiver" if done
             sniff_meta_tuple tuple
-            tuplespace.insert tuple
+            tuplestore.insert tuple
             count += 1
           end
         end
         unless done
-          raise "did not get all of tuplespace from archiver" ## roll back?
+          raise "did not get all of tuplestore from archiver" ## roll back?
         end
 
-        log.info "received tuplespace from arc: #{count} tuples"
+        log.info "received tuplestore from arc: #{count} tuples"
 
         @global_tick = arc_tick
         log.info "global_tick = #{global_tick}"
@@ -334,8 +334,8 @@ class Tupelo::Client
         waiter << [:attempt, msg.global_tick, msg.client_id, op, msg.tags]
       end
 
-      take_tuples = tuplespace.find_distinct_matches_for(op.takes)
-      read_tuples = op.reads.map {|t| tuplespace.find_match_for(t,
+      take_tuples = tuplestore.find_distinct_matches_for(op.takes)
+      read_tuples = op.reads.map {|t| tuplestore.find_match_for(t,
         distinct_from: take_tuples)}
       succeeded = take_tuples.all? && read_tuples.all?
 
@@ -351,7 +351,7 @@ class Tupelo::Client
 
       if succeeded
         log.debug {"inserting #{op.writes}; deleting #{take_tuples}"}
-        tuplespace.transaction inserts: write_tuples, deletes: take_tuples,
+        tuplestore.transaction inserts: write_tuples, deletes: take_tuples,
           tick: @global_tick
       
         op.writes.each do |tuple|
@@ -532,26 +532,26 @@ class Tupelo::Client
 
     def handle_waiter waiter
       if waiter.once
-        tuple = tuplespace.find_match_for waiter.template
+        tuple = tuplestore.find_match_for waiter.template
         if tuple
           waiter.peek tuple
         else
           read_waiters << waiter
         end
       else
-        tuplespace.each {|tuple| waiter.gloms tuple}
+        tuplestore.each {|tuple| waiter.gloms tuple}
         read_waiters << waiter
       end
     end
 
     def handle_matcher matcher
       if matcher.all
-        tuplespace.each {|tuple| matcher.gloms tuple}
-          ## maybe should have tuplespace.find_all_matches_for ...
+        tuplestore.each {|tuple| matcher.gloms tuple}
+          ## maybe should have tuplestore.find_all_matches_for ...
           ## in case there is an optimization
         matcher.fails
       else
-        tuple = tuplespace.find_match_for matcher.template
+        tuple = tuplestore.find_match_for matcher.template
         if tuple
           matcher.peek tuple
         else

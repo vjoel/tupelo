@@ -30,7 +30,7 @@ class TestOps < Minitest::Test
         log.formatter = MiniFormatter.new
       end
       c.blobber = Marshal
-      c.tuplespace = Tupelo::Client::SimpleTuplespace
+      c.tuplestore = Tupelo::Client::SimpleTupleStore
       c.message_class = MockMessage
       c.seq = seq.stream
       c.worker = TestableWorker.new(c)

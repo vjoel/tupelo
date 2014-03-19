@@ -10,7 +10,7 @@ class Tupelo::Client
 
     # If no block given, return one matching tuple, blocking if necessary.
     # If block given, yield each matching tuple that is found
-    # locally and then yield each new match as it is written to the space.
+    # locally and then yield each new match as it is written to the store.
     # Guaranteed not to miss tuples, even if they arrive and are immediately
     # taken. (Note that simply doing read(template) in a loop would not
     # have this guarantee.)
@@ -41,7 +41,7 @@ class Tupelo::Client
       matcher.wait
     end
 
-    # Returns all matching tuples currently in the space. Does not wait for more
+    # Returns all matching tuples currently in the store. Does not wait for more
     # tuples to arrive. The template defaults to not_meta, which matches any
     # tuple except metas. To read all matches of more than one template, use
     # the #or method from util/boolean.rb.

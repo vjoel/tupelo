@@ -2,10 +2,10 @@ require 'rbtree'
 
 ## TODO
 ##
-## generalize SortedSetSpace to accept params that indicate which fields
+## generalize SortedSetStore to accept params that indicate which fields
 ##   are key and value
 ##
-## unify with space used in ../riemann v2, generalize
+## unify with store used in ../riemann v2, generalize
 
 # This is a template class, but it doesn't just match tuples. It can
 # be used to find the *next* tuple after a given one, using the rbtree
@@ -74,8 +74,8 @@ end
 # (See memo2.rb.)
 #
 # This store also manages command and meta tuples, which it keeps in an array,
-# just like the default Tuplespace class does.
-class SortedSetSpace
+# just like the default Tuplestore class does.
+class SortedSetStore
   include Enumerable
 
   attr_reader :tag, :tree, :metas

@@ -68,7 +68,7 @@ if ARGV.delete("-h") or ARGV.delete("--help")
                   or strings (see doc/faq for more details)
       
       --persist-dir DIR
-                  load and save tuplespace to DIR
+                  load and save tuplestore to DIR
                     (only needs to be set on first tup invocation)
 
       --subscribe TAG,TAG,...
@@ -161,7 +161,7 @@ Tupelo.application(
 
   if pubsub
     client_opts[:arc] = nil
-    client_opts[:tuplespace] = TupClient::NullTuplespace
+    client_opts[:tuplestore] = TupClient::NullTupleStore
   end
   
   if subscribed_tags

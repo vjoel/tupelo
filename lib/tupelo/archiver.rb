@@ -9,7 +9,7 @@ require 'funl/history-client'
 class Tupelo::Archiver < Tupelo::Client; end
 
 require 'tupelo/archiver/worker'
-require 'tupelo/archiver/tuplespace' ## unless persistent?
+require 'tupelo/archiver/tuplestore' ## unless persistent?
 
 module Tupelo
   class Archiver
@@ -23,13 +23,13 @@ module Tupelo
     ZERO_TOLERANCE = 1000
 
     def initialize server,
-        tuplespace: Tupelo::Archiver::Tuplespace,
+        tuplestore: Tupelo::Archiver::TupleStore,
         persist_dir: nil, **opts
         ## when ruby does GC symbols, add this:
         ## symbolize_keys: true
       @server = server
       @persist_dir = persist_dir
-      super arc: nil, tuplespace: tuplespace, **opts
+      super arc: nil, tuplestore: tuplestore, **opts
     end
 
     # three kinds of requests:
@@ -39,12 +39,12 @@ module Tupelo
     #
     # 2. accept tcp/unix socket connection and fork, and then:
     #
-    #   a. dump subspace matching given templates OR
+    #   a. dump tuples matching given templates OR
     #
     #   b. dump all ops in a given range of the global sequence
     #      matching given templates
     #
-    # the fork happens when tuplespace is consistent; we
+    # the fork happens when tuplestore is consistent; we
     # do this by passing cmd to worker thread, with conn
     class ForkRequest
       attr_reader :io

@@ -1,7 +1,7 @@
-# Better, but more complex, implementation of memo.rb. Uses a custom tuplespace
+# Better, but more complex, implementation of memo.rb. Uses a custom tuplestore
 # that is optimized for storing key-value data, rather than general tuples.
 # Also, subscribes to just the relevant subspace. Consequently, this example
-# should scale up to large memo spaces much better than memo.rb, which uses
+# should scale up to large memo stores much better than memo.rb, which uses
 # linear search.
 #
 # Depends on the sinatra, json, and http gems.
@@ -10,7 +10,7 @@ require 'json'
 
 fork do
   require 'tupelo/app'
-  require_relative 'kvspace.rb'
+  require_relative 'kvstore'
 
   Tupelo.application do
     local do
@@ -21,7 +21,7 @@ fork do
       ])
     end
 
-    child tuplespace: [KVSpace, "memo"], subscribe: ["memo"] do |client|
+    child tuplestore: [KVStore, "memo"], subscribe: ["memo"] do |client|
       require 'sinatra/base'
 
       Class.new(Sinatra::Base).class_eval do

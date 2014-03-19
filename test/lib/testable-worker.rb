@@ -1,5 +1,5 @@
 require 'tupelo/client/worker'
-require 'tupelo/client/tuplespace'
+require 'tupelo/client/tuplestore'
 
 class TestableWorker < Tupelo::Client::Worker
   def initialize client

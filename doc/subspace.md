@@ -4,19 +4,23 @@ How subspaces work
 Introduction
 ------------
 
-Subspaces are the units of sharding a tuplespace. Uses include:
+Subspaces are the units of sharding a tuplespace. A subspace is a (possibly infinite) set of tuples defined by a predicate.
+
+Uses of subspaces include:
 
 * Clients managing different subspaces (or even two clients managing the same subspace in different processes) may benefit by using different stores and algorithms.
 
 * Reduce the volume of tuples that a client needs to handle.
 
-A subspace is a subset of a tuplespace defined by a special kind of pattern,
+The predicate defining a subspace is typically a special kind of pattern,
 known as a "portable object template". These templates are less expressive than
 the [client-side templates] [1], but they are built out of simple, serializable
 objects that represent widely available matching constructs. Saying that a
 subspace "is defined by" a template means that a tuple belongs to a subspace
 because it matches the template, not because it was assigned to the subspace.
 
+The term _store_ or _tuplestore_ should not be confused with the term _space_ or _subspace_: a store is a finite, concrete data structure which can store the tuples in some subspace.
+ 
 A Tupelo client may subscribe to one or more subspaces, or to the entire
 tuplespace. A client intending to read or take from a subspace must subscribe to
 it. However, any client can write to any subspace even if it is not subscribed.

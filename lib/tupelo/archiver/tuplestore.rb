@@ -1,7 +1,7 @@
 class Tupelo::Archiver
-  # Faster than the default tuplespace, but does not support some things
+  # Faster than the default tuplestore, but does not support some things
   # that are not needed in the Archiver: template searches, for example.
-  class Tuplespace
+  class TupleStore
     include Enumerable
     
     attr_reader :zero_tolerance

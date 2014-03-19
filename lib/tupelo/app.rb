@@ -105,14 +105,14 @@ module Tupelo
         ez.service :arcd, **arcd_addr do |sv|
           require 'tupelo/archiver'
           if persist_dir
-            require 'tupelo/archiver/persistent-tuplespace'
+            require 'tupelo/archiver/persistent-tuplestore'
             arc = Archiver.new sv, seq: arc_to_seq_sock,
-                    tuplespace: Archiver::PersistentTuplespace,
+                    tuplestore: Archiver::PersistentTupleStore,
                     persist_dir: persist_dir,
                     cseq: arc_to_cseq_sock, log: log
           else
             arc = Archiver.new sv, seq: arc_to_seq_sock,
-                    tuplespace: Archiver::Tuplespace,
+                    tuplestore: Archiver::TupleStore,
                     cseq: arc_to_cseq_sock, log: log
           end
           arc.start

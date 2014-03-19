@@ -1,6 +1,6 @@
 class Tupelo::Client
-  # Simplest fully functional tuplespace. Not efficient for large spaces.
-  class SimpleTuplespace < Array
+  # Simplest fully functional tuplestore. Not efficient for large stores.
+  class SimpleTupleStore < Array
     alias insert <<
 
     def delete_once elt
@@ -32,12 +32,12 @@ class Tupelo::Client
     end
   end
   
-  # Tuplespace that stores nothing. Very efficient for large spaces!
+  # Tuplestore that stores nothing. Very efficient for large stores!
   # Useful for clients that don't need to take or read the stored tuples.
   # The write, pulse, and blocking read operations all work correctly.
   # The client is essentially a pub/sub client, then. See the
   # --pubsub switch in tup for an example.
-  class NullTuplespace
+  class NullTupleStore
     include Enumerable
     def each(*); end
     def delete_once(*); end

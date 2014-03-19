@@ -10,19 +10,19 @@ class Tupelo::Archiver
       @opts = opts
     end
 
-    def tuplespace
-      @tuplespace ||= begin
-        if client.tuplespace.respond_to? :new
-          client.tuplespace.new **@opts
+    def tuplestore
+      @tuplestore ||= begin
+        if client.tuplestore.respond_to? :new
+          client.tuplestore.new **@opts
         else
-          client.tuplespace
+          client.tuplestore
         end
       end
     end
 
     def stop
       super
-      tuplespace.flush global_tick
+      tuplestore.flush global_tick
     end
 
     def handle_client_request req
@@ -67,8 +67,8 @@ class Tupelo::Archiver
             raise "Unimplemented" ###
           when "get range" ### handle this in Funl::HistoryWorker
             raise "Unimplemented" ###
-          when GET_TUPLESPACE
-            send_tuplespace stream, sub_delta
+          when GET_TUPLESTORE
+            send_tuplestore stream, sub_delta
           else
             raise "Unknown operation: #{op.inspect}"
           end
@@ -94,9 +94,9 @@ class Tupelo::Archiver
       end
     end
 
-    def send_tuplespace stream, sub_delta
+    def send_tuplestore stream, sub_delta
       log.info {
-        "send_tuplespace to #{stream.peer_name} " +
+        "send_tuplestore to #{stream.peer_name} " +
         "at tick #{global_tick.inspect} " +
         (sub_delta ? " with sub_delta #{sub_delta.inspect}" : "")}
       
@@ -106,7 +106,7 @@ class Tupelo::Archiver
       ## has to be sent.
 
       if sub_delta["request_all"]
-        tuplespace.each do |tuple, count|
+        tuplestore.each do |tuple, count|
           count.times do ## just dump and send str * count?
             stream << tuple ## optimize this, and cache the serial
             ## optimization: use stream.write_to_buffer
@@ -117,7 +117,7 @@ class Tupelo::Archiver
         tags = sub_delta["request_tags"] ## use set
         subs = subspaces.select {|sub| tags.include? sub.tag}
 
-        tuplespace.each do |tuple, count|
+        tuplestore.each do |tuple, count|
           ## alternately, store tags with tuples (risk if dynamic spaces)
           if subs.any? {|sub| sub === tuple}
             count.times do

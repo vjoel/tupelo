@@ -14,7 +14,7 @@ class MockClient
   attr_accessor :client_id
   attr_accessor :blobber
   attr_accessor :message_class
-  attr_accessor :tuplespace
+  attr_accessor :tuplestore
   attr_accessor :seq
   attr_accessor :arc
   attr_accessor :start_tick

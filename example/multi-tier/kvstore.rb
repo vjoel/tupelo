@@ -10,8 +10,8 @@
 # that can be represented as pairs. (See memo2.rb.)
 #
 # This store also manages meta tuples, which it keeps in an array, just like
-# the default Tuplespace class does.
-class KVSpace
+# the default TupleStore class does.
+class KVStore
   include Enumerable
 
   attr_reader :tag, :hash, :metas
