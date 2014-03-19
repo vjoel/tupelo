@@ -50,16 +50,16 @@ class Tupelo::Client
     end
     
     class Subspace
-      attr_reader :tag
+      attr_reader :tag, :spec, :pot
+      alias template pot
       
       def initialize metatuple, worker
         @metatuple = metatuple
         @tag = metatuple["tag"] || metatuple[:tag]
 
         template = metatuple["template"] || metatuple[:template]
-        spec = Marshal.load(Marshal.dump(template))
-        @pot = worker.pot_for(spec).optimize!
-        @pot.freeze
+        @spec = Marshal.load(Marshal.dump(template)).freeze
+        @pot = worker.pot_for(spec).optimize!.freeze
       end
       
       def === tuple
@@ -107,7 +107,7 @@ class Tupelo::Client
           client.tuplestore.new
         elsif client.tuplestore.class == Array # but not subclass of Array
           tsclass, *args = client.tuplestore
-          tsclass.new(*args)
+          tsclass.new(*args, client: client)
         else
           client.tuplestore
         end

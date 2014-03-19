@@ -1,41 +1,28 @@
-# POI -- Points Of Interest
-#
-# This example creates a sqlite db in memory with a table of locations and
-# descriptions of points of interest, and attaches the db to a subspace of the
-# tuplespace. The process which manages that subspace can now do two things:
-#
-# 1. accept inserts (via write)
-#
-# 2. custom queries, accessed by write to a different subspace
-#
-# You can have redundant instances of this, and that will distribute load
-# in #2 above.
-#
-# gem install sequel sqlite3
-
 require 'tupelo/app'
-require_relative 'poi-store'
+require_relative 'poi-client'
 
 Tupelo.application do
   local do
     POISPACE = PoiStore.define_poispace(self)
   end
 
-  child tuplespace: [PoiStore, POISPACE], subscribe: "poi",
-        symbolize_keys: true, passive: true do
+  child PoiClient, poispace: POISPACE, passive: true do
     log.progname = "poi-store"
-    # handle custom queries here, using poi template
+    
+    # At this point, the client already accepts writes in the space and stores
+    # them in a sqlite table. For the sake of a simple example, we add
+    # one feature to this mix: just show everything for each new tuple
     read do
-      log read_all # just show everything for each new tuple
+      log read_all
     end
   end
   
   child subscribe: nil do
-    write_wait lat: 12, lng: 34, desc: "foo"
-    sleep 0.5 # give poi store time to store and log
-    write_wait lat: 56, lng: 78, desc: "bar"
-    sleep 0.5 # give poi store time to store and log
-    write_wait lat: 12, lng: 34, desc: "foo" # dup is ok
-    sleep 0.5 # give poi store time to store and log
+    write lat: 1.2, lng: 3.4, desc: "foo"
+    sleep 0.5 # delay to make the demo interesting
+    write lat: 5.6, lng: 7.8, desc: "bar"
+    sleep 0.5
+    write lat: 1.2, lng: 3.4, desc: "foo" # dup is ok
+    sleep 0.5
   end
 end

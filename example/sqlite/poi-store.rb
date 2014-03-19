@@ -1,52 +1,13 @@
 require 'sequel'
-
-# Hard-coded to work with tuples belonging to the "poi" subspace 
-# and with the PoiStore table defined below.
-class PoiTemplate
-  attr_reader :lat, :lng, :poispace
-
-  # lat and lng can be intervals or single values or nil to match any value
-  def initialize lat: nil, lng: nil, poispace: nil
-    @lat = lat
-    @lng = lng
-    @poispace = poispace
-  end
-
-  # we only need to define this method if we plan to wait for poi tuples
-  # locally using this template, i.e. read(template) or take(template)
-  def === tuple
-    @poispace === tuple and
-    !@lat || @lat === tuple[:lat] and
-    !@lng || @lng === tuple[:lng]
-  end
-
-  def find_in table, distinct_from: []
-    where_terms = {}
-    where_terms[:lat] = @lat if @lat
-    where_terms[:lng] = @lng if @lng
-
-    matches = table.
-      select(:lat, :lng, :desc).
-      where(where_terms).
-      limit(distinct_from.size + 1).all
-
-    distinct_from.each do |tuple|
-      if i=matches.index(tuple)
-        matches.delete_at i
-      end
-    end
-
-    matches.first
-  end
-end
+require_relative 'poi-template'
 
 # A tuple store that is optimized for POI data. These tuples are stored in an
 # in-memory sqlite database table. Tuples that do not fit this pattern (such
-# as metatuples) are stored in an array, as in the default Tuplespace class.
+# as metatuples) are stored in an array, as in the default TupleStore class.
 class PoiStore
   include Enumerable
 
-  attr_reader :table, :metas, :poispace
+  attr_reader :table, :metas, :template
 
   def self.define_poispace client
     client.define_subspace("poi",
@@ -54,14 +15,24 @@ class PoiStore
       lng:  Numeric,
       desc: String
     )
-    client.subspace("poi") ## is this awkward?
+    client.subspace("poi")
+      # this waits for ack of write of subspace metatuple, and then
+      # it returns the Subspace object, which contains a tag and a template
+      # spec, from which we can later construct a correct template in
+      # initialize.
   end
 
-  # poispace should be client.subspace("poi"), but really we only need
-  # poispace.pot
-  def initialize poispace
-    @poispace = poispace
+  def initialize spec, client: nil
+    @template = client.worker.pot_for(spec)
+      # calling #pot_for in client means that resulting template
+      # will have keys converted as needed (in the case of this client,
+      # to symbols).
+
     clear
+
+    # To be more general, we could inspect the spec to determine which keys to
+    # use when creating and querying the table, and in the PoiTemplate class
+    # above. This example just assumes the key names are always lat, lng, desc.
   end
   
   def clear
@@ -92,7 +63,7 @@ class PoiStore
 
   def insert tuple
     case tuple
-    when poispace
+    when template
       table << tuple
     else
       metas << tuple
@@ -101,7 +72,7 @@ class PoiStore
 
   def delete_once tuple
     case tuple
-    when poispace
+    when template
       id = table.select(:id).
         where(tuple).
         limit(1)
