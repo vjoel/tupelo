@@ -1,7 +1,7 @@
 Architecture
 ============
 
-See also [protocol](doc/protocol.rb).
+See also [protocol](doc/protocol.md).
 
 Two central processes:
 
