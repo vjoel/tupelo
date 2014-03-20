@@ -68,46 +68,7 @@ Tupelo is a flexible base layer for various distributed programming patterns and
 
 Tupelo can be used to impose a unified transactional structure and distributed access model on a mixture of programs and languages (polyglot computation) and a mixture of data stores (polyglot persistence), with consistent replication.
 
-
-Example
--------
-
-This program counts prime numbers in an interval by distributing the problem to a set of hosts:
-
-    require 'tupelo/app/remote'
-
-    hosts = %w{itchy scratchy lisa bart} # ssh hosts with key-based auth
-
-    Tupelo.tcp_application do
-      hosts.each do |host|
-        remote host: host, passive: true, eval: %{
-          require 'prime' # ruby stdlib for prime factorization
-          loop do
-            _, input = take(["input", Integer])
-            write ["output", input, input.prime_division]
-          end
-        }
-      end
-
-      local do
-        inputs = 1_000_000_000_000 .. 1_000_000_000_200
-
-        inputs.each do |input|
-          write ["input", input]
-        end
-
-        count = 0
-        inputs.size.times do |i|
-          _, input, factors = take ["output", Integer, nil]
-          count += 1 if factors.size == 1 and factors[0][1] == 1
-          print "\rChecked #{i}"
-        end
-
-        puts "\nThere are #{count} primes in #{inputs}"
-      end
-    end
-
-Ssh is used to set up the remote processes. Additionally, with the `--tunnel` command line argument, all tuple communication is tunneled over ssh. More examples like this are in [example/map-reduce](example/map-reduce).
+See the [example section](#examples) below and the [examples](example) directory.
 
 
 Limitations
@@ -178,6 +139,95 @@ Additional benefits (not related to message sequencing) include:
 * choice of UNIX or TCP sockets.
 
 Process control and tunneling are available independently of tupelo using the easy-serve gem.
+
+
+
+Examples
+========
+
+Distributed processing
+----------------------
+
+This program counts prime numbers in an interval by distributing the problem to a set of hosts:
+
+    require 'tupelo/app/remote'
+
+    hosts = %w{itchy scratchy lisa bart} # ssh hosts with key-based auth
+
+    Tupelo.tcp_application do
+      hosts.each do |host|
+        remote host: host, passive: true, eval: %{
+          require 'prime' # ruby stdlib for prime factorization
+          loop do
+            _, input = take(["input", Integer])
+            write ["output", input, input.prime_division]
+          end
+        }
+      end
+
+      local do
+        inputs = 1_000_000_000_000 .. 1_000_000_000_200
+
+        inputs.each do |input|
+          write ["input", input]
+        end
+
+        count = 0
+        inputs.size.times do |i|
+          _, input, factors = take ["output", Integer, nil]
+          count += 1 if factors.size == 1 and factors[0][1] == 1
+          print "\rChecked #{i}"
+        end
+
+        puts "\nThere are #{count} primes in #{inputs}"
+      end
+    end
+
+Ssh is used to set up the remote processes. Additionally, with the `--tunnel` command line argument, all tuple communication is tunneled over ssh. More examples like this are in [example/map-reduce](example/map-reduce).
+
+Distributed storage
+-------------------
+
+See also [example/sqlite](example/sqlite).
+
+Web app coordination
+--------------------
+
+This example runs several web apps and uses tupelo to set up a chat network between their users.
+
+    require 'tupelo/app'
+    require 'sinatra/base'
+
+    Tupelo.application do
+      [9001, 9002, 9003].each do |port|
+        child do |client|
+          Class.new(Sinatra::Base).class_eval do
+            post '/send' do
+              client.write ["message", params["dest"], params["text"]]
+            end
+
+            get '/recv' do
+              "%s for %s: %s\n" %
+                (client.take ["message", params["dest"], String])
+            end
+
+            set :port, port
+            run!
+          end
+        end
+      end
+    end
+
+You can use curl to chat:
+
+    $ curl 'localhost:9001/send?text=hello&dest=fred' -d ''
+
+and
+
+    $ curl 'localhost:9003/recv?dest=fred'
+    message for fred: hello
+
+See also [example/multi-tier](example/multi-tier) and the chat server in [example/chat](example/chat).
 
 
 Development

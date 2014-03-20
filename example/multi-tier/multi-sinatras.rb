@@ -3,6 +3,10 @@
 # http.rb example and shows how to use tupelo to coordinate multiple sinatra
 # instances.
 #
+# This could easily be adapted to run the servers on remote hosts (using
+# #remote instead of #child) and to restrict the network traffic to just
+# the subspaces each client needs (using subscribe).
+#
 # Depends on the sinatra and http gems.
 
 PORTS = [9001, 9002, 9003]
@@ -29,6 +33,7 @@ fork do
           end
           
           get '/recv' do
+            ## actually this should nt be a 'get' but a 'post' or 'delete'
             dest = params["dest"]
             _, _, text = client.take ["message", dest, String]
             text
