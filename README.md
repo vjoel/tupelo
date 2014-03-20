@@ -201,16 +201,12 @@ Here's an example that creates an in-memory sqlite in one client with a table fo
       end
 
       child PoiClient, poispace: POISPACE, subscribe: "cmd", passive: true do
-        log.progname = "poi-store #{client_id}"
-
-        poispace = subspace("poi")
-
         loop do
           req = take subspace("cmd")
           case req[:cmd]
           when "delete box"
             lat = req[:arg][:lat]; lng = req[:arg][:lng]
-            template = PoiTemplate.new(poi_template: poispace,
+            template = PoiTemplate.new(poi_template: subspace("poi"),
               lat: lat[0]..lat[1], lng: lng[0]..lng[1])
             deleted = []
             transaction do
