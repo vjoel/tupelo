@@ -170,11 +170,11 @@ For the details of POTs, see the ruby implementation in the object-template gem.
 Subspaces and bin/tup
 ---------------------
 
-The tup client CLI by default runs a client that subscribes to the entire tuplespace. If you wish to connect just to one or more subspaces, see the --help for the options --use-subspaces and --subscribe. For example:
+The tup client CLI by default runs a client that subscribes to the entire tuplespace. If you wish to connect just to one or more subspaces, see the `--help` on `--subscribe`. For example:
 
 In terminal 1:
 
-    $ tup sv --use-subspaces
+    $ tup sv
     >> define_subspace "foo", [Numeric]
     >> w [1], ["hello"]
     >> ra Array
@@ -190,7 +190,7 @@ Another example, using the "wine" subspace defined above:
 
 In terminal 1:
 
-    $ tup sv --use-subspaces
+    $ tup sv
     >> define_subspace "wine", ["wine", Set["red", "white"], Numeric, 0..100]
     >> ra subspace "wine"
     => []
