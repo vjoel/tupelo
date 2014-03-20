@@ -41,6 +41,16 @@ Tupelo's pulse/read ops are like pubsub in redis.
 However, tupelo is not a substitute for the caching functionality of redis and memcache.
 
 
+Zookeeper
+---------
+
+Both Tupelo and Zookeeper are consistent systems, and both are based on an atomic broadcast of totally ordered updates. But Tupelo has no resiliance to network partitions. If you can't see the sequencer, you can't do anything but local reads (which may go stale). With Zookeeper, if you can connect to one of a quorum of mutually connected nodes, you have full interaction with the authoritative system. Zookeeper has a cost, though: latency, multiple hosts, complexity. An advantage of Tupelo is that a complete tupelo system, including remote clients, can be started in less than a second (for example, [prime-factor.rb](example/prime-factor.rb). This is useful for quick batch dataflow jobs.
+
+Similar comparisons probably apply for chubby and doozer, and for etcd and other raft-based CP systems.
+
+
+
+
 To compare
 ----------
 
@@ -55,12 +65,6 @@ To compare
 * celery for python
 
 * resque
-
-* zookeeper -- totally ordered updates; tupelo trades availability for lower latency (?)
-
-* chubby
-
-* doozer, etcd
 
 * serf -- tupelo has lower latency and is transactional, but at a cost compared to serf; tupelo semantics is closer to databases
 
