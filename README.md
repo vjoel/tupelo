@@ -22,6 +22,7 @@ In Depth
 * [Transactions](doc/transactions.md)
 * [Replication](doc/replication.md)
 * [Subspaces](doc/subspace.md)
+* [Tuple stores](doc/tuplestores.md)
 * [Causality](doc/causality.md)
 * [Concurrency](doc/concurrency.md)
 
