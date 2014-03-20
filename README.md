@@ -141,7 +141,6 @@ Additional benefits (not related to message sequencing) include:
 Process control and tunneling are available independently of tupelo using the easy-serve gem.
 
 
-
 Examples
 ========
 
@@ -188,12 +187,58 @@ Ssh is used to set up the remote processes. Additionally, with the `--tunnel` co
 Distributed storage
 -------------------
 
-See also [example/sqlite](example/sqlite).
+Here's an example that creates an in-memory sqlite in one client with a table for Points of Interest (POI). A second client populates that table by writing POI tuples and then executes a SQL delete by writing a tuple with the deletion parameters.
+
+    require 'tupelo/app'
+    require_relative 'poi-client' # run this in example/sqlite
+
+    Tupelo.application do
+      local do
+        POISPACE = PoiStore.define_poispace(self)
+        define_subspace("cmd", {id: nil, cmd: String, arg: nil})
+        define_subspace("rsp", {id: nil, result: nil})
+      end
+
+      child PoiClient, poispace: POISPACE, subscribe: "cmd", passive: true do
+        log.progname = "poi-store #{client_id}"
+
+        poispace = subspace("poi")
+
+        loop do
+          req = take subspace("cmd")
+          case req[:cmd]
+          when "delete box"
+            lat = req[:arg][:lat]; lng = req[:arg][:lng]
+            template = PoiTemplate.new(poi_template: poispace,
+              lat: lat[0]..lat[1], lng: lng[0]..lng[1])
+            deleted = []
+            transaction do
+              while poi = take_nowait(template)
+                deleted << poi
+              end
+            end
+            write id: req[:id], result: deleted
+          end
+        end
+      end
+
+      child subscribe: "rsp" do
+        write lat: 1.2, lng: 3.4, desc: "foo"
+        write lat: 5.6, lng: 7.8, desc: "bar"
+        write lat: 1.3, lng: 3.5, desc: "baz"
+
+        write id: 1, cmd: "delete box", arg: {lat: [1.0, 1.4], lng: [3.0, 4.0]}
+        rsp = take id: 1, result: nil
+        log "deleted: #{rsp["result"]}"
+      end
+    end
+
+See [example/sqlite](example/sqlite) for the complete example.
 
 Web app coordination
 --------------------
 
-This example runs several web apps and uses tupelo to set up a chat network between their users.
+This example runs several sinatra web apps and uses tupelo to set up a chat network between their users.
 
     require 'tupelo/app'
     require 'sinatra/base'
@@ -226,6 +271,8 @@ and
 
     $ curl 'localhost:9003/recv?dest=fred'
     message for fred: hello
+
+Note that the `recv` call waits for a message if none is available.
 
 See also [example/multi-tier](example/multi-tier) and the chat server in [example/chat](example/chat).
 
