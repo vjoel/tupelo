@@ -234,6 +234,10 @@ Here's an example that creates an in-memory sqlite in one client with a table fo
       end
     end
 
+The output should be something like this:
+
+    A: client 3: deleted: [{"lat"=>1.2, "lng"=>3.4, "desc"=>"foo"}, {"lat"=>1.3, "lng"=>3.5, "desc"=>"baz"}]
+
 See [example/sqlite](example/sqlite) for the complete example.
 
 Web app coordination
