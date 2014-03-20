@@ -546,9 +546,15 @@ class Tupelo::Client
 
     def handle_matcher matcher
       if matcher.all
-        tuplestore.each {|tuple| matcher.gloms tuple}
-          ## maybe should have tuplestore.find_all_matches_for ...
-          ## in case there is an optimization
+        if defined? tuplestore.find_all_matches_for
+          tuplestore.find_all_matches_for matcher.template do |tuple|
+            matcher.peek tuple
+          end
+        else
+          tuplestore.each do |tuple|
+            matcher.gloms tuple
+          end
+        end
         matcher.fails
       else
         tuple = tuplestore.find_match_for matcher.template

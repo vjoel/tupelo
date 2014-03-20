@@ -42,4 +42,20 @@ class PoiTemplate
 
     matches.first
   end
+
+  def find_all_in table, &bl
+    where_terms = {}
+    where_terms[:lat] = @lat if @lat
+    where_terms[:lng] = @lng if @lng
+
+    matches = table.
+      select(:lat, :lng, :desc).
+      where(where_terms)
+
+    if bl
+      matches.each(&bl)
+    else
+      matches.all
+    end
+  end
 end

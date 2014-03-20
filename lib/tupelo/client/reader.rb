@@ -54,7 +54,7 @@ class Tupelo::Client
       matcher = Matcher.new(worker.make_template(template), self, :all => true)
       worker << matcher
       a = []
-      while tuple = matcher.wait ## inefficient?
+      while tuple = matcher.wait ## inefficient to wait one at a time?
         yield tuple if block_given?
         a << tuple
       end

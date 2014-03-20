@@ -129,4 +129,14 @@ class PoiStore
       ## end
     end
   end
+
+  def find_all_matches_for template, &bl
+    case template
+    when PoiTemplate
+      template.find_all_in table, &bl
+    else
+      # Fall back to linear search using #each and #===.
+      grep template, &bl
+    end
+  end
 end
