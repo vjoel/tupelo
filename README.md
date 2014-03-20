@@ -183,7 +183,7 @@ This program counts prime numbers in an interval by distributing the problem to 
       end
     end
 
-Ssh is used to set up the remote processes. Additionally, with the `--tunnel` command line argument, all tuple communication is tunneled over ssh. More examples like this are in [example/map-reduce](example/map-reduce).
+Ssh is used to set up the remote processes. Additionally, with the `--tunnel` command line argument, all tuple communication is tunneled over ssh. More examples like this are in [example/map-reduce](example/map-reduce), [example/pregel](example/pregel), and [example/parallel.rb](example/parallel.rb).
 
 Distributed storage
 -------------------
@@ -234,7 +234,7 @@ The output should be something like this:
 
     A: client 3: deleted: [{"lat"=>1.2, "lng"=>3.4, "desc"=>"foo"}, {"lat"=>1.3, "lng"=>3.5, "desc"=>"baz"}]
 
-See [example/sqlite](example/sqlite) for the complete example.
+See [example/sqlite](example/sqlite) for the complete example. More advanced versions of this example have remote, replicated sqlites for redundancy and load distribution.
 
 Web app coordination
 --------------------
@@ -283,9 +283,7 @@ Development
 
 Patches and bug reports are most welcome.
 
-This project is hosted at
-
-https://github.com/vjoel/tupelo
+This project is hosted at https://github.com/vjoel/tupelo
 
 Dependencies
 ------------
