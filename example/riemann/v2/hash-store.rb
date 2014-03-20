@@ -1,9 +1,9 @@
-require 'tupelo/archiver/tuplespace'
+require 'tupelo/archiver/tuplestore'
 
 # Store for any kind of tuple, and faster for lookups of literal tuples,
 # rather than matching with templates or other queries.
-# See also example/multitier/kvspace.rb.
-class HashStore < Tupelo::Archiver::Tuplespace
+# See also example/multitier/kvstore.rb.
+class HashStore < Tupelo::Archiver::TupleStore
   def initialize zero_tolerance: 1000
     super
   end
@@ -14,11 +14,11 @@ class HashStore < Tupelo::Archiver::Tuplespace
       super
 
     else
-      # We added this case to Archiver::Tuplespace just so the read(..)
-      # will work correctly on tuples that are already in the space
+      # We added this case to Archiver::TupleStore just so the read(..)
+      # will work correctly on tuples that are already in the store
       # when this process starts up. After that point, incoming tuples
       # are matched directly against the CRITICAL_EVENT template without
-      # searching the space.
+      # searching the store.
 
       # We're not going to use Client#take in this client, so there's no need
       # to handle the distinct_from keyword argument.

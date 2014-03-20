@@ -37,7 +37,7 @@ end
 # other spaces/stores without modification.
 #
 # This store also manages meta tuples, which it keeps in an array,
-# just like the default Tuplespace class does. Actually, any tuple for which
+# just like the default TupleStore class does. Actually, any tuple for which
 # `tuple["time"] + tuple["ttl"]` raises an exception will go in the metas,
 # but in this example the process only subscribes to events and metas.
 #

@@ -27,6 +27,8 @@ require 'tupelo/app'
 require_relative '../event-subspace'
 require_relative '../producer'
 require_relative 'expirer'
+require_relative 'hash-store'
+require_relative 'sqlite-event-store'
 
 N_PRODUCERS = 3
 N_CONSUMERS = 2
@@ -34,6 +36,7 @@ N_CONSUMERS = 2
 Tupelo.application do
   local do
     define_event_subspace
+    EVENT_SPACE = client.subspace("event")
   end
 
   if USE_HTTP
@@ -53,7 +56,8 @@ Tupelo.application do
 
   N_CONSUMERS.times do |i|
     # stores events indexed by host, service
-    child subscribe: "event", passive: true do ### tuplespace: sqlite
+    child tuplestore: [SqliteEventStore, EVENT_SPACE],
+          subscribe: "event", passive: true do
       log.progname = "consumer #{i}"
       read subspace("event") do |event|
         log.info event ### need filtering, actions, etc.
@@ -62,8 +66,7 @@ Tupelo.application do
   end
   
   # critical event alerter
-  require_relative 'hash-store'
-  child tuplespace: HashStore, subscribe: "event", passive: true do
+  child tuplestore: HashStore, subscribe: "event", passive: true do
     log.progname = "alerter"
     read Tupelo::Client::CRITICAL_EVENT do |event|
       log.error event
@@ -80,7 +83,7 @@ Tupelo.application do
   end
 
   # expirer: stores current events and looks for events that can be expired.
-  child tuplespace: OrderedEventStore, subscribe: "event", passive: true do
+  child tuplestore: OrderedEventStore, subscribe: "event", passive: true do
     log.progname = "expirer"
     run_expirer_v2
   end

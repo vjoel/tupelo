@@ -5,7 +5,7 @@ class Tupelo::Client
   #
   # A little more complex than v1, but more efficient.
   #
-  # This version uses the rbtree to manage the space itself (in the worker
+  # This version uses the rbtree to manage the tuplestore itself (in the worker
   # thread), instead of using an rbtree to manage the scheduler (in the client
   # thread). It also uses a custom template class to perform range-based queries
   # of the rbtree key, which is not explicitly stored in the tuples. The rbree
