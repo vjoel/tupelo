@@ -317,7 +317,7 @@ Optional gems for some of the examples:
 Contact
 =======
 
-Joel VanderWerf, vjoel@users.sourceforge.net, @JoelVanderWerf.
+Joel VanderWerf, vjoel@users.sourceforge.net, [@JoelVanderWerf](https://twitter.com/JoelVanderWerf).
 
 License and Copyright
 ========
