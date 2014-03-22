@@ -253,7 +253,7 @@ Tuplespace Operations
 
 2. With only three basic operations, how is it possible to perform more general database queries?
 
-  A querying client can write a tuple that represents a query, and a responding client can take that tuple, perform the query, and write a response. See [example/subspaces/addr-book.rb](example/subspaces/addr-book.rb).
+  A querying client can write a tuple that represents a query, and a responding client can take that tuple, perform the query, and write a response. See [example/subspaces/addr-book.rb](example/subspaces/addr-book.rb) and [example/sqlite](example/sqlite).
 
 3. Do I have to worry about retrying operations? What about idempotence to ensure that retried operations have no ill effects?
 
