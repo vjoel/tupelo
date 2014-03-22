@@ -28,6 +28,8 @@ Both: tuples can be arrays or hashes.
 
 Spaces have an advantage over distributed hash tables: different clients may acccess tuples in terms of different dimensions. For example, a producer generates [producer_id, value]; a consumer looks for [nil, SomeParticularValues]. Separation of concerns, decoupling in the data space.
 
+(One of the inspirations for Tupelo was fixing some problems with Rinda, and attempting to add some transaction-like features: https://github.com/vjoel/my-rinda.)
+
 
 Redis
 -----
