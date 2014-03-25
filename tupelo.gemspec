@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.summary = "Distributed tuplespace"
 
+  s.required_ruby_version = Gem::Requirement.new("~> 2.0")
   s.add_runtime_dependency 'atdo', '~> 0'
   s.add_runtime_dependency 'easy-serve', '~> 0'
   s.add_runtime_dependency 'funl', '~> 0'
