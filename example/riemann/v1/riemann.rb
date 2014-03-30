@@ -28,7 +28,7 @@ Tupelo.application do
     child subscribe: "event", passive: true do
       log.progname = "consumer #{i}"
       read subspace("event") do |event|
-        log event ### need filtering, actions, etc.
+        log event # add analytics here
       end
     end
   end

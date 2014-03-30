@@ -60,7 +60,7 @@ Tupelo.application do
           subscribe: "event", passive: true do
       log.progname = "consumer #{i}"
       read subspace("event") do |event|
-        log.info event ### need filtering, actions, etc.
+        log.info event # add analytics here
       end
     end
   end

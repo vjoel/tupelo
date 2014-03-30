@@ -1,4 +1,6 @@
 class Tupelo::Client
+  # For each newly expired event, check whether it was expired on time,
+  # and log the event and the result of the check.
   def run_expiration_debugger
     read Tupelo::Client::EXPIRED_EVENT do |event|
       event_exp = event["time"] + event["ttl"]
