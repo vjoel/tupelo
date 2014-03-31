@@ -1,6 +1,6 @@
 require 'funl/history-worker'
 
-class Tupelo::Archiver
+class Tupelo::Archiver < Tupelo::Client
   class Worker < Tupelo::Client::Worker
     include Funl::HistoryWorker
     

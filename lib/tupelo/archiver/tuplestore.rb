@@ -1,4 +1,4 @@
-class Tupelo::Archiver
+class Tupelo::Archiver < Tupelo::Client
   # Faster than the default tuplestore, but does not support some things
   # that are not needed in the Archiver: template searches, for example.
   class TupleStore

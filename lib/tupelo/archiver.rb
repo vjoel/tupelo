@@ -6,8 +6,6 @@ require 'funl/history-client'
 ## should manipulate tuples as strings (at least in msgpack/json cases) instead
 ## of objects -- use msgpack extension for #hash and #== on packed objects
 
-class Tupelo::Archiver < Tupelo::Client; end
-
 require 'tupelo/archiver/worker'
 require 'tupelo/archiver/tuplestore' ## unless persistent?
 
