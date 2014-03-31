@@ -36,7 +36,7 @@ N_CONSUMERS = 2
 Tupelo.application do
   local do
     define_event_subspace
-    EVENT_SPACE = client.subspace("event")
+    EVENT_SPACE = subspace("event")
   end
 
   if USE_HTTP
@@ -56,8 +56,10 @@ Tupelo.application do
 
   N_CONSUMERS.times do |i|
     # stores events indexed by host, service
-    child tuplestore: [SqliteEventStore, EVENT_SPACE],
-          subscribe: "event", passive: true do
+    child tuplestore: [SqliteEventStore, EVENT_SPACE.spec],
+          subscribe: "event",
+          symbolize_keys: true, # for ease of use with sequel DB interface
+          passive: true do
       log.progname = "consumer #{i}"
       read subspace("event") do |event|
         log.info event # add analytics here

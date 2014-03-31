@@ -1,49 +1,5 @@
 require 'sequel'
-
-# Hard-coded to work with tuples belonging to the "event" subspace 
-# and with the SqliteEventStore table defined below. This template is designed
-# for range queries on host, or on host and service, using the composite index.
-class EventTemplate
-  attr_reader :host, :service, :space
-
-  # host and service can be intervals or single values or nil to match any value
-  def initialize host: nil, service: nil, space: nil
-    @host = host
-    @service = service
-    @space = space
-  end
-
-  # we only need to define this method if we plan to wait for event tuples
-  # locally using this template, i.e. read(template) or take(template).
-  # Non-waiting queries (such as read_all) just use #find_in.
-  def === tuple
-    @space === tuple and
-    !@host || @host === tuple["host"] and
-    !@service || @service === tuple["service"]
-  end
-
-  # Optimized search function to find a template match that exists already in
-  # the table. For operations that wait for a match, #=== is used instead.
-  def find_in events, distinct_from: []
-    where_terms = {}
-    where_terms[:host] = @host if @host
-    where_terms[:service] = @service if @service
-
-    matches = events.
-      ### select all but id
-      where(where_terms).
-      limit(distinct_from.size + 1).all
-
-    distinct_from.each do |tuple|
-      if i=matches.index(tuple)
-        matches.delete_at i
-      end
-    end
-
-    matches.first ## get the tags and customs
-    ### convert sym to string?
-  end
-end
+require_relative 'event-template'
 
 # A tuple store that is optimized for event data. These tuples are stored in an
 # in-memory sqlite database table. Tuples that do not fit this pattern (such
@@ -51,20 +7,28 @@ end
 class SqliteEventStore
   include Enumerable
 
-  attr_reader :events, :metas, :space
+  attr_reader :events, :metas
+  
+  # Template for matching all event tuples.
+  attr_reader :event_template
 
-  # space should be client.subspace("event"), but really we only need
-  # `space.pot` the portable object template for deciding membership.
-  def initialize space
-    @space = space
+  def initialize spec, client: nil
+    @event_template = client.worker.pot_for(spec)
+      # calling #pot_for in client means that resulting template
+      # will have keys converted as needed (in the case of this client,
+      # to symbols).
+
     clear
+
+    # To be more general, we could inspect the spec to determine which keys to
+    # use when creating and querying the table
   end
   
   def clear
     @db = Sequel.sqlite
     @db.create_table :events do
       primary_key   :id # id is not significant to our app
-      text          :host, null: false ## need this ?
+      text          :host, null: false
       text          :service, null: false
       text          :state
       number        :time
@@ -95,12 +59,17 @@ class SqliteEventStore
   end
 
   def each
-    events.each do |row|
+    events.
+      select(:host, :service, :state, :time, :description, :metric, :ttl).
+      each do |tuple|
+
       ## extra queries for tags and custom 
-      # yuck, gotta convert symbol keys to string keys:
-      tuple = row.inject({}) {|h, (k,v)| h[k.to_s] = v; h}
+      tuple[:tags] = []
+      tuple[:custom] = nil
+
       yield tuple
     end
+
     metas.each do |tuple|
       yield tuple
     end
@@ -108,8 +77,15 @@ class SqliteEventStore
 
   def insert tuple
     case tuple
-    when space
-      events << tuple ## minus tags and customs
+    when event_template
+      tuple = tuple.dup
+      tags = tuple.delete :tags
+      custom = tuple.delete :custom
+
+      ## insert tags and custom
+
+      events << tuple
+
     else
       metas << tuple
     end
@@ -117,10 +93,12 @@ class SqliteEventStore
 
   def delete_once tuple
     case tuple
-    when space
-      # yuck, gotta convert string keys to symbol keys:
-      row = tuple.inject({}) {|h, (k,v)| h[k.to_sym] = v; h}
-      id = events.select(:id).where(row).limit(1)
+    when event_template
+      tuple = tuple.dup
+      tags = tuple.delete :tags
+      custom = tuple.delete :custom
+
+      id = events.select(:id).where(tuple).limit(1)
       count = events.where(id: id).delete
 
       if count == 0
@@ -169,6 +147,16 @@ class SqliteEventStore
       ##     template === tuple and not distinct_from.any? {|t| t.equal? tuple}
       ##   end
       ## end
+    end
+  end
+
+  def find_all_matches_for template, &bl
+    case template
+    when EventTemplate
+      template.find_all_in events, &bl
+    else
+      # Fall back to linear search using #each and #===.
+      grep template, &bl
     end
   end
 end

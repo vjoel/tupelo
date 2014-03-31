@@ -40,7 +40,7 @@ class PoiStore
   
   def clear
     @db = Sequel.sqlite
-    @db.create_table "poi" do
+    @db.create_table :poi do
       primary_key   :id # id is not significant to our app
       float         :lat, null: false
       float         :lng, null: false

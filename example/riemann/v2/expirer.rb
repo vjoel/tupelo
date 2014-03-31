@@ -16,7 +16,7 @@ class Tupelo::Client
     loop do
       event = read subspace("event") # event with lowest time+ttl
         # This just happens to be true, but alternately we could define
-        # OrderedEventTemplate.frist() to pass in a template that explicitly
+        # OrderedEventTemplate.first() to make a template that explicitly
         # finds the lowest key.
       dt_next_expiration = event["time"] + event["ttl"] - Time.now.to_f
       begin

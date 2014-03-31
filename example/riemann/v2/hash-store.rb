@@ -4,6 +4,7 @@ require 'tupelo/archiver/tuplestore'
 # rather than matching with templates or other queries.
 # See also example/multitier/kvstore.rb.
 class HashStore < Tupelo::Archiver::TupleStore
+  # Same as parent, but default the zero_tolerance to 1000.
   def initialize zero_tolerance: 1000
     super
   end
