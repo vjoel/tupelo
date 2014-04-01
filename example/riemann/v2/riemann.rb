@@ -31,7 +31,7 @@ require_relative 'hash-store'
 require_relative 'sqlite-event-store'
 
 N_PRODUCERS = 3
-N_CONSUMERS = 2
+N_CONSUMERS = 1
 
 Tupelo.application do
   local do
