@@ -25,10 +25,7 @@ class Tupelo::Client
                               # event is considered valid for. Expired states
                               # may be removed from the index.
 
-      custom:       nil       # Any data
-                              # (not quite same as riemann's custom event attrs,
-                              # which are just arbitrary key-value pairs;
-                              # tupelo does not permit wildcards in keys)
+      custom:       Hash      # Arbitrary key-value pairs (not just strings).
     })
   end
 

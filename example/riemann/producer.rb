@@ -9,7 +9,7 @@ class Tupelo::Client
       tags:         [],
       metric:       0,
       ttl:          0,
-      custom:       nil
+      custom:       {}
     }.freeze
   end
 
