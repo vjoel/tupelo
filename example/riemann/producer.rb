@@ -40,7 +40,8 @@ class Tupelo::Client
         time:     Time.now.to_f,
         ttl:      0.2,
         tags:     ["cpu", "cumulative"],
-        metric:   Process.times.utime + Process.times.stime
+        metric:   Process.times.utime + Process.times.stime,
+        custom:   {foo: ["bar", 42*i + ei]}
       )
       write_event e_cpu
       sleep 0.2

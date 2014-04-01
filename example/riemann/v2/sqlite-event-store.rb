@@ -121,9 +121,9 @@ class SqliteEventStore
       end
 
       tuple_custom.each do |key, value|
-        if key.kind_of? String
-          customs << {event_id: event_id, key: key,
-                      value_msgpacked: MessagePack.pack(value)}
+        if key.kind_of? Symbol
+          blob = Sequel.blob(MessagePack.pack(value))
+          customs << {event_id: event_id, key: key.to_s, value_msgpacked: blob}
         else
           alt_customs[event_id][key] = value
         end
@@ -155,6 +155,16 @@ class SqliteEventStore
           events.where(id: event_id).delete
           true
         else
+puts '========'
+puts tuple_tags.sort
+puts collect_tags(event_id)
+puts '--------'
+puts tuple_custom
+puts collect_custom(event_id)
+puts '--------'
+puts event_id.all
+puts customs.all
+puts alt_customs
           false
         end
       else
