@@ -1,6 +1,7 @@
 # Hard-coded to work with tuples belonging to the "event" subspace 
 # and with the SqliteEventStore table defined. This template is designed
-# for range queries on host, or on host and service, using the composite index.
+# for range queries on service, service and host, or service, host, and time,
+# using the composite index.
 class EventTemplate
   attr_reader :host, :service, :event_template ## time
   ## todo: support queries by tag or custom key

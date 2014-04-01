@@ -36,7 +36,7 @@ class SqliteEventStore
       number        :metric
       number        :ttl
 
-      index         [:host, :service] ## [:service, :host, :time] ?
+      index         [:service, :host, :time]
     end
 
     @db.create_table :tags do
