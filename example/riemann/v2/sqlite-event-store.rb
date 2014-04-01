@@ -7,7 +7,7 @@ require_relative 'event-template'
 class SqliteEventStore
   include Enumerable
 
-  attr_reader :events, :metas
+  attr_reader :events, :tags, :customs, :alt_customs, :metas
   
   # Template for matching all event tuples.
   attr_reader :event_template
@@ -36,7 +36,7 @@ class SqliteEventStore
       number        :metric
       number        :ttl
 
-      index         [:host, :service]
+      index         [:host, :service] ## [:service, :host, :time] ?
     end
 
     @db.create_table :tags do
@@ -49,42 +49,85 @@ class SqliteEventStore
     @db.create_table :customs do
       foreign_key   :event_id, :events
       text          :key
-      text          :value
+      text          :value_msgpacked
       index         :key
       primary_key   [:event_id, :key]
     end
 
-    @events = @db[:events]
+    @events   = @db[:events]
+    @tags     = @db[:tags]
+    @customs  = @db[:customs]
+
+    @alt_customs = Hash.new {|h,k| h[k] = {}}
+      # Alternate store for any custom that has a non-string key. To be
+      # completely correct, we have to support this because the event space
+      # requires it.
+      #
+      # Contains
+      #   {event_id => {key => value}}
+      # where key (and value, of course) are arbitrary tuple data.
+      # We don't have the key index like in the customs table, but that's
+      # ok since the key isn't a string.
+
     @metas = []
   end
 
+  def collect_tags event_id
+    tags.
+      select(:tag).
+      where(event_id: event_id).
+      map {|row| row[:tag]}
+  end
+
+  def collect_custom event_id
+    custom = customs.
+      select(:key, :value_msgpacked).
+      where(event_id: event_id).
+      inject({}) {|h, row|
+        h[row[:key]] = MessagePack.unpack(row[:value_msgpacked])
+        h
+      }
+
+    if alt_customs.key?(event_id)
+      custom.merge! alt_customs[event_id]
+    end
+
+    custom
+  end
+
+  def repopulate tuple
+    event_id = tuple.delete :id
+    tuple[:tags]    = collect_tags(event_id)
+    tuple[:custom]  = collect_custom(event_id)
+    tuple
+  end
+
   def each
-    events.
-      select(:host, :service, :state, :time, :description, :metric, :ttl).
-      each do |tuple|
-
-      ## extra queries for tags and custom 
-      tuple[:tags] = []
-      tuple[:custom] = nil
-
-      yield tuple
-    end
-
-    metas.each do |tuple|
-      yield tuple
-    end
+    events.each {|tuple| yield repopulate(tuple)}
+    metas.each {|tuple| yield tuple}
   end
 
   def insert tuple
     case tuple
     when event_template
       tuple = tuple.dup
-      tags = tuple.delete :tags
-      custom = tuple.delete :custom
+      tuple_tags = tuple.delete :tags
+      tuple_custom = tuple.delete :custom
 
-      ## insert tags and custom
+      event_id = events.insert(tuple)
 
-      events << tuple
+      tuple_tags.each do |tag|
+        tags << {event_id: event_id, tag: tag}
+      end
+
+      tuple_custom.each do |key, value|
+        if key.kind_of? String
+          customs << {event_id: event_id, key: key,
+                      value_msgpacked: MessagePack.pack(value)}
+        else
+          alt_customs[event_id][key] = value
+        end
+      end
 
     else
       metas << tuple
@@ -95,16 +138,25 @@ class SqliteEventStore
     case tuple
     when event_template
       tuple = tuple.dup
-      tags = tuple.delete :tags
-      custom = tuple.delete :custom
+      tuple_tags = tuple.delete :tags
+      tuple_custom = tuple.delete :custom
 
-      id = events.select(:id).where(tuple).limit(1)
-      count = events.where(id: id).delete
+      event_id = events.select(:id).where(tuple).limit(1)
+      count = events.where(id: event_id).count
 
       if count == 0
         false
       elsif count == 1
-        true
+        if tuple_tags.sort == collect_tags(event_id).sort && ## avoid sort?
+           tuple_custom == collect_custom(event_id)
+          tags.where(event_id: event_id).delete
+          customs.where(event_id: event_id).delete
+          alt_customs.delete(event_id)
+          events.where(id: event_id).delete
+          true
+        else
+          false
+        end
       else
         raise "internal error: primary key, id, was not unique"
       end
@@ -135,7 +187,7 @@ class SqliteEventStore
   def find_match_for template, distinct_from: []
     case template
     when EventTemplate
-      template.find_in events, distinct_from: distinct_from
+      template.find_in self, distinct_from: distinct_from
     else
       ## if template can match subspace
       # Fall back to linear search, same as default tuplestore.
@@ -153,7 +205,7 @@ class SqliteEventStore
   def find_all_matches_for template, &bl
     case template
     when EventTemplate
-      template.find_all_in events, &bl
+      template.find_all_in self, &bl
     else
       # Fall back to linear search using #each and #===.
       grep template, &bl
