@@ -3,15 +3,17 @@
 # for range queries on service, service and host, or service, host, and time,
 # using the composite index.
 class EventTemplate
-  attr_reader :host, :service, :event_template ## time
+  attr_reader :service, :host, :time, :event_template
   ## todo: support queries by tag or custom key
 
-  # Host and service can be intervals or single values or nil to match any value
-  # The event_template must be the template that matches all tuples in
-  # the event subspace. The EventTemplate will match a subset of this subspace.
-  def initialize host: nil, service: nil, event_template: nil
-    @host = host
+  # Service, host, and time can be intervals or single values or nil to match
+  # any value. The event_template must be the template that matches all tuples
+  # in the event subspace. The EventTemplate will match a subset of this
+  # subspace.
+  def initialize service: nil, host: nil, time: nil, event_template: nil
     @service = service
+    @host = host
+    @time = time
     @event_template = event_template
   end
 
@@ -20,8 +22,9 @@ class EventTemplate
   # Non-waiting queries (such as read_all) just use #find_in or #find_all_in.
   def === tuple
     @event_template === tuple and
+    !@service || @service === tuple[:service] and
     !@host || @host === tuple[:host] and
-    !@service || @service === tuple[:service]
+    !@time || @time === tuple[:time]
   end
   
   # Returns a dataset corresponding to this particular template.
@@ -29,8 +32,9 @@ class EventTemplate
   # populate tags and custom key-value data, if any.
   def dataset store
     where_terms = {}
-    where_terms[:host] = @host if @host
     where_terms[:service] = @service if @service
+    where_terms[:host] = @host if @host
+    where_terms[:time] = @time if @time
     store.events.where(where_terms)
   end
 
