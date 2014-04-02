@@ -7,6 +7,29 @@ Tupelo is inspired by Masatoshi Seki's Rinda in the Ruby standard library, which
 
 This repository contains the reference implementation in Ruby, with documentation, tests, benchmarks, and examples. Implementations in other languages must communicate with this one.
 
+News
+====
+
+* 2014-April-1 [Riemann example](example/riemann) uses more stores in various roles:
+
+  * sqlite store for the consumer replicas, with indexes for
+    * service/host/time
+    * tags
+    * custom data
+  * rbtree store for the expirer
+  * hash store for the alerter
+
+* 2014-March-19: release 0.21
+    
+    * correct use of `store` and `space` terms everywhere
+    * sqlite example improvements
+    * API additions
+      * tuplestores can define #find_all_matches_for
+        * for efficient search in #read_all
+      * msgpack and json options to deserialize keys as symbols
+        * invoke via Client option and tup switch
+
+See also https://github.com/vjoel/tupelo/releases.
 
 Documentation
 ============
