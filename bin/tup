@@ -75,6 +75,10 @@ if ARGV.delete("-h") or ARGV.delete("--help")
                   subscribe to specified subspaces; use "" for none
                   by default, tup client subscribes to everything
 
+      -I path     append dir to $LOAD_PATH (the space char is necessary)
+      
+      -r file     require file (the space char is necessary)
+
   END
   exit
 end
@@ -91,6 +95,18 @@ string_keys = argv.delete("--string-keys")
 if i=argv.index("--subscribe") # default is to subscribe to all
   argv.delete("--subscribe")
   subscribed_tags = argv.delete_at(i).split(",")
+end
+
+_r_files = []
+if i=argv.index("-r")
+  argv.delete("-r")
+  _r_files << argv.delete_at(i)
+end
+
+_I_dirs = []
+if i=argv.index("-I")
+  argv.delete("-I")
+  _I_dirs << argv.delete_at(i)
 end
 
 services_file = argv.shift
@@ -112,6 +128,11 @@ Tupelo.application(
   seqd_addr: addr,
   cseqd_addr: addr, # using same addr causes autoincrement of port/filename
   arcd_addr: addr) do
+
+  $LOAD_PATH.unshift(*_I_dirs)
+  _r_files.each do |f|
+    require f
+  end
 
   class TupClient < Tupelo::Client
     alias w write_wait
