@@ -34,10 +34,10 @@ class Tupelo::Client
       })
     end
 
-    def subspace tag
+    def subspace tag, wait: false
       tag = tag.to_s
       find_subspace_by_tag(tag) or begin
-        if subscribed_tags.include? tag
+        if wait or subscribed_tags.include? tag
           read tupelo_meta_key => "subspace",
             tag:      tag,
             template: nil,
