@@ -155,16 +155,6 @@ class SqliteEventStore
           events.where(id: event_id).delete
           true
         else
-puts '========'
-puts tuple_tags.sort
-puts collect_tags(event_id)
-puts '--------'
-puts tuple_custom
-puts collect_custom(event_id)
-puts '--------'
-puts event_id.all
-puts customs.all
-puts alt_customs
           false
         end
       else
