@@ -89,7 +89,7 @@ class SqliteEventStore
       select(:key, :value_blob).
       where(event_id: event_id).
       inject({}) {|h, row|
-        h[row[:key]] = blobber.load(row[:value_blob])
+        h[row[:key].to_sym] = blobber.load(row[:value_blob])
         h
       }
 
