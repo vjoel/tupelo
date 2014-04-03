@@ -152,9 +152,8 @@ Tupelo.application(
     store_subspace = __store[1]
     if store_subspace
       local subscribe: nil do
-        sleep 0.2 until subspace(store_subspace) ## blocking api?
         log.debug "getting spec for subspace #{store_subspace.inspect}"
-        store_args << subspace(store_subspace).spec
+        store_args << subspace(store_subspace, wait: true).spec
       end
     end
   else
