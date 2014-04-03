@@ -20,3 +20,13 @@ The higher level analytical and visual features of the real Riemann are not part
 * [v1/](v1)
 
 * [v2/](v2)
+
+  * Note: for interactive use, you can run a SqliteEventStore in a tup client by starting, in two terminals:
+  
+      $ tup sv -I example/riemann -r event-subspace
+      >> define_event_subspace
+      >> event = {host: "emu", service: "process 12437", state: "ok", time: 12.34, description: "foo bar", tags: ["a", "b"], metric: 0.23, ttl: 0.5, custom: {"aaa" => 42}}
+      >> w event
+    
+      $ tup sv -I example/riemann -r v2/sqlite-event-store --symbol-keys --subscribe event --store SqliteEventStore,event
+      >> ra
