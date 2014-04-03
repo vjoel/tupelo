@@ -12,8 +12,13 @@ class SqliteEventStore
   # Template for matching all event tuples.
   attr_reader :event_template
 
+  # Object with #dump and #load methods used to put the custom hash into
+  # a sqlite string column.
+  attr_reader :blobber
+
   def initialize spec, client: nil
     @event_template = client.worker.pot_for(spec)
+    @blobber = client.blobber
       # calling #pot_for in client means that resulting template
       # will have keys converted as needed (in the case of this client,
       # to symbols).
@@ -49,7 +54,7 @@ class SqliteEventStore
     @db.create_table :customs do
       foreign_key   :event_id, :events
       text          :key
-      text          :value_msgpacked
+      text          :value_blob
       index         :key
       primary_key   [:event_id, :key]
     end
@@ -81,10 +86,10 @@ class SqliteEventStore
 
   def collect_custom event_id
     custom = customs.
-      select(:key, :value_msgpacked).
+      select(:key, :value_blob).
       where(event_id: event_id).
       inject({}) {|h, row|
-        h[row[:key]] = MessagePack.unpack(row[:value_msgpacked])
+        h[row[:key]] = blobber.load(row[:value_blob])
         h
       }
 
@@ -122,8 +127,8 @@ class SqliteEventStore
 
       tuple_custom.each do |key, value|
         if key.kind_of? Symbol
-          blob = Sequel.blob(MessagePack.pack(value))
-          customs << {event_id: event_id, key: key.to_s, value_msgpacked: blob}
+          blob = Sequel.blob(blobber.dump(value))
+          customs << {event_id: event_id, key: key.to_s, value_blob: blob}
         else
           alt_customs[event_id][key] = value
         end
