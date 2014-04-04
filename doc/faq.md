@@ -442,7 +442,11 @@ Distributing
 
   See the section on security below for more details.
 
-  If you are writing a program using the application framework, be sure to make your tuplespace services available on a TCP server. You can do that, as above, by passing `tcp` on the command line. Or you can set the option directly when you call #application. A shortcut to do that is the #tcp_application method. See the [remote](example/remote.rb) example and other examples using tcp [chat](example/chat), [parallel](example/parallel.rb), [map-reduce](example/map-reduce), [pregel](example/pregel).
+  If you are writing a program using the application framework, be sure to make your tuplespace services available on a TCP server. You can do that, as above, by passing `tcp` on the command line. Or you can set the option directly when you call #application. A shortcut to do that is the #tcp_application method.
+
+A very simple example is [example/tiny-tcp-service.rb](example/tiny-tcp-service.rb).
+
+See also the [remote](example/remote.rb) example and other examples using tcp [chat](example/chat), [parallel](example/parallel.rb), [map-reduce](example/map-reduce), [pregel](example/pregel).
 
 3. How can I distribute work to programs written in other languages?
 

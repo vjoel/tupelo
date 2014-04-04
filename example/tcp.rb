@@ -18,6 +18,11 @@
 # Then run a client like this:
 #
 #   bin/tup remote-copy-of-tcp.yaml
+#
+# If you have ssh set up, you don't even need to copy the file. Just reference
+# it in the same way you would with scp:
+#
+#   bin/tup host:tcp.yaml
 
 require 'tupelo/app'
 
