@@ -10,6 +10,7 @@ Trying to fix Rinda, I patched a few bugs and slowdowns, but found that solving 
 
 
 format: 30 min
+
 level: intermediate
 
 Bio
