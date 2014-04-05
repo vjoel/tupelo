@@ -1,5 +1,6 @@
 
-### Why Rinda is useful, what's wrong with it, and how to fix it
+Why Rinda is useful, what's wrong with it, and how to fix it
+----
 
 Rinda, in Ruby's stdlib, promises the world: a distributed object store, threequals-based searching and notification, and coordination of concurrent processes using the simple read, write, and take operations. It's a great sandbox for learning about concurrent and distributed programming. Learn Rinda, and you'll want to use it for everything: dataflow topologies, map-reduce, work queues, pub-sub, config shares, service discovery.
 
@@ -28,9 +29,10 @@ http://confreaks.com/videos/165-rubyconf2009-dsls-code-generation-and-new-domain
 
 http://speakerrate.com/talks/1797-dsls-code-generation-and-new-domains-for-ruby
 
-----
 Notes
 ----
+
+problems:
 
 * lost tuples -- if a process takes a tuple and dies, how do you recover?
 
@@ -66,19 +68,19 @@ approach:
   
   * to avoid centralized storage that can only use flat arrays
 
-  * preserve api, prog model, semantics
-    
-    * even add powerful transactions for OCC
-      
-    * and for efficiency and for failure resistence
-    
-    * add optional persistence
-    
-    * replication inherent in design
+* preserve api, prog model, semantics
 
-  * open up new avenues of optimization
-    
-    * specialized data stores and search algos
-    
-    * subspaces to control resource usage
-  
+  * even add powerful transactions for OCC
+
+  * and for efficiency and for failure resistence
+
+  * add optional persistence
+
+  * replication inherent in design
+
+* open up new avenues of optimization
+
+  * specialized data stores and search algos
+
+  * subspaces to control resource usage
+
