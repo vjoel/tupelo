@@ -25,38 +25,60 @@ http://www.meetup.com/San-Francisco-Distributed-Computing/events/153886592
 past talks
 
 http://confreaks.com/videos/165-rubyconf2009-dsls-code-generation-and-new-domains-for-ruby
+
 http://speakerrate.com/talks/1797-dsls-code-generation-and-new-domains-for-ruby
 
 ----
 Notes
 ----
 
-lost tuples -- if a process takes a tuple and dies, how do you recover?
-no occ -- forces you to use a locking style of concurrency control
-the tuplestore is mostly a flat array, no choice of data structure
-ineff query
-  linear search -- there is no general algo for all tuples
-queries always have to go to the network -- no localstore or cache
-everything is a bottleneck: every write, template match, wait registration, wait notification, etc.
-no concurrency -- entire system is limited by the timeline of one thread
-no replication or persistence
-RPC-based, so more latency, hard to pipeline, more vulnerable to failures
-ruby only
-marshal is slow and blocky (no buffered, non-blocking reads)
+* lost tuples -- if a process takes a tuple and dies, how do you recover?
 
-  minimize the center
-    just a counter and message dispatcher, no other state or computation
+* no occ -- forces you to use a locking style of concurrency control
+
+* the tuplestore is mostly a flat array, no choice of data structure
+
+* ineff query
+
+  * linear search -- there is no general algo for all tuples
+
+* queries always have to go to the network -- no localstore or cache
+
+* everything is a bottleneck: every write, template match, wait registration, wait  notification, etc.
+
+* no concurrency -- entire system is limited by the timeline of one thread
+
+* no replication or persistence
+
+* RPC-based, so more latency, hard to pipeline, more vulnerable to failures
+
+* ruby only
+
+* marshal is slow and blocky (no buffered, non-blocking reads)
+
+approach:
+
+* minimize the center
   
-  to remove (almost) all computational bottlenecks
-  to avoid centralized storage that can only use flat arrays
+  * just a counter and message dispatcher, no other state or computation
+  
+  * to remove (almost) all computational bottlenecks
+  
+  * to avoid centralized storage that can only use flat arrays
 
-  preserve api, prog model, semantics
-    even add powerful transactions for OCC
-      and for efficiency and for failure resistence
-    add optional persistence
-    replication inherent in design
+  * preserve api, prog model, semantics
+    
+    * even add powerful transactions for OCC
+      
+    * and for efficiency and for failure resistence
+    
+    * add optional persistence
+    
+    * replication inherent in design
 
-  open up new avenues of optimization
-    specialized data stores and search algos
-    subspaces to control resource usage
+  * open up new avenues of optimization
+    
+    * specialized data stores and search algos
+    
+    * subspaces to control resource usage
   
