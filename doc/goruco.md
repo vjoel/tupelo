@@ -1,5 +1,5 @@
 
-Why Rinda is useful, what's wrong with it, and how to fix it
+### Why Rinda is useful, what's wrong with it, and how to fix it
 
 Rinda, in Ruby's stdlib, promises the world: a distributed object store, threequals-based searching and notification, and coordination of concurrent processes using the simple read, write, and take operations. It's a great sandbox for learning about concurrent and distributed programming. Learn Rinda, and you'll want to use it for everything: dataflow topologies, map-reduce, work queues, pub-sub, config shares, service discovery.
 
