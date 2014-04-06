@@ -23,14 +23,14 @@ Tupelo.application do
       when "find box"
         arg = req[:arg] ## should validate args
         lat = arg[:lat]; lng = arg[:lng]
-        template = PoiTemplate.new(poi_template: poispace,
+        template = PoiTemplate.new(poispace,
           lat: lat[0]..lat[1], lng: lng[0]..lng[1])
         write id: req[:id], result: read_all(template)
 
       when "delete box"
         arg = req[:arg]
         lat = arg[:lat]; lng = arg[:lng]
-        template = PoiTemplate.new(poi_template: poispace,
+        template = PoiTemplate.new(poispace,
           lat: lat[0]..lat[1], lng: lng[0]..lng[1])
 
         deleted = []

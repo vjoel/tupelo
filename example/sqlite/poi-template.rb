@@ -7,10 +7,10 @@ class PoiTemplate
   attr_reader :poi_template
 
   # lat and lng can be intervals or single values or nil to match any value
-  def initialize lat: nil, lng: nil, poi_template: nil
+  def initialize poi_template, lat: nil, lng: nil
+    @poi_template = poi_template
     @lat = lat
     @lng = lng
-    @poi_template = poi_template
   end
 
   # we only need to define this method if we plan to wait for poi tuples
