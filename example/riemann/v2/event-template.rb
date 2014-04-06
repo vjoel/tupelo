@@ -3,18 +3,23 @@
 # for range queries on service, service and host, or service, host, and time,
 # using the composite index.
 class EventTemplate
-  attr_reader :service, :host, :time, :event_template
+  # Template defining the whole event subspace, of which this instance will
+  # match a subset.
+  attr_reader :event_template
+
+  attr_reader :service, :host, :time
+
   ## todo: support queries by tag or custom key
 
   # Service, host, and time can be intervals or single values or nil to match
-  # any value. The event_template must be the template that matches all tuples
-  # in the event subspace. The EventTemplate will match a subset of this
-  # subspace.
-  def initialize service: nil, host: nil, time: nil, event_template: nil
+  # any value. The event_template must be a template that matches all tuples
+  # in the event subspace, such as subspace("event"). The EventTemplate will
+  # match a subset of this subspace.
+  def initialize event_template, service: nil, host: nil, time: nil
+    @event_template = event_template
     @service = service
     @host = host
     @time = time
-    @event_template = event_template
   end
 
   # We only need to define this method if we plan to wait for event tuples
