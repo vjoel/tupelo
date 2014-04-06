@@ -34,3 +34,5 @@ Some design principles:
 * Use non-blocking protocols. For example, transactions can be evaluated in one client without waiting for information from other clients. Even at the level of reading messages over sockets, tupelo uses (via funl and object-stream) non-blocking constructs. At the application level, you can use transactions to optimistically modify shared state (but applications are free to use locking if high contention demands it).
 
 * Do the hard work on the client side. For example, all pattern matching happens in the client that requested an operation that has a template argument, not on the server or other clients.
+
+* Tupelo follows the [end-to-end principle](http://web.mit.edu/Saltzer/www/publications/endtoend/endtoend.pdf): network endpoints are responisble tor maintaining their invariants. Each client must determine locally whether a transaction succeeds or fails (or whether it needs additional coordination in the case of cross-subspace transactions).
