@@ -1,6 +1,6 @@
 # A toy implementation of Riemann (http://riemann.io).
 #
-# Version 1 uses the default tuplespace for all subspaces, which is inefficient
+# Version 1 uses the default tuplestore for all subspaces, which is inefficient
 # for searching.
 
 require 'tupelo/app'

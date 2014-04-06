@@ -3,12 +3,16 @@
 # Version 2 stores the event subspace using different data
 # structures in different clients, depending on needs:
 #
-#   * generic consumers need to index by host and service
+#   * generic consumers need to index by service, host, and time,
+#     tags, and custom keys, so they use in-memory sqlite tables.
 #
-#   * the expiration manager need to sort by expiration time
+#   * the expiration manager needs to sort by expiration time, so
+#     it uses an rbtree (an in-memory Red-Black binary tree),
+#     for a good balance of insert and lookup performance.
 #
 #   * the critical event alerter doesn't need to sort or search at all,
-#     it just needs efficient insert and delete. 
+#     it just needs efficient insert and delete, so it uses a store
+#     based on a simple hash table.
 #
 # Run with --http to expose a web API and run a test web client.
 #
