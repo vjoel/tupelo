@@ -53,7 +53,7 @@ class EventTemplate
   end
 
   def find_all_in store
-    if block_given
+    if block_given?
       dataset(store).each do |tuple|
         yield store.repopulate(tuple)
       end
