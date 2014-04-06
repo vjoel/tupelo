@@ -4,7 +4,8 @@
 # structures in different clients, depending on needs:
 #
 #   * generic consumers need to index by service, host, and time,
-#     tags, and custom keys, so they use in-memory sqlite tables.
+#     by tags, and by custom keys, so they use in-memory sqlite with
+#     normalized tables.
 #
 #   * the expiration manager needs to sort by expiration time, so
 #     it uses an rbtree (an in-memory Red-Black binary tree),
