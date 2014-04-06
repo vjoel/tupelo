@@ -1,4 +1,5 @@
-== Riemann example
+Riemann example
+===============
 
 A toy implementation of Riemann (http://riemann.io), in several stages of complexity.
 
@@ -8,7 +9,8 @@ Each version of this example adds progressively more features and efficiency. Se
 
 The higher-level declaration, analysis, and visualization features of the real Riemann are not part of this example. That functionality would be implemented in the consumer processes, as noted in the comments. (There is, however, a minimal http api.)
 
-=== Running
+Running
+-------
 
 To run the `v0` example:
 
@@ -16,7 +18,8 @@ To run the `v0` example:
 
 and similarly for other versions. There are no special command-line arguments (aside from the usual arguments that all Tupelo.application code has, such as `--trace`).
 
-=== Files
+Files
+-----
 
 * Common files, used in all versions
 
@@ -37,7 +40,9 @@ and similarly for other versions. There are no special command-line arguments (a
 
   * See comments in [v2/riemann.rb](v2/riemann.rb).
 
-=== Using the SqliteEventStore
+
+Using the SqliteEventStore
+--------------------------
 
 For interactive use, you can run a SqliteEventStore in a tup client by starting it using the `tup --store` switch.
 
@@ -65,7 +70,9 @@ Now, you can take, write, and read from either of these tup sessions. What makes
     >> read et
     => {:host=>"sample.com", :service=>"my service", :state=>"ok", :time=>12.34, :description=>"foo bar", :metric=>0.23, :ttl=>0.5, :tags=>["a", "b"], :custom=>{:aaa=>42}}
 
-=== Using the OrderedEventStore
+
+Using the OrderedEventStore
+---------------------------
 
 The rbtree-based store works much like the sqlite based store, but with (of course) different query parameters and semantics. With the processes as above, try this:
 
