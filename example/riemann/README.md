@@ -60,7 +60,7 @@ Second, in another terminal, we run a client that subscribes to the event space 
     $ tup sv -I example/riemann -r v2/sqlite-event-store --symbol-keys --subscribe event --store SqliteEventStore,event
     >> ra
 
-The symbol-keys is so that the adapter between tupelo and sqlite simply passes the hashes with symbol keys directly through the Sequel layer, without converting from strings.
+The `--symbol-keys` is so that the adapter between tupelo and sqlite simply passes the hashes with symbol keys directly through the Sequel layer, without converting from strings.
 
 The `ra` should print the event (note the symbol keys). Or you could `read subspace("event")` for the same effect as `read_all`.
 
@@ -69,6 +69,12 @@ Now, you can take, write, and read from either of these tup sessions. What makes
     >> et = EventTemplate.new event_template: subspace("event"), service: "my service"
     >> read et
     => {:host=>"sample.com", :service=>"my service", :state=>"ok", :time=>12.34, :description=>"foo bar", :metric=>0.23, :ttl=>0.5, :tags=>["a", "b"], :custom=>{:aaa=>42}}
+
+You can (unsafely) access the tuplestore itself:
+
+    >> worker.tuplestore
+
+This allows you to directly explore the sqlite tables using the sequel API. But be aware that the worker doesn't expect other threads to directly access the tuplestore, so this should only be used for exploration and debugging.
 
 
 Using the OrderedEventStore
