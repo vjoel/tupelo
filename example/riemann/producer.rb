@@ -36,7 +36,7 @@ class Tupelo::Client
     30.times do |ei|
       e_cpu = base_event.merge(
         service:  "service #{i}",
-        state:    ei==10 ? "critical" : "ok",
+        state:    (ei%10==0) ? "critical" : "ok",
         time:     Time.now.to_f,
         ttl:      0.2,
         tags:     ["cpu", "cumulative"],
