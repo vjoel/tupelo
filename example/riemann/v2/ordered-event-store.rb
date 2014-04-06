@@ -2,6 +2,9 @@ require 'rbtree'
 
 # Hard-coded to work with tuples belonging to the "event" subspace defined in
 # event-subspace.rb and with the OrderedEventStore data structure defined below.
+# This class only exposes the "find one item before" functionality of rbtree,
+# and not range searches etc., because this is all that is needed for the
+# expirer.
 class OrderedEventTemplate
   attr_reader :expiration
 
@@ -46,7 +49,7 @@ class OrderedEventStore
 
   attr_reader :tree, :metas
 
-  def initialize
+  def initialize client: nil
     clear
   end
 
