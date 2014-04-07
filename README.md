@@ -1,7 +1,7 @@
 Tupelo
 ==
 
-Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory, with pluggable storage adapters. Its programming model is small and semantically transparent: there are tuples (built from arrays, hashes, and scalars), a few operations on tuples (read, write, take), and transactions composed of these operations. This data-centric model, unlike RPC and most forms of messaging, decouples application endpoints from each other, not only in space and time, but also in referential structure: processes refer to data rather than to other processes.
+Tupelo is a language-agnostic tuplespace for coordination of distributed programs. It is designed for distribution of both computation and storage, on disk and in memory, with pluggable storage adapters. Its programming model is small and semantically transparent: there are tuples (built from arrays, hashes, and scalars), a few operations on tuples (read, write, take), and transactions composed of these operations. This data-centric model, unlike RPC and most forms of messaging, decouples application endpoints from each other, not only in space and time, but also in referential structure: processes refer to data rather than to other processes or to channels.
 
 Tupelo is inspired by Masatoshi Seki's Rinda in the Ruby standard library, which in turn is based on David Gelernter's Linda. The programming models of Tupelo and Rinda are similar, except for the lack of transactions in Rinda. However, the implementations of the two are nearly opposite in architectural approach.
 
@@ -10,7 +10,9 @@ This repository contains the reference implementation in Ruby, with documentatio
 News
 ====
 
-* 2014-April-1 [Riemann example](example/riemann) uses more stores in various roles:
+* 2014-April-7: Want to use these fancy stores inside a client that you run from the command line? See [here](example/sqlite/README.md) and [here](example/riemann/README.md).
+
+* 2014-April-1: [Riemann example](example/riemann) uses more stores in various roles:
 
   * sqlite store for the consumer replicas, with indexes for
     * service/host/time
