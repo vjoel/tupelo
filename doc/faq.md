@@ -132,9 +132,9 @@ Syntax:
   
   * If you're using Marshal or Yaml (the --marshal or --yaml command line switches, for example) to serialize objects, then you can use either, and even mix and match within one tuple. The difference is significant and preserved.
   
-  * If you're using MessagePack (the default and recommended serializer) or JSON, then you have to choose, using the `symbolize_keys` option when creating a client. The default is currently `false`: keys in hash tuples returned to the program by tupleo are strings. The reason for this is the warning below.
+  * If you're using MessagePack (the default and recommended serializer) or JSON, then you have to choose, using the `symbolize_keys` option when creating a client (or the `--symbol-keys` option on the command line, when using the `Tupelo.application` framework). The default is currently `false`: keys in hash tuples returned to the program by tupleo are strings. The reason for this is the warning below.
 
-  * You can choose on a per-client basis. In the serialized blob, it's all strings anyway. The choice is purely client side. Different instances of Client in the same process can choose this setting differently.
+  * You can choose on a per-client basis. In the (msgpack or json) serialized blob, it's all strings anyway. The choice is purely client side. Different instances of Client in the same process can choose this setting differently.
   
   * In any case, when you *write* tuples, you can mix and match symbols and strings as hash keys: they will get normalized to strings in the msgpack-ed blob. Other clients will unpack them as they prefer.
   
@@ -164,9 +164,9 @@ A client is a process (possibly with multiple threads, typically with a worker t
 Is the tuplestore in a client a cache?
 --------------------------------------
 
-A client stores all the tuples in all the subspaces it subsscribes to. At a particular global clock tick (when observed in the client), the tuples that it stores must agree with the tuples stored in other clients at the same tick. So, in this sense, the client's local store is *authoritative*. This is not usually true of a cache. Code running in a client can call `read <template>` to use this local store as a cache, with the guarantee that, at the (currently observed) tick, these tuples are globally consistent.
+A client stores all the tuples in all the subspaces it subscribes to. At a particular global clock tick (when observed in the client), the tuples that it stores must agree with the tuples stored in other clients at the same tick. So, in this sense, the client's local store is *authoritative*. This is not usually true of a cache. Code running in a client can call `read <template>` to use this local store as a cache, with the guarantee that, at the (currently observed) tick, these tuples are globally consistent.
 
-Note that writes and other transactions do not immediately affect the local store. Transactions containing writes or takes are sent through the message sequencer and then executed in the same sequence on the local store of each client that subscribes to the affected subspaces.
+Note that writes and takes do not immediately affect the local store. Transactions containing writes or takes are sent through the message sequencer and then executed in the same sequence on the local store of each client that subscribes to the affected subspaces.
 
 Utility
 =======
