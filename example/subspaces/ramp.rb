@@ -1,6 +1,7 @@
 # Read-atomic multipartition transactions, as per:
 #   http://www.youtube.com/watch?v=_rAdJkAbGls (around minutes 28-30)
 #   http://www.bailis.org/blog/non-blocking-transactional-atomicity
+#   http://www.bailis.org/blog/scalable-atomic-visibility-with-ramp-transactions
 #
 # Example of transacting separately on two subspaces (i.e. shardable subsets of
 # the tuplespace), but hiding intermediate tuples so that the results show up
@@ -9,7 +10,7 @@
 # tupelo transactions.)
 #
 # In tupelo, we could use the classic tuplespace technique of taking a lock
-# tuple to protect the sequence ot two transactions on the two subspaces, but
+# tuple to protect the sequence of two transactions on the two subspaces, but
 # that would reduce concurrency and require a lease mechanism in case the lock
 # holder dies. That's possible, but not scalable. So we use transactions with a
 # trick...
