@@ -33,7 +33,7 @@ X_REPLICATIONS = 1 # number of copies of the shard of X data
 Y_REPLICATIONS = 1 # number of copies of the shard of Y data
 
 def next_local_id
-  @counter = 0
+  @counter ||= 0
   @counter += 1
     # Protect this with a mutex or queue if other threads need it, or
     # use the atomic gem. It's ok in a multiprocess app without mutex,
