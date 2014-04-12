@@ -129,6 +129,12 @@ Tupelo.application do
   # This doesn't test that RAMP is working -- it will always see a consistent
   # view because of tupelo, even without the pending/ack trick. It is more
   # informative to look at the log output from the x and y clients.
+  #
+  # The key point of this example is that we could write a reader process that
+  # doesn't use tupelo at all, but accesses the data stores directly (assuming
+  # we're using a client-server store like postgres or a concurrent key-value
+  # store like leveldb or lmdb). This non-tupelo process would only need to be
+  # aware of the RAMP semantics of pending and id fields.
   child subscribe: ["x", "y"], passive: true do
     log.progname = "reader"
     read do |t|
