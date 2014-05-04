@@ -166,7 +166,7 @@ Is the tuplestore in a client a cache?
 
 A client stores all the tuples in all the subspaces it subscribes to. At a particular global clock tick (when observed in the client), the tuples that it stores must agree with the tuples stored in other clients at the same tick. So, in this sense, the client's local store is *authoritative*. This is not usually true of a cache. Code running in a client can call `read <template>` to use this local store as a cache, with the guarantee that, at the (currently observed) tick, these tuples are globally consistent.
 
-Note that writes and takes do not immediately affect the local store. Transactions containing writes or takes are sent through the message sequencer and then executed in the same sequence on the local store of each client that subscribes to the affected subspaces.
+Note that writes and takes do not immediately affect the local store. Transactions containing writes or takes are sent through the message sequencer and then executed in the same sequence on the local store of each client that subscribes to the affected subspaces. In this respect, tupelo is different from write-through caches.
 
 Utility
 =======
