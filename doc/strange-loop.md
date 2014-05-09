@@ -1,0 +1,9 @@
+Tuplespaces in the age of distributed databases
+
+Tuplespaces, starting with Linda in the 1980s, took a brave new approach to  coordination of distributed systems. Unlike message passing, RPC, and publish/subscribe, tuplespaces decouple the participants in both space and time, and they abstract coordination logic from the messy business of addressing processes or channels. They do so using a remarkably simple metaphor. Tuples are aggregates of data that float around in a global space; processes can toss new tuples into the space, observe tuples that match a pattern, and remove tuples from the space. This language, with three verbs and lots of nouns, can express many popular forms of concurrency control. So, why haven't tuplespaces caught on outside of certain narrow application domains?
+
+We track down an answer to this question and try to navigate the pitfalls of the original Linda model. This journey leads us into territory that has only recently been mapped out by distributed database researchers. The Calvin project at Yale, for example, takes a new approach to distributed transactions and consistent active replication: Calvin uses deterministic transaction ordering and moves the consensus step earler in the transaction pipeline. We'll see how these techniques, and a few others, help solve the tuplespace problems.
+
+We'll look at a full-featured and usable prototype, Tupelo, that offers transactions, optimistic concurrency, consistent replication, sharding, pluggable storage subsystems, low latency, and security. Examples show Tupelo to be a concise and expressive language for distributed coordination.
+
+We'll also take a broader view, comparing other models. In a tuplespace-based system, program state is a globally addressible, virtual shared memory. Is this a worthy alternative to the actor model? Isn't global state bad?
