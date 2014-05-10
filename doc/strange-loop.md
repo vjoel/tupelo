@@ -8,13 +8,13 @@ We'll look at a full-featured and usable prototype, Tupelo, that offers transact
 
 We'll also take a broader view, comparing other models. In a tuplespace-based system, program state is a globally addressable, virtual shared memory. Is this a worthy alternative to the actor model? Isn't global state bad?
 
+Tupelo is BSD-licensed and available at https://github.com/vjoel/tupelo.
+
 # Bio
 
 Joel studied math at Harvard and Berkeley, getting his PhD for work on decompositions of finite algebraic structures. He taught at the University of Louisville and then helped develop a multithreaded C++ object database used in Apple and Netscape software. Back at UC Berkeley, he worked on vehicle automation, communication, control, and safety systems, and on data analysis and simulation of transportation networks. He was co-founder and architect of a start-up for cloud-based sensor data analysis and freeway flow prediction aimed at traffic engineers. Now, working on a distributed temporal database at http://fauna.org, he's rewriting the transaction language and looking for ways to apply ideas from Calvin. In his spare time, he works on his open source projects: Tupelo and RedShift, a simulation framework in Ruby and C that aims to be the open-source Simulink. He can often be found playing in traffic with wheels clamped to his feet.
 
 # Comments
-
-The Tupelo project is BSD-licensed and available at https://github.com/vjoel/tupelo.
 
 For the talk, I plan to draw on the large pool of examples at https://github.com/vjoel/tupelo/tree/master/example, such as map-reduce, pregel, chat server, web app coordination (sinatra), custom stores (the red-black tree and SQLite examples), custom match/search operators using indexes and other data structures, sharding with consistent hashing, and, of course, the dining philosophers. To understand optimistic concurrency and replication, we'll watch the effect of concurrent transactions as they run in two tupelo shells (the `tup` binary), with tracing (`--trace`) turned on in a third terminal.
 
@@ -24,11 +24,11 @@ I will also briefly mention Ruby's Rinda standard library, and my attempts to fi
 
 I'll show how tupelo manages child clients and briefly mention the built-in features for starting remote clients and using ssh tunnels.
 
-I'll explain why I call the current implementation a prototype: first, because it is in ruby, and, second, because it has a single point of failure, so is not highly available. However, that SPoF, which is the message sequencer, can be replaced with a Paxos cluster, just as Calvin does, to increase availability with a latency trade-off. Tupelo and Calvin are both strongly consistent systems and so, by the CAP theorem, cannot compete on availability terms with eventually consistent systems like Dynamo, Riak, Cassandra, and Serf.
+I'll also discuss how to mitigate the potential resource consumption problems of naive use of Tupelo. One technique that Tupelo has built-in support for is subspaces.
+
+I'll explain why I call the current implementation a prototype: first, because it is in ruby, and, second, because it has a single point of failure, so is not highly available. However, that SPoF, which is the message sequencer, can be replaced with a Paxos cluster, just as Calvin does, to increase availability with a latency trade-off. Tupelo and Calvin are both strongly consistent systems and so, by the CAP theorem, cannot compete on availability terms with eventually consistent systems like Dynamo, Riak, Cassandra, and Serf. I won't make this talk a general distributed systems talk; I won't explain CAP, FLP, etc.
 
 Even as a prototype, Tupelo has some possible applications: batch processing with complex dataflow switching and subtask orchestration, for example.
-
-I'll also discuss how to mitigate the potential resource consumption problems of naive use of Tupelo. One technique that Tupelo has built-in support for is subspaces.
 
 ## Related talks
 
