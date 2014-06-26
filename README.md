@@ -10,6 +10,11 @@ This repository contains the reference implementation in Ruby, with documentatio
 News
 ====
 
+* 2014-June-26: Slides and videos from my talk on Calvin, which has some ideas in common with tupelo (plus a lot more):
+  * http://www.meetup.com/papers-we-love-too/events/171291972
+  * https://speakerdeck.com/paperswelove/pwlsf-number-4-equals-joel-vanderwerf-on-calvin
+  * https://plus.google.com/events/cprsf9edesa0ghm3b8c416ppa7o
+
 * 2014-April-7: Want to use these fancy stores inside a client that you run from the command line? See [here](example/sqlite/README.md) and [here](example/riemann/README.md).
 
 * 2014-April-1: [Riemann example](example/riemann) uses more stores in various roles:
