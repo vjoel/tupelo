@@ -50,8 +50,7 @@ Both Tupelo and Zookeeper are consistent systems, and both are based on an atomi
 
 Similar comparisons probably apply for chubby and doozer, and for etcd and other raft-based CP systems.
 
-
-
+Zookeeper's "watches" are similar to zero-latency reads in Tupelo.
 
 To compare
 ----------
