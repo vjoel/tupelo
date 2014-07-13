@@ -29,31 +29,31 @@ class BinCircle
   KEY_BITS = 30
   KEY_MAX = 2**KEY_BITS - 1
   DEFAULT_REPS = 10
-  
+
   attr_accessor :default_reps
 
   def initialize reps: DEFAULT_REPS
     @tree = MultiRBTree.new # hashed_bin_id => bin_id
     @default_reps = reps
   end
-  
+
   # +id+ should be an identifier for your bin, typically a number or string.
   # Uses id.to_s, so +id+ should not contain a hash (which would not determine
   # a unique string).
   def add_bin id, reps: default_reps
     rep_id = "#{id} 0000"
-    reps.times do |i|
+    reps.times do
       key = key_for_string(rep_id)
       @tree[key] = id
       rep_id.succ!
     end
   end
-  
+
   # Returns the set of bin ids now in the circle.
   def bins
     Set.new @tree.values
   end
-  
+
   def inspect
     "#<#{self.class} bins=#{bins.to_a}>"
   end
@@ -64,19 +64,19 @@ class BinCircle
   def key_for_string str
     Digest::MD5.hexdigest(str).to_i(16) & KEY_MAX
   end
-  
+
   # Delete the bin specified by +id+ (same as argument to #add_bin).
   def delete_bin id
     @tree.delete_if {|k,v| v == id}
   end
-  
+
   # +id+ should be an identifier for your object, typically a number or string.
   # Uses id.to_s, so +id+ should not contain a hash (which would not determine
   # a unique string). It is not necessary for +id+ to be unique across objects.
   def find_bin obj
     find_bin_by_key(key_for_string(obj.to_s))
   end
-  
+
   def find_bin_by_key key
     _, id = @tree.lower_bound(key) || @tree.first
     id
