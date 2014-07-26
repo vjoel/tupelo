@@ -23,7 +23,7 @@ class Tupelo::Client
 
       val =
         if block.arity == 0
-          t.instance_eval &block
+          t.instance_eval(&block)
         else
           yield t
         end
@@ -39,7 +39,7 @@ class Tupelo::Client
     ensure
       t.cancel if t and t.open? and block_given?
     end
-    
+
     def abort
       raise TransactionAbort
     end
@@ -47,7 +47,7 @@ class Tupelo::Client
     # returns an object whose #wait method waits for write to be ack-ed
     def write_nowait *tuples
       t = transaction
-      t.write *tuples
+      t.write(*tuples)
       t.commit
     end
     alias write write_nowait
@@ -59,7 +59,7 @@ class Tupelo::Client
 
     def pulse_nowait *tuples
       t = transaction
-      t.pulse *tuples
+      t.pulse(*tuples)
       t.commit
     end
     alias pulse pulse_nowait
@@ -88,7 +88,7 @@ class Tupelo::Client
       end
     end
   end
-  
+
   class Transaction
     attr_reader :client
     attr_reader :worker
@@ -109,7 +109,7 @@ class Tupelo::Client
     attr_reader :missing
     attr_reader :tags
     attr_reader :read_only
-    
+
     STATES = [
       OPEN      = :open,    # initial state
       CLOSED    = :closed,  # client thread changes open -> closed
@@ -118,7 +118,7 @@ class Tupelo::Client
       DONE      = :done,    # worker thread changes pending -> done (terminal)
       FAILED    = :failed   # worker thread changes pending -> failed (terminal)
     ]
-    
+
     STATES.each do |s|
       class_eval %{
         def #{s}?; @status == #{s.inspect}; end
@@ -151,7 +151,7 @@ class Tupelo::Client
       @_take_nowait = nil
       @_read_nowait = nil
       @read_only = false
-      
+
       open!
 
       if deadline
@@ -160,11 +160,11 @@ class Tupelo::Client
         end
       end
     end
-    
+
     def client_id
       client.client_id
     end
-    
+
     def subspace tag
       client.subspace tag
     end
@@ -173,7 +173,7 @@ class Tupelo::Client
       if args.empty?
         @log
       else
-        @log.unknown *args
+        @log.unknown(*args)
       end
     end
 
@@ -185,9 +185,9 @@ class Tupelo::Client
         when done?
           "at global_tick: #{global_tick}"
         end
-      
+
       stat = [status, stat_extra].compact.join(" ")
-      
+
       ops = [ ["write", writes], ["pulse", pulses],
             ["take", take_templates], ["read", read_templates] ]
             ## exclude templates that were satisfied locally by writes
@@ -200,10 +200,10 @@ class Tupelo::Client
       ## show take/read tuples too?
       ## show current tick, if open or closed
       ## show nowait
-      
+
       "<#{self.class} #{stat} #{ops.join('; ')}>"
     end
-    
+
     # :section: Client methods
 
     def check_tuples tuples
@@ -233,7 +233,7 @@ class Tupelo::Client
         # to convert symbols to strings (in case of msgpack or json)
       nil
     end
-    
+
     def pulse *tuples
       check_open
       check_tuples tuples
@@ -241,7 +241,7 @@ class Tupelo::Client
       @pulses.concat tuples.map {|t| blobber.load(blobber.dump(t))}
       nil
     end
-    
+
     # raises TransactionFailure
     def take template_spec
       check_open
@@ -252,7 +252,7 @@ class Tupelo::Client
       wait
       return take_tuples_for_local.last
     end
-    
+
     def take_nowait template_spec
       check_open
       template = worker.make_template(template_spec)
@@ -265,7 +265,7 @@ class Tupelo::Client
       wait
       return take_tuples_for_local[i]
     end
-    
+
     # transaction applies only if template has a match
     def read template_spec
       if block_given?
@@ -328,7 +328,7 @@ class Tupelo::Client
     def wait
       return self if done?
       raise exception if failed?
-      
+
       log.debug {"waiting for #{inspect}"}
       @queue.pop
       log.debug {"finished waiting for #{inspect}"}
@@ -348,7 +348,7 @@ class Tupelo::Client
       wait
       granted_tuples
     end
-    
+
     class TransactionThread < Thread
       def initialize t, *args
         super(*args)
@@ -365,7 +365,7 @@ class Tupelo::Client
         begin
           val =
             if block.arity == 0
-              instance_eval &block
+              instance_eval(&block)
             else
               yield self
             end
@@ -381,7 +381,7 @@ class Tupelo::Client
     end
 
     # :section: Worker methods
-    
+
     def in_worker_thread?
       worker.in_thread?
     end
@@ -523,7 +523,7 @@ class Tupelo::Client
       ## redo the conversions etc
       return true
     end
-    
+
     def submit
       raise TransactionStateError, "must be closed" unless closed?
       raise unless in_worker_thread?
@@ -531,7 +531,7 @@ class Tupelo::Client
       @local_tick = worker.send_transaction self
       pending!
     end
-    
+
     def done global_tick, granted_tuples
       unless pending? or (closed? and read_only)
         raise TransactionStateError, "must be pending or closed+read_only"
@@ -549,17 +549,17 @@ class Tupelo::Client
     def fail missing
       raise unless in_worker_thread?
       raise if @global_tick or @exception
-      
+
       @missing = missing
       @exception = TransactionFailure
       failed!
       @queue << false
     end
-    
+
     def error ex
       raise unless in_worker_thread?
       raise if @global_tick or @exception
-      
+
       @exception = ex
       failed!
       @queue << false

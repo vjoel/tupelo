@@ -3,9 +3,9 @@ require 'funl/history-worker'
 class Tupelo::Archiver < Tupelo::Client
   class Worker < Tupelo::Client::Worker
     include Funl::HistoryWorker
-    
+
     def initialize *args, **opts
-      super *args
+      super(*args)
       @scheduled_actions = Hash.new {|h,k| h[k] = []}
       @opts = opts
     end
@@ -13,7 +13,7 @@ class Tupelo::Archiver < Tupelo::Client
     def tuplestore
       @tuplestore ||= begin
         if client.tuplestore.respond_to? :new
-          client.tuplestore.new **@opts
+          client.tuplestore.new(**@opts)
         else
           client.tuplestore
         end
@@ -81,7 +81,7 @@ class Tupelo::Archiver < Tupelo::Client
     ensure
       req.io.close
     end
-    
+
     def at_tick tick, &action
       @scheduled_actions[tick] << action
     end
@@ -99,7 +99,7 @@ class Tupelo::Archiver < Tupelo::Client
         "send_tuplestore to #{stream.peer_name} " +
         "at tick #{global_tick.inspect} " +
         (sub_delta ? " with sub_delta #{sub_delta.inspect}" : "")}
-      
+
       stream << [global_tick]
 
       ## better: make use of sub_delta["subscribed_*"] to reduce what

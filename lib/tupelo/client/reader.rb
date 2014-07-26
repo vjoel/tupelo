@@ -85,7 +85,7 @@ class Tupelo::Client
         false
       end
     end
-    
+
     def peek tuple
       queue << tuple
       once
@@ -102,10 +102,10 @@ class Tupelo::Client
       "<#{self.class}: #{template.inspect}>"
     end
   end
-  
+
   class Waiter < WaiterBase
   end
-  
+
   class Matcher < WaiterBase
     attr_reader :all # this is only cosmetic -- see #inspect
 

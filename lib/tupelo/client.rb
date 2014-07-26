@@ -13,7 +13,7 @@ module Tupelo
     attr_reader :tuplestore
 
     def initialize(tuplestore: SimpleTupleStore, subscribe: :all, **opts)
-      super **opts
+      super(**opts)
       @tuplestore = tuplestore
       @worker = make_worker
       @initial_subscriptions = subscribe || []
@@ -57,7 +57,7 @@ module Tupelo
       if args.empty?
         super()
       else
-        super().unknown *args
+        super().unknown(*args)
       end
     end
   end

@@ -14,7 +14,7 @@ module Tupelo
       # Instead of calling this method, call Client#make_scheduler.
       def initialize client, **opts
         @client = client
-        super **opts
+        super(**opts)
       end
 
       # Accepts numeric +time+ or Time instance. Logs errors that occur

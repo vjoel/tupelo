@@ -53,7 +53,7 @@ module Tupelo
         run_client client_class, **opts do |client|
           if block
             if block.arity == 0
-              client.instance_eval &block
+              client.instance_eval(&block)
             else
               yield client
             end
@@ -76,7 +76,7 @@ module Tupelo
         run_client client_class, **opts do |client|
           if block
             if block.arity == 0
-              client.instance_eval &block
+              client.instance_eval(&block)
             else
               yield client
             end

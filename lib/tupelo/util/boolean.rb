@@ -10,7 +10,7 @@ class Tupelo::Client
       templates.any? {|template| template === obj}
     end
   end
-  
+
   def or *templates
     Or.new(worker, templates)
   end

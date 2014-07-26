@@ -34,7 +34,7 @@ module Tupelo
 
     opts[:trace] = argv.delete("--trace")
     opts[:tunnel] = argv.delete("--tunnel")
-    
+
     [argv, opts]
   end
 
@@ -54,7 +54,7 @@ module Tupelo
   def self.application argv: nil,
         services_file: nil, blob_type: nil,
         seqd_addr: {}, cseqd_addr: {}, arcd_addr: {}, **opts, &block
-  
+
     unless argv
       argv, h = parse_args(ARGV)
       opts.merge! h
@@ -121,7 +121,7 @@ module Tupelo
 
       app = AppBuilder.new(ez, argv: argv.dup,
           owns_services: owns_services, tunnel_default: tunnel_default)
-      
+
       if enable_trace
         require 'tupelo/app/trace'
         app.start_trace
@@ -137,7 +137,7 @@ module Tupelo
 
       if block
         if block.arity == 0
-          app.instance_eval &block
+          app.instance_eval(&block)
         else
           yield app
         end

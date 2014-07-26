@@ -7,7 +7,7 @@ module IRB
   def IRB.parse_opts
     # Don't touch ARGV, which belongs to the app which called this module.
   end
-  
+
   def IRB.start_session(*args)
     unless $irb
       IRB.setup nil
@@ -34,7 +34,7 @@ module IRB
     trap 'INT' do
       $irb.signal_handle
     end
-    
+
     custom_configuration if defined?(IRB.custom_configuration)
 
     begin
@@ -44,7 +44,7 @@ module IRB
     ensure
       IRB.irb_at_exit
     end
-    
+
     ## might want to reset your app's interrupt handler here
   end
 end

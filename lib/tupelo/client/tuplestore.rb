@@ -31,7 +31,7 @@ class Tupelo::Client
       end
     end
   end
-  
+
   # Tuplestore that stores nothing. Very efficient for large stores!
   # Useful for clients that don't need to take or read the stored tuples.
   # The write, pulse, and blocking read operations all work correctly.
@@ -45,7 +45,7 @@ class Tupelo::Client
     def find_distinct_matches_for(*); raise; end
     def find_match_for(*); raise; end
     def clear; end
-    
+
     ## should store space metadata, so outgoing writes can be tagged
   end
 end

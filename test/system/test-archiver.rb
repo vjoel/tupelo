@@ -4,9 +4,9 @@ Tupelo.application do
   expected = [[1], [2], [3]]
 
   local do
-    write *expected
+    write(*expected)
   end
-      
+
   child_pid = child do
     # Test that tuples written before this client started are readable.
     a = read_all [Integer]

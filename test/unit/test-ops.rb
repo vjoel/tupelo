@@ -40,14 +40,14 @@ class TestOps < Minitest::Test
   def make_clients n
     n.times.map {|i| make_client i}
   end
-  
+
   def test_one_client
     client = make_client "one"
 
     client.update; writer = client.write_nowait [1]
     client.update; writer.wait
     client.update; assert_equal 1, writer.global_tick
-    
+
     reader = Fiber.new do
       client.read [nil]
     end
@@ -55,11 +55,11 @@ class TestOps < Minitest::Test
     client.update; reader.resume
     client.update; assert_equal [1], reader.resume
   end
-  
+
   def test_read_existing
     t = ["foo"]
     cl = make_clients(2)
-    
+
     w = cl[0].now {write t}
     assert_equal 1, w.global_tick
 
@@ -129,7 +129,7 @@ class TestOps < Minitest::Test
   def test_take_waiting
     t = ["bar"]
     taker, writer = make_clients(2)
-    
+
     taker.will {take [nil]}.run_until_blocked
 
     w = writer.now {write t}
@@ -142,14 +142,14 @@ class TestOps < Minitest::Test
       assert_empty c.run
     end
   end
-  
+
   def test_transaction_existing
     r = [0]; w = [1]; t = [2]
     writer, transactor = make_clients(2)
 
     w_op = writer.now {write r, t}
     assert_equal 1, w_op.global_tick
-    
+
     transactor.will do
       transaction do
         write w
@@ -164,7 +164,7 @@ class TestOps < Minitest::Test
       assert_equal [r, w], c.run
     end
   end
-  
+
   def test_transaction_waiting
     r = [0]; w = [1]; t = [2]
     writer, transactor = make_clients(2)
@@ -179,7 +179,7 @@ class TestOps < Minitest::Test
 
     w_op = writer.now {write r, t}
     assert_equal 1, w_op.global_tick
-    
+
     assert_equal [r, t], transactor.run
 
     [writer, transactor].each do |c|
@@ -187,12 +187,12 @@ class TestOps < Minitest::Test
       assert_equal [r, w], c.run
     end
   end
-  
+
   def test_transaction_take_two
     x = [0]; y = [1]
     c = make_client(1)
 
-    w_op = c.now {write x, y}
+    c.now {write x, y}
 
     c.will do
       transaction do
@@ -202,12 +202,12 @@ class TestOps < Minitest::Test
 
     assert_equal [x, y].sort, c.run.sort
   end
-  
+
   def test_transaction_take_read
     x = [0]
     c = make_client(1)
 
-    w_op = c.now {write x}
+    c.now {write x}
 
     c.will do
       transaction do
@@ -217,7 +217,7 @@ class TestOps < Minitest::Test
 
     assert_equal [x, nil], c.run
   end
-  
+
   def test_transaction_write_read
     x = [0]
     c = make_client(1)
@@ -255,7 +255,7 @@ class TestOps < Minitest::Test
     assert_equal nil, transactor.run
     assert_equal 0, transactor.worker.global_tick
   end
-  
+
   def test_transaction_cancel
     w = [1]; t = [2]
     writer, transactor = make_clients(2)
@@ -283,11 +283,11 @@ class TestOps < Minitest::Test
       assert_equal [t], c.run
     end
   end
-  
+
   def test_transaction_fail_retry
     winner, loser = make_clients(2)
     winner.now {write ["token", 1]}
-    
+
     run_count = 0
     result = nil
     loser.will do
@@ -304,7 +304,7 @@ class TestOps < Minitest::Test
     end
     loser.run_until_blocked
     assert_equal 1, run_count
-    
+
     winner.will do
       take ["token", 1]
     end
@@ -316,14 +316,14 @@ class TestOps < Minitest::Test
 
     winner.now {write ["token", 2]}
     assert_raises(MockClient::IsBlocked) {loser.run}
-    
+
     winner.now {write ["token", 1]}
     assert_equal [["token", 1], ["token", 2]], loser.run
-    
+
     result = winner.now {read_all [nil, nil]}
     assert_equal [["test", 1], ["test", 2], ["test", 3]], result
   end
-  
+
   def test_pulse
     t = ["c0"]
     reader, pulser = make_clients(2)

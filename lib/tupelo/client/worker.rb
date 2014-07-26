@@ -17,7 +17,6 @@ class Tupelo::Client
     attr_reader :msg_reader_thread
     attr_reader :worker_thread
     attr_reader :cmd_queue
-    attr_reader :tuplestore
     attr_reader :message_class
     attr_reader :blobber
     attr_reader :read_waiters
@@ -34,7 +33,7 @@ class Tupelo::Client
       def initialize writes, pulses, takes, reads
         @writes, @pulses, @takes, @reads = writes, pulses, takes, reads
       end
-      
+
       NOOP = new([].freeze, [].freeze, [].freeze, [].freeze).freeze
 
       def to_s
@@ -48,11 +47,11 @@ class Tupelo::Client
       end
       alias inspect to_s
     end
-    
+
     class Subspace
       attr_reader :tag, :spec, :pot
       alias template pot
-      
+
       def initialize metatuple, worker
         @metatuple = metatuple
         @tag = metatuple["tag"] || metatuple[:tag]
@@ -61,7 +60,7 @@ class Tupelo::Client
         @spec = Marshal.load(Marshal.dump(template)).freeze
         @pot = worker.pot_for(spec).optimize!.freeze
       end
-      
+
       def === tuple
         @pot === tuple
       end
@@ -91,16 +90,18 @@ class Tupelo::Client
       @notify_waiters = []
       @stopping = false
       @subspaces = []
+
+      @worker_thread = nil
     end
 
     def log *args
       if args.empty?
         @log
       else
-        @log.unknown *args
+        @log.unknown(*args)
       end
     end
-    
+
     def tuplestore
       @tuplestore ||= begin
         if client.tuplestore.respond_to? :new
@@ -353,7 +354,7 @@ class Tupelo::Client
         log.debug {"inserting #{op.writes}; deleting #{take_tuples}"}
         tuplestore.transaction inserts: write_tuples, deletes: take_tuples,
           tick: @global_tick
-      
+
         op.writes.each do |tuple|
           sniff_meta_tuple tuple
         end
@@ -539,7 +540,7 @@ class Tupelo::Client
           read_waiters << waiter
         end
       else
-        tuplestore.each {|tuple| waiter.gloms tuple}
+        tuplestore.each {|t| waiter.gloms t}
         read_waiters << waiter
       end
     end
@@ -582,7 +583,7 @@ class Tupelo::Client
       pulses = transaction.pulses
       takes = transaction.take_tuples_for_remote.compact
       reads = transaction.read_tuples_for_remote.compact
-      
+
       unless msg.tags
         tags = nil
         [takes, reads].compact.flatten(1).each do |tuple|

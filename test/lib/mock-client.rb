@@ -25,16 +25,16 @@ class MockClient
   def update
     worker.update
   end
-  
+
   def make_queue
     MockQueue.new
   end
-  
-  def will &block
-    (@will_do ||= []) << Fiber.new { instance_eval &block }
+
+  def will(&block)
+    (@will_do ||= []) << Fiber.new { instance_eval(&block) }
     self
   end
-  
+
   def step
     loop do
       fiber = @will_do[0] or raise IsDone, "nothing to do"
@@ -49,7 +49,7 @@ class MockClient
       @will_do.shift
     end
   end
-  
+
   def run limit: 100
     loop do
       fiber = @will_do[0] or raise IsDone, "nothing to do"
@@ -77,7 +77,7 @@ class MockClient
       @will_do.shift
     end
   end
-  
+
   def run_until_blocked limit: 100, &block
     begin
       run limit: limit, &block
@@ -86,9 +86,9 @@ class MockClient
     end
     raise IsDone, "run_until_blocked never blocked"
   end
-  
+
   def now limit: 100, &block
-    fiber = Fiber.new { instance_eval &block }
+    fiber = Fiber.new { instance_eval(&block) }
     val = nil
     count = 0
     update
@@ -106,7 +106,7 @@ class MockClient
     end
     val
   end
-  
+
   def subscribed_all
     true
   end
