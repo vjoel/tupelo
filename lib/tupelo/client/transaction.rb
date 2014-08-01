@@ -338,8 +338,9 @@ class Tupelo::Client
       log.error inspect
       raise "bug: #{inspect}"
 
-    rescue TransactionAbort, Interrupt, TimeoutError => ex ## others?
+    rescue Exception => ex
       worker_push Unwaiter.new(self)
+      cancel if open?
       cstr = "client #{client_id} (#{log.progname})"
       raise ex.class, "#{ex.message}: #{cstr} waiting for #{inspect}"
     end
